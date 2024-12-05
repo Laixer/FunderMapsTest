@@ -33,13 +33,13 @@ func (b *Building) TableName() string {
 	return "geocoder.building"
 }
 
-type Residence struct {
-	ID string `json:"id" gorm:"primaryKey"`
-	// AddressID  string  `json:"address_id"`
-	BuildingID string  `json:"building_id"`
-	Longitude  float64 `json:"longitude"`
-	Latitude   float64 `json:"latitude"`
-}
+// type Residence struct {
+// 	ID string `json:"id" gorm:"primaryKey"`
+// 	// AddressID  string  `json:"address_id"`
+// 	BuildingID string  `json:"building_id"`
+// 	Longitude  float64 `json:"longitude"`
+// 	Latitude   float64 `json:"latitude"`
+// }
 
 func GetGeocoder(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)

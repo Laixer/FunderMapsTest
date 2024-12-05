@@ -14,20 +14,22 @@ import (
 	"fundermaps/pkg/utils"
 )
 
-func Hash(c *fiber.Ctx) error {
-	type HashInput struct {
-		Password string `json:"password"`
-	}
+const JWTTokenValidity = time.Hour * 72
 
-	var input HashInput
-	if err := c.BodyParser(&input); err != nil {
-		return c.SendStatus(fiber.StatusBadRequest)
-	}
+// func Hash(c *fiber.Ctx) error {
+// 	type HashInput struct {
+// 		Password string `json:"password"`
+// 	}
 
-	hash := utils.HashPassword(input.Password)
+// 	var input HashInput
+// 	if err := c.BodyParser(&input); err != nil {
+// 		return c.SendStatus(fiber.StatusBadRequest)
+// 	}
 
-	return c.JSON(fiber.Map{"hash": hash})
-}
+// 	hash := utils.HashPassword(input.Password)
+
+// 	return c.JSON(fiber.Map{"hash": hash})
+// }
 
 func SigninWithPassword(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
@@ -56,8 +58,10 @@ func SigninWithPassword(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
 	}
 
+	// TODO: From this point on, move into a platform service
+
 	if user.AccessFailedCount >= 5 {
-		return c.Status(fiber.StatusUnauthorized).SendString("Account locked")
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
 	}
 
 	// TODO: Check if account is locked
@@ -91,7 +95,7 @@ func SigninWithPassword(c *fiber.Ctx) error {
 
 	claims := jwt.MapClaims{
 		"id":  user.ID,
-		"exp": time.Now().Add(time.Hour * 72).Unix(),
+		"exp": time.Now().Add(JWTTokenValidity).Unix(),
 	}
 
 	token, err := auth.GenerateJWT(claims)
@@ -106,8 +110,10 @@ func RefreshToken(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 	user := c.Locals("user").(database.User)
 
+	// TODO: From this point on, move into a platform service
+
 	if user.AccessFailedCount >= 5 {
-		return c.Status(fiber.StatusUnauthorized).SendString("Account locked")
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
 	}
 
 	// TODO: Check if account is locked
@@ -120,11 +126,9 @@ func RefreshToken(c *fiber.Ctx) error {
 		return nil
 	})
 
-	// TODO: Move this to auth/jwt.go
-
 	claims := jwt.MapClaims{
 		"id":  user.ID,
-		"exp": time.Now().Add(time.Hour * 72).Unix(),
+		"exp": time.Now().Add(JWTTokenValidity).Unix(),
 	}
 
 	token, err := auth.GenerateJWT(claims)
