@@ -9,6 +9,8 @@ import (
 	"fundermaps/internal/database"
 )
 
+const ApplicationID = "app-0blu4s39"
+
 func GetCurrentUser(c *fiber.Ctx) error {
 	user := c.Locals("user").(database.User)
 
@@ -66,7 +68,7 @@ func GetCurrentUserMetadata(c *fiber.Ctx) error {
 		FROM application.application_user
 		WHERE user_id = ?
 		AND application_id = ?
-		LIMIT 1`, user.ID, "app-0blu4s39").Scan(&metadata)
+		LIMIT 1`, user.ID, ApplicationID).Scan(&metadata)
 
 	return c.JSON(metadata)
 }
