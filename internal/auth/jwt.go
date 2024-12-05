@@ -2,6 +2,7 @@ package auth
 
 import "github.com/golang-jwt/jwt/v5"
 
+// TODO: Get from config
 const SecretKey = "euwbghfliwsgdlyfihaerslfhlsefhlnlrelgnrlej"
 
 func VerifyJWT(token string) (jwt.MapClaims, error) {

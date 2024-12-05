@@ -6,7 +6,7 @@ import (
 )
 
 type Incident struct {
-	ID                               string   `json:"id" gorm:"primaryKey"`
+	ID                               string   `json:"id" gorm:"primaryKey;<-:create"`
 	FoundationType                   *string  `json:"foundation_type"`
 	ChainedBuilding                  bool     `json:"chained_building"`
 	Owner                            bool     `json:"owner"`
@@ -22,6 +22,11 @@ type Incident struct {
 	FoundationDamageCharacteristics  []string `json:"foundation_damage_characteristics" gorm:"type:text[]"`
 	Building                         string   `json:"building"` // TODO: Rename to BuildingID
 	// Meta							 *string  `json:"meta"`
+}
+
+func (i *Incident) BeforeCreate(tx *gorm.DB) (err error) {
+	tx.Raw("SELECT report.fir_generate_id(?)", 99).Scan(&i.ID)
+	return nil
 }
 
 func (i *Incident) TableName() string {
@@ -41,7 +46,6 @@ func CreateIncident(c *fiber.Ctx) error {
 	}
 
 	incident := Incident{
-		ID:                               "ka-1",
 		FoundationType:                   input.FoundationType,
 		ChainedBuilding:                  input.ChainedBuilding,
 		Owner:                            input.Owner,
