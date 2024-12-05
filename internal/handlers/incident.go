@@ -77,5 +77,8 @@ func CreateIncident(c *fiber.Ctx) error {
 		})
 	}
 
+	// TODO: Upload files to S3
+	// TODO: Send email to client
+
 	return c.JSON(incident)
 }

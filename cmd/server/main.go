@@ -48,7 +48,6 @@ func main() {
 
 	auth := api.Group("/auth")
 	auth.Post("/signin", handlers.SigninWithPassword)
-	// auth.Post("/hash", handlers.Hash)
 	auth.Get("/token-refresh", middleware.AuthMiddleware, handlers.RefreshToken)
 
 	user := api.Group("/user", middleware.AuthMiddleware)
@@ -60,7 +59,7 @@ func main() {
 	admin.Post("/create-org", handlers.CreateOrganization)
 	admin.Post("/create-auth-token", handlers.CreateAuthKey)
 
-	// geocoder := api.Group("/geocoder")
+	geocoder := api.Group("/geocoder")
 	// geocoder.Get("/address/:address", handlers.GetAddress) // TODO: Maybe obsolete
 	// geocoder.Get("/building/:building", handlers.GetBuilding) // TODO: Maybe obsolete
 	// geocoder.Get("/residence/:residence", handlers.GetBuilding) // TODO: Maybe obsolete
@@ -68,7 +67,7 @@ func main() {
 	// geocoder.Get("/district/:district", handlers.GetBuilding) // TODO: Maybe obsolete
 	// geocoder.Get("/municipality/:municipality", handlers.GetBuilding) // TODO: Maybe obsolete
 	// geocoder.Get("/state/:state", handlers.GetBuilding) // TODO: Maybe obsolete
-	// geocoder.Get("/:id", handlers.GetGeocoder)
+	geocoder.Get("/:building_id", handlers.GetGeocoder)
 
 	// incident := api.Group("incident")
 	api.Post("/incident", handlers.CreateIncident)

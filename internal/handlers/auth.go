@@ -122,16 +122,15 @@ func RefreshToken(c *fiber.Ctx) error {
 
 	// TODO: Move this to auth/jwt.go
 
-	token := jwt.New(jwt.SigningMethodHS512)
+	claims := jwt.MapClaims{
+		"id":  user.ID,
+		"exp": time.Now().Add(time.Hour * 72).Unix(),
+	}
 
-	claims := token.Claims.(jwt.MapClaims)
-	claims["id"] = user.ID
-	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
-
-	t, err := token.SignedString([]byte("secret"))
+	token, err := auth.GenerateJWT(claims)
 	if err != nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
 
-	return c.JSON(fiber.Map{"token": t})
+	return c.JSON(fiber.Map{"token": token})
 }
