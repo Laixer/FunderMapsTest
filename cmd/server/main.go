@@ -53,6 +53,7 @@ func main() {
 	user := api.Group("/user", middleware.AuthMiddleware)
 	user.Get("/me", handlers.GetCurrentUser) // Return User + Organization + Organization Role
 	user.Put("/me", handlers.UpdateUser)
+	user.Get("/metadata", handlers.GetCurrentUserMetadata)
 
 	admin := api.Group("/admin", middleware.AuthMiddleware) // middleware.AdminMiddleware
 	admin.Post("/create-user", handlers.CreateUser)

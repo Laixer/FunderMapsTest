@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
@@ -46,4 +48,25 @@ func UpdateUser(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(user)
+}
+
+func GetCurrentUserMetadata(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+	user := c.Locals("user").(database.User)
+
+	type Metadata struct {
+		Metadata   string    `json:"metadata" gorm:"type:jsonb"`
+		UpdateDate time.Time `json:"update_date"`
+	}
+
+	// TODO: Use gorm instead of raw query
+	var metadata Metadata
+	db.Raw(`
+		SELECT metadata, update_date
+		FROM application.application_user
+		WHERE user_id = ?
+		AND application_id = ?
+		LIMIT 1`, user.ID, "app-0blu4s39").Scan(&metadata)
+
+	return c.JSON(metadata)
 }
