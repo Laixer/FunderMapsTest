@@ -22,7 +22,7 @@ func Load() (*Config, error) {
 	viper.SetDefault("DATABASE_URL", "postgres://postgres:password@localhost:5432/fundermaps")
 	viper.SetDefault("JWT_SECRET", utils.GenerateRandomString(32))
 
-	viper.SetEnvPrefix("FM")
+	// viper.SetEnvPrefix("FM")
 	viper.AutomaticEnv()
 
 	viper.SetConfigName("config")
