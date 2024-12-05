@@ -72,6 +72,9 @@ func main() {
 	// incident := api.Group("incident")
 	api.Post("/incident", handlers.CreateIncident)
 
+	// contractor := api.Group("contractor")
+	api.Get("/contractor", middleware.AuthMiddleware, handlers.GetAllContractors)
+
 	// TODO: Add another middleware to check if user is role 'service' or 'admin'
 	product := api.Group("v4/product", middleware.AuthMiddleware)
 	product.Get("/analysis/:building_id", handlers.GetAnalysis)
