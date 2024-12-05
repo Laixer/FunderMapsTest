@@ -36,7 +36,8 @@ func AuthMiddleware(c *fiber.Ctx) error {
 		}
 
 		// TODO: Move into database stored procedure
-		db.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'api_token', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, c.IP(), "app-0blu4s39")
+		ip := c.IPs()[0] // TODO: Add c.IP() as fallback
+		db.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'api_token', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, ip, "app-0blu4s39")
 
 		// TODO: Fetch organization and organization role
 		// TODO: Save user global role
@@ -78,7 +79,8 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	}
 
 	// TODO: Move into database stored procedure
-	db.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'jwt', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, c.IP(), "app-0blu4s39")
+	ip := c.IPs()[0] // TODO: Add c.IP() as fallback
+	db.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'jwt', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, ip, "app-0blu4s39")
 
 	// TODO: Fetch organization and organization role
 	// TODO: Save user global role
