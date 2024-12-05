@@ -70,8 +70,8 @@ func main() {
 	// geocoder.Get("/state/:state", handlers.GetBuilding) // TODO: Maybe obsolete
 	// geocoder.Get("/:id", handlers.GetGeocoder)
 
-	incident := api.Group("incident")
-	incident.Post("/create", handlers.CreateIncident)
+	// incident := api.Group("incident")
+	api.Post("/incident", handlers.CreateIncident)
 
 	// TODO: Add another middleware to check if user is role 'service' or 'admin'
 	product := api.Group("v4/product", middleware.AuthMiddleware)

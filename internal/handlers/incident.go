@@ -7,6 +7,7 @@ import (
 
 type Incident struct {
 	ID                               string   `json:"id" gorm:"primaryKey;<-:create"`
+	ClientID                         int      `json:"client_id" gorm:"-:all"`
 	FoundationType                   *string  `json:"foundation_type"`
 	ChainedBuilding                  bool     `json:"chained_building"`
 	Owner                            bool     `json:"owner"`
@@ -25,7 +26,7 @@ type Incident struct {
 }
 
 func (i *Incident) BeforeCreate(tx *gorm.DB) (err error) {
-	tx.Raw("SELECT report.fir_generate_id(?)", 99).Scan(&i.ID)
+	tx.Raw("SELECT report.fir_generate_id(?)", i.ClientID).Scan(&i.ID)
 	return nil
 }
 
@@ -45,7 +46,14 @@ func CreateIncident(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).SendString("Building ID required")
 	}
 
+	// TODO: Validate client_id, not all clients can create incidents
+
+	if input.ClientID == 0 {
+		input.ClientID = 10
+	}
+
 	incident := Incident{
+		ClientID:                         input.ClientID,
 		FoundationType:                   input.FoundationType,
 		ChainedBuilding:                  input.ChainedBuilding,
 		Owner:                            input.Owner,
