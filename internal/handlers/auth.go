@@ -87,7 +87,7 @@ func SigninWithPassword(c *fiber.Ctx) error {
 	// TODO: Move into database stored procedure
 	db.Transaction(func(tx *gorm.DB) error {
 		tx.Exec("UPDATE application.user SET access_failed_count = 0, login_count = login_count + 1, last_login = CURRENT_TIMESTAMP WHERE id = ?", user.ID)
-		tx.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'jwt', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, c.IP(), "app-0blu4s39")
+		tx.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'jwt', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, c.IPs()[0], "app-0blu4s39")
 		tx.Exec("DELETE FROM application.reset_key WHERE user_id = ?", user.ID)
 
 		return nil
@@ -120,7 +120,7 @@ func RefreshToken(c *fiber.Ctx) error {
 
 	// TODO: Move into database stored procedure
 	db.Transaction(func(tx *gorm.DB) error {
-		tx.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'jwt', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, c.IP(), "app-0blu4s39")
+		tx.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'jwt', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, c.IPs()[0], "app-0blu4s39")
 		tx.Exec("DELETE FROM application.reset_key WHERE user_id = ?", user.ID)
 
 		return nil
