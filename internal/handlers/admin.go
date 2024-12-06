@@ -11,8 +11,27 @@ import (
 )
 
 func CreateApplication(c *fiber.Ctx) error {
-	// TODO: Implement
-	return c.SendStatus(fiber.StatusNotImplemented)
+	db := c.Locals("db").(*gorm.DB)
+
+	var application database.Application
+	if err := c.BodyParser(&application); err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+
+	if application.Name == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Name required",
+		})
+	}
+
+	result := db.Create(&application)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Internal server error",
+		})
+	}
+
+	return c.JSON(application)
 }
 
 func CreateOrganization(c *fiber.Ctx) error {
@@ -124,35 +143,42 @@ func AddUserToOrganization(c *fiber.Ctx) error {
 }
 
 func AddMapsetToOrganization(c *fiber.Ctx) error {
-	// db := c.Locals("db").(*gorm.DB)
+	db := c.Locals("db").(*gorm.DB)
 
-	// type AddMapsetToOrganizationInput struct {
-	// 	MapsetID       string `json:"mapset_id"`
-	// 	OrganizationID string `json:"organization_id"`
-	// }
+	type AddMapsetToOrganizationInput struct {
+		MapsetID       string `json:"mapset_id"`
+		OrganizationID string `json:"organization_id"`
+	}
 
-	// var input AddMapsetToOrganizationInput
-	// if err := c.BodyParser(&input); err != nil {
-	// 	return c.SendStatus(fiber.StatusBadRequest)
-	// }
+	var input AddMapsetToOrganizationInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
 
-	// if input.MapsetID == "" || input.OrganizationID == "" {
-	// 	return c.Status(fiber.StatusBadRequest).SendString("Mapset ID and Organization ID required")
-	// }
+	if input.MapsetID == "" || input.OrganizationID == "" {
+		return c.Status(fiber.StatusBadRequest).SendString("Mapset ID and Organization ID required")
+	}
 
+	// TODO: Just do an insert into the database, the foreign key constraints will handle the rest
 	// var mapset database.Mapset
 	// result := db.First(&mapset, "id = ?", input.MapsetID)
 	// if result.Error != nil {
 	// 	return c.Status(fiber.StatusBadRequest).SendString("Mapset not found")
 	// }
 
-	// var org database.Organization
-	// result = db.First(&org, "id = ?", input.OrganizationID)
-	// if result.Error != nil {
-	// 	return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
-	// }
+	// TODO: Just do an insert into the database, the foreign key constraints will handle the rest
+	var org database.Organization
+	result := db.First(&org, "id = ?", input.OrganizationID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
+	}
 
-	return c.SendStatus(fiber.StatusNotImplemented)
+	result = db.Exec("INSERT INTO maplayer.map_organization (map_id, organization_id) VALUES (?, ?)", input.MapsetID, org.ID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
+	}
+
+	return c.SendStatus(fiber.StatusCreated)
 }
 
 func CreateAuthKey(c *fiber.Ctx) error {
