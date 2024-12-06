@@ -17,10 +17,33 @@ func (u *Contractor) TableName() string {
 
 // TODO: Incomplete model
 type Analysis struct {
-	NeighborhoodID   string  `json:"neighborhood_id"`
-	RestorationCosts float64 `json:"restoration_costs"`
-	Height           float64 `json:"height"`
-	Velocity         float64 `json:"velocity"`
+	BuildingID                  string   `json:"building_id" gorm:"->"`
+	NeighborhoodID              string   `json:"neighborhood_id" gorm:"->"`
+	ConstructionYear            *int     `json:"construction_year" gorm:"->"`
+	ConstructionYearReliability string   `json:"construction_year_reliability" gorm:"->"`
+	RecoveryType                *string  `json:"recovery_type" gorm:"->"`
+	RestorationCosts            *float64 `json:"restoration_costs" gorm:"->"`
+	Height                      *float64 `json:"height" gorm:"->"`
+	Velocity                    *float64 `json:"velocity" gorm:"->"`
+	GroundWaterLevel            *float64 `json:"ground_water_level" gorm:"->"`
+	GroundLevel                 *float64 `json:"ground_level" gorm:"->"`
+	Soil                        *string  `json:"soil" gorm:"->"`
+	SurfaceArea                 *float64 `json:"surface_area" gorm:"->"`
+	DamageCause                 *string  `json:"damage_cause" gorm:"->"`
+	EnforcementTerm             *string  `json:"enforcement_term" gorm:"->"`
+	OverallQuality              *string  `json:"overall_quality" gorm:"->"`
+	InquiryType                 *string  `json:"inquiry_type" gorm:"->"`
+	FoundationType              *string  `json:"foundation_type" gorm:"->"`
+	FoundationTypeReliability   string   `json:"foundation_type_reliability" gorm:"->"`
+	Drystand                    *float64 `json:"drystand" gorm:"->"`
+	DrystandReliability         string   `json:"drystand_reliability" gorm:"->"`
+	DrystandRisk                *string  `json:"drystand_risk" gorm:"->"`
+	DewateringDepth             *float64 `json:"dewatering_depth" gorm:"->"`
+	DewateringDepthReliability  string   `json:"dewatering_depth_reliability" gorm:"->"`
+	DewateringDepthRisk         *string  `json:"dewatering_depth_risk" gorm:"->"`
+	BioInfectionReliability     string   `json:"bio_infection_reliability" gorm:"->"`
+	BioInfectionRisk            *string  `json:"bio_infection_risk" gorm:"->"`
+	UnclassifiedRisk            *string  `json:"unclassified_risk" gorm:"->"`
 }
 
 func (a *Analysis) TableName() string {

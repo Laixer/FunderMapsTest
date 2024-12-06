@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -12,8 +13,15 @@ import (
 // TODO: Needs 'service' role
 func GetAnalysis(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
+	user := c.Locals("user").(database.User)
 
 	buildingID := c.Params("building_id")
+
+	if len(user.Organizations) == 0 {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"message": "Forbidden",
+		})
+	}
 
 	var analysis database.Analysis
 	result := db.First(&analysis, "external_building_id = ?", buildingID)
@@ -28,6 +36,28 @@ func GetAnalysis(c *fiber.Ctx) error {
 			"message": "Internal server error",
 		})
 	}
+
+	firstOrganization := user.Organizations[0]
+
+	var isRegistered bool
+	db.Raw(`
+		WITH register_product_request AS (
+			INSERT INTO application.product_tracker(organization_id, product, building_id, identifier)
+			SELECT ?, ?, ?, ?
+			WHERE NOT EXISTS (
+				SELECT  1
+				FROM    application.product_tracker pt
+				WHERE   pt.organization_id = ?
+				AND     pt.product = ?
+				AND     pt.identifier = ?
+				AND     pt.create_date > CURRENT_TIMESTAMP - interval '24 hours'
+			)
+			RETURNING 1
+		)
+		SELECT EXISTS (SELECT 1 FROM register_product_request) AS is_registered
+	`, firstOrganization.ID, "analysis3", analysis.BuildingID, buildingID, firstOrganization.ID, "analysis3", buildingID).Scan(&isRegistered)
+
+	fmt.Println(isRegistered)
 
 	return c.JSON(analysis)
 }

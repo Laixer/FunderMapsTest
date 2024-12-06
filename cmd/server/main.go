@@ -60,11 +60,13 @@ func main() {
 	// user.Put("/metadata", handlers.UpdateCurrentUserMetadata)
 
 	admin := api.Group("/admin", middleware.AuthMiddleware) // middleware.AdminMiddleware
+	admin.Post("/create-app", handlers.CreateApplication)
 	admin.Post("/create-user", handlers.CreateUser)
 	admin.Post("/create-org", handlers.CreateOrganization)
 	admin.Post("/create-auth-token", handlers.CreateAuthKey)
-
-	// TODO: Fetch mapsets
+	admin.Post("/add-user-to-org", handlers.AddUserToOrganization)
+	// admin.Post("/remove-user-from-org", handlers.RemoveUserFromOrganization)
+	admin.Post("/add-mapset-to-org", handlers.AddMapsetToOrganization)
 
 	geocoder := api.Group("/geocoder")
 	// geocoder.Get("/address/:address", handlers.GetAddress) // TODO: Maybe obsolete
