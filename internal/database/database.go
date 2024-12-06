@@ -14,8 +14,7 @@ func Connect(c *config.Config) (*gorm.DB, error) {
 		log.Fatal(err)
 	}
 
-	// TODO: Log to debug
-	log.Info("GORM connected to database")
+	log.Debug("GORM connected to database")
 
 	return db, err
 }

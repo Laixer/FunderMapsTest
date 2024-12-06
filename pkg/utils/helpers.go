@@ -5,6 +5,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/argon2"
@@ -55,21 +56,37 @@ func VerifyLegacyPassword(password, hash string) bool {
 	return subtle.ConstantTimeCompare(derivedKey, subkey) == 1
 }
 
-// func VerifyPassword(password, hash string) bool {
-// 	var time uint32 = 1
-// 	var memory uint32 = 64 * 1024
-// 	var threads uint8 = 4
-// 	var keyLen uint32 = 32
+func VerifyPassword(password, hash string) bool {
+	var time uint32
+	var memory uint32
+	var threads uint8
 
-// 	var salt []byte
-// 	var decodedHash []byte
+	var remaining string
+	_, err := fmt.Sscanf(hash, "$argon2id$m=%d,t=%d,p=%d$%s", &memory, &time, &threads, &remaining)
+	if err != nil {
+		return false
+	}
 
-// 	fmt.Sscanf(hash, "$argon2id$m=%d,t=%d,p=%d$%s$%s", &memory, &time, &threads, &salt, &decodedHash)
+	parts := strings.SplitN(remaining, "$", 2)
+	if len(parts) != 2 {
+		return false
+	}
+	saltBase64 := parts[0]
+	decodedHashBase64 := parts[1]
 
-// 	hashBytes, _ := base64.RawStdEncoding.DecodeString(decodedHash)
+	salt, err := base64.RawStdEncoding.DecodeString(saltBase64)
+	if err != nil {
+		return false
+	}
+	decodedHash, err := base64.RawStdEncoding.DecodeString(decodedHashBase64)
+	if err != nil {
+		return false
+	}
 
-// 	return argon2.IDKey([]byte(password), salt, time, memory, threads, keyLen) == hashBytes
-// }
+	computedHash := argon2.IDKey([]byte(password), salt, time, memory, threads, uint32(len(decodedHash)))
+
+	return subtle.ConstantTimeCompare(computedHash, decodedHash) == 1
+}
 
 func GenerateRandomString(limit int) string {
 	const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"

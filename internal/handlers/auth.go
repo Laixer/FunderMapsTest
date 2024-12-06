@@ -17,21 +17,6 @@ import (
 
 const JWTTokenValidity = time.Hour * 72
 
-// func Hash(c *fiber.Ctx) error {
-// 	type HashInput struct {
-// 		Password string `json:"password"`
-// 	}
-
-// 	var input HashInput
-// 	if err := c.BodyParser(&input); err != nil {
-// 		return c.SendStatus(fiber.StatusBadRequest)
-// 	}
-
-// 	hash := utils.HashPassword(input.Password)
-
-// 	return c.JSON(fiber.Map{"hash": hash})
-// }
-
 func SigninWithPassword(c *fiber.Ctx) error {
 	cfg := c.Locals("config").(*config.Config)
 	db := c.Locals("db").(*gorm.DB)
@@ -69,18 +54,15 @@ func SigninWithPassword(c *fiber.Ctx) error {
 	// TODO: Check if account is locked
 
 	if strings.HasPrefix(user.PasswordHash, "$argon2id$") {
-		// if !utils.CheckPasswordHash(input.Password, user.PasswordHash) {
-		//  // TODO: Increment access failed count
-		// 	return c.Status(fiber.StatusUnauthorized).SendString("Invalid credentials")
-		// }
-		return c.Status(fiber.StatusNotImplemented).SendString("Not implemented")
+		if !utils.VerifyPassword(input.Password, user.PasswordHash) {
+			// TODO: Increment access failed count
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
+		}
 	} else {
 		if !utils.VerifyLegacyPassword(input.Password, user.PasswordHash) {
 			// TODO: Increment access failed count
-			return c.Status(fiber.StatusUnauthorized).SendString("Invalid credentials")
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
 		}
-
-		// TODO: Trigger password change if legacy password
 	}
 
 	ip := c.IP()
@@ -177,15 +159,14 @@ func ChangePassword(c *fiber.Ctx) error {
 	// TODO: Check if account is locked
 
 	if strings.HasPrefix(user.PasswordHash, "$argon2id$") {
-		// if !utils.CheckPasswordHash(input.Password, user.PasswordHash) {
-		//  // TODO: Increment access failed count
-		// 	return c.Status(fiber.StatusUnauthorized).SendString("Invalid credentials")
-		// }
-		return c.Status(fiber.StatusNotImplemented).SendString("Not implemented")
+		if !utils.VerifyPassword(input.CurrentPassword, user.PasswordHash) {
+			// TODO: Increment access failed count
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
+		}
 	} else {
 		if !utils.VerifyLegacyPassword(input.CurrentPassword, user.PasswordHash) {
 			// TODO: Increment access failed count
-			return c.Status(fiber.StatusUnauthorized).SendString("Invalid credentials")
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
 		}
 	}
 
