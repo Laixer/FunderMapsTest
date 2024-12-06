@@ -79,6 +79,7 @@ func main() {
 	// api.Get("/incident", middleware.AuthMiddleware, handlers.GetIncident)
 	api.Post("/incident", handlers.CreateIncident)
 	api.Get("/contractor", middleware.AuthMiddleware, handlers.GetAllContractors)
+	api.Get("/mapset/:mapset_id?", middleware.AuthMiddleware, handlers.GetMapset)
 
 	// TODO: Add another middleware to check if user is role 'service' or 'admin'
 	product := api.Group("v4/product", middleware.AuthMiddleware)
