@@ -25,6 +25,8 @@ func Load() (*Config, error) {
 
 	viper.AutomaticEnv()
 
+	viper.BindEnv("APP_ID")
+
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
