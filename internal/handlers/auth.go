@@ -32,7 +32,7 @@ func SigninWithPassword(c *fiber.Ctx) error {
 	}
 
 	if input.Email == "" || input.Password == "" {
-		return c.Status(fiber.StatusBadRequest).SendString("Email and password required")
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Email and password required"})
 	}
 
 	var user database.User
@@ -40,9 +40,9 @@ func SigninWithPassword(c *fiber.Ctx) error {
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return c.Status(fiber.StatusUnauthorized).SendString("Invalid credentials")
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
 		}
-		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	// TODO: From this point on, move into a platform service
@@ -50,8 +50,6 @@ func SigninWithPassword(c *fiber.Ctx) error {
 	if user.AccessFailedCount >= 5 {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
 	}
-
-	// TODO: Check if account is locked
 
 	if strings.HasPrefix(user.PasswordHash, "$argon2id$") {
 		if !utils.VerifyPassword(input.Password, user.PasswordHash) {
@@ -103,8 +101,6 @@ func RefreshToken(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
 	}
 
-	// TODO: Check if account is locked
-
 	ip := c.IP()
 	if len(c.IPs()) > 1 {
 		ip = c.IPs()[0]
@@ -147,7 +143,7 @@ func ChangePassword(c *fiber.Ctx) error {
 	}
 
 	if input.CurrentPassword == "" || input.NewPassword == "" {
-		return c.Status(fiber.StatusBadRequest).SendString("Current and new password required")
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Current password and new password required"})
 	}
 
 	// TODO: From this point on, move into a platform service
@@ -155,8 +151,6 @@ func ChangePassword(c *fiber.Ctx) error {
 	if user.AccessFailedCount >= 5 {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
 	}
-
-	// TODO: Check if account is locked
 
 	if strings.HasPrefix(user.PasswordHash, "$argon2id$") {
 		if !utils.VerifyPassword(input.CurrentPassword, user.PasswordHash) {
