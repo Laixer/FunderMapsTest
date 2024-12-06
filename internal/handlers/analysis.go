@@ -57,7 +57,7 @@ func GetAnalysis(c *fiber.Ctx) error {
 		SELECT EXISTS (SELECT 1 FROM register_product_request) AS is_registered
 	`, firstOrganization.ID, "analysis3", analysis.BuildingID, buildingID, firstOrganization.ID, "analysis3", buildingID).Scan(&isRegistered)
 
-	fmt.Println(isRegistered)
+	c.Set("X-Product-Registered", fmt.Sprintf("%t", isRegistered))
 
 	return c.JSON(analysis)
 }
