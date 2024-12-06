@@ -59,14 +59,14 @@ func main() {
 	user.Get("/metadata", handlers.GetCurrentUserMetadata)
 	// user.Put("/metadata", handlers.UpdateCurrentUserMetadata)
 
-	admin := api.Group("/admin", middleware.AuthMiddleware) // middleware.AdminMiddleware
-	admin.Post("/create-app", handlers.CreateApplication)
-	admin.Post("/create-user", handlers.CreateUser)
-	admin.Post("/create-org", handlers.CreateOrganization)
-	admin.Post("/create-auth-token", handlers.CreateAuthKey)
-	admin.Post("/add-user-to-org", handlers.AddUserToOrganization)
-	// admin.Post("/remove-user-from-org", handlers.RemoveUserFromOrganization)
-	admin.Post("/add-mapset-to-org", handlers.AddMapsetToOrganization)
+	management := api.Group("/v1/management", middleware.AuthMiddleware) // middleware.AdminMiddleware
+	management.Post("/create-app", handlers.CreateApplication)
+	management.Post("/create-user", handlers.CreateUser)
+	management.Post("/create-org", handlers.CreateOrganization)
+	management.Post("/create-auth-token", handlers.CreateAuthKey)
+	management.Post("/add-user-to-org", handlers.AddUserToOrganization)
+	// management.Post("/remove-user-from-org", handlers.RemoveUserFromOrganization)
+	management.Post("/add-mapset-to-org", handlers.AddMapsetToOrganization)
 
 	geocoder := api.Group("/geocoder")
 	// geocoder.Get("/address/:address", handlers.GetAddress) // TODO: Maybe obsolete
@@ -84,7 +84,7 @@ func main() {
 	api.Get("/mapset/:mapset_id?", middleware.AuthMiddleware, handlers.GetMapset)
 
 	// TODO: Add another middleware to check if user is role 'service' or 'admin'
-	product := api.Group("v4/product", middleware.AuthMiddleware)
+	product := api.Group("/v4/product", middleware.AuthMiddleware)
 	product.Get("/analysis/:building_id", handlers.GetAnalysis)
 	product.Get("/statistics/:building_id", handlers.GetAnalysis)
 
