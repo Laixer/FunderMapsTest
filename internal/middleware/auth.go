@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 
 	"fundermaps/internal/auth"
+	"fundermaps/internal/config"
 	"fundermaps/internal/database"
 )
 
@@ -20,7 +21,13 @@ const (
 )
 
 func AuthMiddleware(c *fiber.Ctx) error {
+	cfg := c.Locals("config").(*config.Config)
 	db := c.Locals("db").(*gorm.DB)
+
+	ip := c.IP()
+	if len(c.IPs()) > 1 {
+		ip = c.IPs()[0]
+	}
 
 	xAPIKey := c.Get(HeaderXAPIKey)
 	if xAPIKey != "" {
@@ -36,8 +43,7 @@ func AuthMiddleware(c *fiber.Ctx) error {
 		}
 
 		// TODO: Move into database stored procedure
-		ip := c.IPs()[0] // TODO: Add c.IP() as fallback
-		db.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'api_token', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, ip, "app-0blu4s39")
+		db.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'api_token', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, ip, cfg.ApplicationID)
 
 		// TODO: Fetch organization and organization role
 		// TODO: Save user global role
@@ -79,8 +85,7 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	}
 
 	// TODO: Move into database stored procedure
-	ip := c.IPs()[0] // TODO: Add c.IP() as fallback
-	db.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'jwt', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, ip, "app-0blu4s39")
+	db.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'jwt', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, ip, cfg.ApplicationID)
 
 	// TODO: Fetch organization and organization role
 	// TODO: Save user global role
