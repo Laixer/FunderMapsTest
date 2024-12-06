@@ -44,21 +44,27 @@ func main() {
 	})
 
 	api := app.Group("/api")
-	api.Get("/app/:application_id", handlers.GetApplication)
+	api.Get("/app/:application_id", handlers.GetApplication) // TODO: Make the parameter optional
 
 	auth := api.Group("/auth")
 	auth.Post("/signin", handlers.SigninWithPassword)
 	auth.Get("/token-refresh", middleware.AuthMiddleware, handlers.RefreshToken)
+	// auth.Post("/change-password", middleware.AuthMiddleware, handlers.ChangePassword)
+	// auth.Post("/forgot-password", handlers.ForgotPassword)
+	// auth.Post("/reset-password", handlers.ResetPassword)
 
 	user := api.Group("/user", middleware.AuthMiddleware)
 	user.Get("/me", handlers.GetCurrentUser) // Return User + Organization + Organization Role
-	user.Put("/me", handlers.UpdateUser)
+	user.Put("/me", handlers.UpdateCurrentUser)
 	user.Get("/metadata", handlers.GetCurrentUserMetadata)
+	// user.Put("/metadata", handlers.UpdateCurrentUserMetadata)
 
 	admin := api.Group("/admin", middleware.AuthMiddleware) // middleware.AdminMiddleware
 	admin.Post("/create-user", handlers.CreateUser)
 	admin.Post("/create-org", handlers.CreateOrganization)
 	admin.Post("/create-auth-token", handlers.CreateAuthKey)
+
+	// TODO: Fetch mapsets
 
 	geocoder := api.Group("/geocoder")
 	// geocoder.Get("/address/:address", handlers.GetAddress) // TODO: Maybe obsolete
@@ -70,10 +76,8 @@ func main() {
 	// geocoder.Get("/state/:state", handlers.GetBuilding) // TODO: Maybe obsolete
 	geocoder.Get("/:building_id", handlers.GetGeocoder)
 
-	// incident := api.Group("incident")
+	// api.Get("/incident", middleware.AuthMiddleware, handlers.GetIncident)
 	api.Post("/incident", handlers.CreateIncident)
-
-	// contractor := api.Group("contractor")
 	api.Get("/contractor", middleware.AuthMiddleware, handlers.GetAllContractors)
 
 	// TODO: Add another middleware to check if user is role 'service' or 'admin'
@@ -82,7 +86,6 @@ func main() {
 	product.Get("/statistics/:building_id", handlers.GetAnalysis)
 
 	test := api.Group("/test")
-	// test.Get("/db-test", handlers.GetAllContractors)
 	// test.Get("/:short_code", handlers.GetRewriteUrl)
 	test.Post("/mail", func(c *fiber.Ctx) error {
 		type EmailInput struct {

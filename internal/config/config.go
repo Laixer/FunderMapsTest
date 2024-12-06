@@ -43,5 +43,9 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
+	if cfg.ApplicationID == "" {
+		return nil, fmt.Errorf("missing application ID")
+	}
+
 	return &cfg, nil
 }

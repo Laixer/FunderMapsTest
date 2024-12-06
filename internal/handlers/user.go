@@ -17,7 +17,7 @@ func GetCurrentUser(c *fiber.Ctx) error {
 	return c.JSON(user)
 }
 
-func UpdateUser(c *fiber.Ctx) error {
+func UpdateCurrentUser(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 	user := c.Locals("user").(database.User)
 
