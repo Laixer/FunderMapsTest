@@ -10,7 +10,6 @@ import (
 	"fundermaps/internal/database"
 )
 
-// TODO: Needs 'service' role
 func GetAnalysis(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 	user := c.Locals("user").(database.User)

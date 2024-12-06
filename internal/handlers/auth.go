@@ -80,10 +80,7 @@ func SigninWithPassword(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusUnauthorized).SendString("Invalid credentials")
 		}
 
-		// TODO: Update password hash to new format
-		// hash := utils.HashPassword(input.Password)
-		// config.DB.Exec("UPDATE application.user SET password_hash = ? WHERE id = ?", hash, user.ID)
-		// fmt.Println("New password hash", hash)
+		// TODO: Trigger password change if legacy password
 	}
 
 	ip := c.IP()
@@ -150,4 +147,63 @@ func RefreshToken(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"token": token})
+}
+
+func ChangePassword(c *fiber.Ctx) error {
+	cfg := c.Locals("config").(*config.Config)
+	db := c.Locals("db").(*gorm.DB)
+	user := c.Locals("user").(database.User)
+
+	type ChangePasswordInput struct {
+		CurrentPassword string `json:"current_password"`
+		NewPassword     string `json:"new_password"`
+	}
+
+	var input ChangePasswordInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+
+	if input.CurrentPassword == "" || input.NewPassword == "" {
+		return c.Status(fiber.StatusBadRequest).SendString("Current and new password required")
+	}
+
+	// TODO: From this point on, move into a platform service
+
+	if user.AccessFailedCount >= 5 {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
+	}
+
+	// TODO: Check if account is locked
+
+	if strings.HasPrefix(user.PasswordHash, "$argon2id$") {
+		// if !utils.CheckPasswordHash(input.Password, user.PasswordHash) {
+		//  // TODO: Increment access failed count
+		// 	return c.Status(fiber.StatusUnauthorized).SendString("Invalid credentials")
+		// }
+		return c.Status(fiber.StatusNotImplemented).SendString("Not implemented")
+	} else {
+		if !utils.VerifyLegacyPassword(input.CurrentPassword, user.PasswordHash) {
+			// TODO: Increment access failed count
+			return c.Status(fiber.StatusUnauthorized).SendString("Invalid credentials")
+		}
+	}
+
+	hash := utils.HashPassword(input.NewPassword)
+
+	ip := c.IP()
+	if len(c.IPs()) > 1 {
+		ip = c.IPs()[0]
+	}
+
+	// TODO: Move into database stored procedure
+	db.Transaction(func(tx *gorm.DB) error {
+		tx.Exec("UPDATE application.user SET password_hash = ?, access_failed_count = 0, login_count = login_count + 1, last_login = CURRENT_TIMESTAMP WHERE id = ?", hash, user.ID)
+		tx.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'jwt', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, ip, cfg.ApplicationID)
+		tx.Exec("DELETE FROM application.reset_key WHERE user_id = ?", user.ID)
+
+		return nil
+	})
+
+	return c.SendStatus(fiber.StatusNoContent)
 }

@@ -49,7 +49,7 @@ func main() {
 	auth := api.Group("/auth")
 	auth.Post("/signin", handlers.SigninWithPassword)
 	auth.Get("/token-refresh", middleware.AuthMiddleware, handlers.RefreshToken)
-	// auth.Post("/change-password", middleware.AuthMiddleware, handlers.ChangePassword)
+	auth.Post("/change-password", middleware.AuthMiddleware, handlers.ChangePassword)
 	// auth.Post("/forgot-password", handlers.ForgotPassword)
 	// auth.Post("/reset-password", handlers.ResetPassword)
 
@@ -78,12 +78,12 @@ func main() {
 	// geocoder.Get("/state/:state", handlers.GetBuilding) // TODO: Maybe obsolete
 	geocoder.Get("/:building_id", handlers.GetGeocoder)
 
+	// TODO: Needs 'user,admin' role
 	// api.Get("/incident", middleware.AuthMiddleware, handlers.GetIncident)
 	api.Post("/incident", handlers.CreateIncident)
 	api.Get("/contractor", middleware.AuthMiddleware, handlers.GetAllContractors)
 	api.Get("/mapset/:mapset_id?", middleware.AuthMiddleware, handlers.GetMapset)
 
-	// TODO: Add another middleware to check if user is role 'service' or 'admin'
 	product := api.Group("/v4/product", middleware.AuthMiddleware)
 	product.Get("/analysis/:building_id", handlers.GetAnalysis)
 	product.Get("/statistics/:building_id", handlers.GetAnalysis)
