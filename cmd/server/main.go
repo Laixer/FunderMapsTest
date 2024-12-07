@@ -54,7 +54,10 @@ func main() {
 		return c.Next()
 	})
 
-	app.Use(logger.New())
+	// TODO: We might want different loggers for different routes
+	app.Use(logger.New(logger.Config{
+		Format: "${status} | ${latency} | ${ip} | ${method} | ${path}\n",
+	}))
 
 	api := app.Group("/api")
 	api.Get("/app/:application_id", handlers.GetApplication) // TODO: Make the parameter optional
