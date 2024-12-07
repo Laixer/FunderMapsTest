@@ -56,12 +56,13 @@ func main() {
 
 	// TODO: We might want different loggers for different routes
 	app.Use(logger.New(logger.Config{
-		Format: "${status} | ${latency} | ${ip} | ${method} | ${path}\n",
+		Format: "${method} | ${status} | ${latency} | ${ip} | ${path}\n",
 	}))
 
 	api := app.Group("/api")
 	api.Get("/app/:application_id", handlers.GetApplication) // TODO: Make the parameter optional
 
+	// TODO: Add the limiter middleware
 	auth := api.Group("/auth")
 	auth.Post("/signin", handlers.SigninWithPassword)
 	auth.Get("/token-refresh", middleware.AuthMiddleware, handlers.RefreshToken)
@@ -84,7 +85,10 @@ func main() {
 	// management.Post("/remove-user-from-org", handlers.RemoveUserFromOrganization)
 	management.Post("/add-mapset-to-org", handlers.AddMapsetToOrganization)
 
-	geocoder := api.Group("/geocoder")
+	geocoder := api.Group("/geocoder", func(c *fiber.Ctx) error {
+		c.Set(fiber.HeaderCacheControl, "public, max-age=86400")
+		return c.Next()
+	})
 	geocoder.Get("/:building_id", handlers.GetGeocoder)
 
 	// TODO: Needs 'user,admin' role
