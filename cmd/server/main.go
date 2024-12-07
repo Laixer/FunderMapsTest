@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/favicon"
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 
@@ -35,12 +36,15 @@ func main() {
 	app.Use(compress.New())
 	app.Use(helmet.New())
 	app.Use(recover.New())
-	app.Use(requestid.New())
+	app.Use(requestid.New()) // TODO: Only need this for the external API
+	app.Use(logger.New())
+
 	app.Use(healthcheck.New())
 	app.Use(favicon.New(favicon.Config{
 		File: "./static/favicon.ico",
 	}))
 
+	// TODO: Maybe move into middleware
 	app.Get("/robots.txt", func(c *fiber.Ctx) error {
 		c.Set(fiber.HeaderCacheControl, "public, max-age=86400")
 		return c.SendFile("./static/robots.txt")
@@ -130,7 +134,9 @@ func main() {
 	})
 
 	app.Use(func(c *fiber.Ctx) error {
-		return c.SendStatus(fiber.StatusNotFound)
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Not Found",
+		})
 	})
 
 	log.Fatal(app.Listen(fmt.Sprintf(":%d", cfg.ServerPort)))
