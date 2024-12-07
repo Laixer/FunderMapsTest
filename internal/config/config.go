@@ -3,10 +3,13 @@ package config
 import (
 	"fmt"
 
+	"github.com/go-playground/validator"
 	"github.com/spf13/viper"
 
 	"fundermaps/pkg/utils"
 )
+
+var Validate *validator.Validate
 
 type Config struct {
 	ServerPort     int    `mapstructure:"SERVER_PORT"`
@@ -46,6 +49,9 @@ func Load() (*Config, error) {
 	if cfg.ApplicationID == "" {
 		return nil, fmt.Errorf("missing application ID")
 	}
+
+	// TODO: Move this to somewhere else
+	Validate = validator.New()
 
 	return &cfg, nil
 }

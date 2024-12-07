@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
+	"fundermaps/internal/config"
 	"fundermaps/internal/database"
 	"fundermaps/pkg/utils"
 )
@@ -69,17 +70,22 @@ func CreateUser(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
 	type UserInput struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Email    string `json:"email" validate:"required,email"`
+		Password string `json:"password" validate:"required,min=6"`
 	}
 
 	var input UserInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.SendStatus(fiber.StatusBadRequest)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid input",
+		})
 	}
 
-	if input.Email == "" || input.Password == "" {
-		return c.Status(fiber.StatusBadRequest).SendString("Email and password required")
+	err := config.Validate.Struct(input)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": err.Error(),
+		})
 	}
 
 	user := database.User{

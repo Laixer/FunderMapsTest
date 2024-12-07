@@ -22,17 +22,22 @@ func SigninWithPassword(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
 	type LoginInput struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Email    string `json:"email" validate:"required,email"`
+		Password string `json:"password" validate:"required"`
 	}
 
 	var input LoginInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.SendStatus(fiber.StatusBadRequest)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid input",
+		})
 	}
 
-	if input.Email == "" || input.Password == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Email and password required"})
+	err := config.Validate.Struct(input)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": err.Error(),
+		})
 	}
 
 	var user database.User
@@ -133,17 +138,22 @@ func ChangePassword(c *fiber.Ctx) error {
 	user := c.Locals("user").(database.User)
 
 	type ChangePasswordInput struct {
-		CurrentPassword string `json:"current_password"`
-		NewPassword     string `json:"new_password"`
+		CurrentPassword string `json:"current_password" validate:"required"`
+		NewPassword     string `json:"new_password" validate:"required,min=6"`
 	}
 
 	var input ChangePasswordInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.SendStatus(fiber.StatusBadRequest)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid input",
+		})
 	}
 
-	if input.CurrentPassword == "" || input.NewPassword == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Current password and new password required"})
+	err := config.Validate.Struct(input)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": err.Error(),
+		})
 	}
 
 	// TODO: From this point on, move into a platform service

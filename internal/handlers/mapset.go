@@ -31,8 +31,6 @@ func (u *Mapset) TableName() string {
 func GetMapset(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
-	// db = db.Debug()
-
 	mapsetID := c.Params("mapset_id")
 
 	if strings.HasPrefix(mapsetID, "cl") || strings.HasPrefix(mapsetID, "ck") {

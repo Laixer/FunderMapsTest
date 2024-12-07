@@ -15,7 +15,7 @@ func (u *Contractor) TableName() string {
 	return "application.contractor"
 }
 
-// TODO: Incomplete model
+// TODO: Add custom types for the database data types
 type Analysis struct {
 	BuildingID                  string   `json:"building_id" gorm:"->"`
 	NeighborhoodID              string   `json:"neighborhood_id" gorm:"->"`
