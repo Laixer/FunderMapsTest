@@ -34,10 +34,8 @@ func main() {
 	app := fiber.New()
 
 	app.Use(compress.New())
-	app.Use(helmet.New())
+	app.Use(helmet.New()) // TODO: We only need this for internal routes
 	app.Use(recover.New())
-	app.Use(requestid.New()) // TODO: Only need this for the external API
-	app.Use(logger.New())
 
 	app.Use(healthcheck.New())
 	app.Use(favicon.New(favicon.Config{
@@ -55,6 +53,8 @@ func main() {
 		c.Locals("db", db)
 		return c.Next()
 	})
+
+	app.Use(logger.New())
 
 	api := app.Group("/api")
 	api.Get("/app/:application_id", handlers.GetApplication) // TODO: Make the parameter optional
@@ -82,13 +82,6 @@ func main() {
 	management.Post("/add-mapset-to-org", handlers.AddMapsetToOrganization)
 
 	geocoder := api.Group("/geocoder")
-	// geocoder.Get("/address/:address", handlers.GetAddress) // TODO: Maybe obsolete
-	// geocoder.Get("/building/:building", handlers.GetBuilding) // TODO: Maybe obsolete
-	// geocoder.Get("/residence/:residence", handlers.GetBuilding) // TODO: Maybe obsolete
-	// geocoder.Get("/neighborhood/:neighborhood", handlers.GetBuilding) // TODO: Maybe obsolete
-	// geocoder.Get("/district/:district", handlers.GetBuilding) // TODO: Maybe obsolete
-	// geocoder.Get("/municipality/:municipality", handlers.GetBuilding) // TODO: Maybe obsolete
-	// geocoder.Get("/state/:state", handlers.GetBuilding) // TODO: Maybe obsolete
 	geocoder.Get("/:building_id", handlers.GetGeocoder)
 
 	// TODO: Needs 'user,admin' role
@@ -97,7 +90,7 @@ func main() {
 	api.Get("/contractor", middleware.AuthMiddleware, handlers.GetAllContractors)
 	api.Get("/mapset/:mapset_id?", middleware.AuthMiddleware, handlers.GetMapset)
 
-	product := api.Group("/v4/product", middleware.AuthMiddleware)
+	product := api.Group("/v4/product", middleware.AuthMiddleware, requestid.New())
 	product.Get("/analysis/:building_id", handlers.GetAnalysis)
 	product.Get("/statistics/:building_id", handlers.GetAnalysis)
 
