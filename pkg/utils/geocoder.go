@@ -27,6 +27,10 @@ const (
 	NlBagLegacyAddress
 	NlBagLegacyBerth
 	NlBagLegacyPosting
+	NlBagLegacyBuildingShort
+	NlBagLegacyAddressShort
+	NlBagLegacyBerthShort
+	NlBagLegacyPostingShort
 )
 
 var postcodeRegex = regexp.MustCompile(`^\d{4}[a-zA-Z]{2}$`)
@@ -54,14 +58,15 @@ func FromIdentifier(input string) GeocoderDatasource {
 		return NlBagLegacyBerth
 	case len(input) == 16 && input[4:6] == "03":
 		return NlBagLegacyPosting
+
 	case len(input) == 15 && input[3:5] == "10":
-		return NlBagLegacyBuilding
+		return NlBagLegacyBuildingShort
 	case len(input) == 15 && input[3:5] == "20":
-		return NlBagLegacyAddress
+		return NlBagLegacyAddressShort
 	case len(input) == 15 && input[3:5] == "02":
-		return NlBagLegacyBerth
+		return NlBagLegacyBerthShort
 	case len(input) == 15 && input[3:5] == "03":
-		return NlBagLegacyPosting
+		return NlBagLegacyPostingShort
 
 	case strings.HasPrefix(input, "GFM-"):
 		return FunderMaps

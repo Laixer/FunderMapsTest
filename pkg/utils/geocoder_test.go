@@ -27,6 +27,8 @@ func TestFromIdentifier(t *testing.T) {
 		{"0355200000831937", NlBagLegacyAddress},
 		// {"123402abcdef", NlBagLegacyBerth},
 		// {"123403abcdef", NlBagLegacyPosting},
+		{"676100000537771", NlBagLegacyBuildingShort},
+		{"355200000831937", NlBagLegacyAddressShort},
 		{"abcdef", Unknown},
 	}
 
