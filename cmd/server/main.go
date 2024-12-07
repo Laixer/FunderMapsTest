@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
+	"github.com/gofiber/fiber/v2/middleware/favicon"
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -36,6 +37,9 @@ func main() {
 	app.Use(recover.New())
 	app.Use(requestid.New())
 	app.Use(healthcheck.New())
+	app.Use(favicon.New(favicon.Config{
+		File: "./static/favicon.ico",
+	}))
 
 	app.Use(func(c *fiber.Ctx) error {
 		c.Locals("config", cfg)
