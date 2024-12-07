@@ -15,6 +15,7 @@ import (
 	"fundermaps/pkg/utils"
 )
 
+// TODO: Move into config
 const JWTTokenValidity = time.Hour * 72
 
 func SigninWithPassword(c *fiber.Ctx) error {

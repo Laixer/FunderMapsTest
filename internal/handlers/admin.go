@@ -14,9 +14,13 @@ import (
 func CreateApplication(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
+	// TODO: Define a struct for the input
+
 	var application database.Application
 	if err := c.BodyParser(&application); err != nil {
-		return c.SendStatus(fiber.StatusBadRequest)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid input",
+		})
 	}
 
 	if application.Name == "" {
@@ -44,7 +48,9 @@ func CreateOrganization(c *fiber.Ctx) error {
 
 	var input OrganizationInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.SendStatus(fiber.StatusBadRequest)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid input",
+		})
 	}
 
 	if input.Name == "" {
@@ -115,7 +121,9 @@ func AddUserToOrganization(c *fiber.Ctx) error {
 
 	var input AddUserToOrganizationInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.SendStatus(fiber.StatusBadRequest)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid input",
+		})
 	}
 
 	if input.UserID == "" || input.OrganizationID == "" {
@@ -152,13 +160,15 @@ func AddMapsetToOrganization(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
 	type AddMapsetToOrganizationInput struct {
-		MapsetID       string `json:"mapset_id"`
+		MapsetID       string `json:"mapset_id" validate:"required"`
 		OrganizationID string `json:"organization_id"`
 	}
 
 	var input AddMapsetToOrganizationInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.SendStatus(fiber.StatusBadRequest)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid input",
+		})
 	}
 
 	if input.MapsetID == "" || input.OrganizationID == "" {
@@ -196,7 +206,9 @@ func CreateAuthKey(c *fiber.Ctx) error {
 
 	var input APITokenInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.SendStatus(fiber.StatusBadRequest)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid input",
+		})
 	}
 
 	if input.UserID == "" {

@@ -9,6 +9,7 @@ import (
 	"fundermaps/pkg/utils"
 )
 
+// TODO: Move into a separate package
 var Validate *validator.Validate
 
 type Config struct {
