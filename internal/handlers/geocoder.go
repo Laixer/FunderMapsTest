@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"errors"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
+
+	"fundermaps/pkg/utils"
 )
 
 type Building struct {
@@ -26,37 +27,56 @@ func GetGeocoder(c *fiber.Ctx) error {
 	// TODO: Not always a building_id
 	BuildingID := c.Params("building_id")
 
-	var building Building
+	// TODO: Move into a platform service
+	getBuilding := func(BuildingID string) (Building, error) {
+		switch utils.FromIdentifier(BuildingID) {
+		case utils.NlBagBuilding:
+			var building Building
 
-	// TODO: There are other types of building IDs
-	if strings.HasPrefix(BuildingID, "NL.IMBAG.NUMMERAANDUIDING") {
-		result := db.Joins("JOIN geocoder.address ON geocoder.address.building_id = geocoder.building.id").
-			Where("geocoder.address.external_id = ?", BuildingID).
-			First(&building)
+			result := db.First(&building, "external_id = ?", BuildingID)
+			return building, result.Error
 
-		if result.Error != nil {
-			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-				return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-					"message": "Building not found",
-				})
-			}
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "Internal server error",
+		case utils.NlBagLegacyBuilding:
+			var building Building
+
+			result := db.First(&building, "external_id = 'NL.IMBAG.PAND.' || ?", BuildingID)
+			return building, result.Error
+
+		case utils.NlBagAddress:
+			var building Building
+
+			result := db.Joins("JOIN geocoder.address ON geocoder.address.building_id = geocoder.building.id").
+				Where("geocoder.address.external_id = ?", BuildingID).
+				First(&building)
+			return building, result.Error
+
+		case utils.NlBagLegacyAddress:
+			var building Building
+
+			result := db.Joins("JOIN geocoder.address ON geocoder.address.building_id = geocoder.building.id").
+				Where("geocoder.address.external_id = 'NL.IMBAG.NUMMERAANDUIDING.' || ?", BuildingID).
+				First(&building)
+			return building, result.Error
+		}
+
+		return Building{}, errors.New("unknown geocoder identifier")
+	}
+
+	building, err := getBuilding(BuildingID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"message": "Building not found",
+			})
+			// TODO: This is ugly
+		} else if err.Error() == "unknown geocoder identifier" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "Unknown geocoder identifier",
 			})
 		}
-	} else {
-		result := db.First(&building, "external_id = ?", BuildingID)
-
-		if result.Error != nil {
-			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-				return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-					"message": "Building not found",
-				})
-			}
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "Internal server error",
-			})
-		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Internal server error",
+		})
 	}
 
 	return c.JSON(building)
