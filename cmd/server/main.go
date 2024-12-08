@@ -31,7 +31,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		EnableTrustedProxyCheck: true,
+		TrustedProxies:          []string{"10.0.0.0/8"},
+	})
 
 	app.Use(compress.New())
 	app.Use(helmet.New()) // TODO: We only need this for internal routes
