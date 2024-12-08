@@ -31,11 +31,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// TODO: All of this proxy stuff should be configurable
 	app := fiber.New(fiber.Config{
 		EnableTrustedProxyCheck: true,
 		TrustedProxies:          []string{"10.0.0.0/8"},
-		// TrustedProxies: []string{"10.244.4.113"},
-		ProxyHeader: "X-Forwarded-For",
+		ProxyHeader:             "Do-Connecting-Ip",
 	})
 
 	app.Use(compress.New())
@@ -112,9 +112,6 @@ func main() {
 	test := api.Group("/test")
 	test.Get("/dump", func(c *fiber.Ctx) error {
 		headers := c.GetReqHeaders()
-
-		fmt.Println(headers)
-
 		return c.JSON(headers)
 	})
 	// test.Get("/:short_code", handlers.GetRewriteUrl)
