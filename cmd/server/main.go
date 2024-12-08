@@ -59,7 +59,10 @@ func main() {
 		Format: "${method} | ${status} | ${latency} | ${ip} | ${path}\n",
 	}))
 
-	api := app.Group("/api")
+	api := app.Group("/api", func(c *fiber.Ctx) error {
+		c.Set(fiber.HeaderCacheControl, "public, max-age=3600")
+		return c.Next()
+	})
 	api.Get("/app/:application_id", handlers.GetApplication) // TODO: Make the parameter optional
 
 	// TODO: Add the limiter middleware
