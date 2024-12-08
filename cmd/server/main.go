@@ -33,7 +33,8 @@ func main() {
 
 	app := fiber.New(fiber.Config{
 		EnableTrustedProxyCheck: true,
-		TrustedProxies:          []string{"10.0.0.0/8"},
+		// TrustedProxies:          []string{"10.0.0.0/8"},
+		TrustedProxies: []string{"10.244.4.113"},
 	})
 
 	app.Use(compress.New())
