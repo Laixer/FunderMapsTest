@@ -14,36 +14,43 @@ import (
 func CreateApplication(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
-	// TODO: Define a struct for the input
+	type ApplicationInput struct {
+		Name string `json:"name" validate:"required"`
+	}
 
-	var application database.Application
-	if err := c.BodyParser(&application); err != nil {
+	var input ApplicationInput
+	if err := c.BodyParser(&input); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid input",
 		})
 	}
 
-	if application.Name == "" {
+	err := config.Validate.Struct(input)
+	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Name required",
+			"message": err.Error(),
 		})
 	}
 
-	result := db.Create(&application)
+	app := database.Application{
+		Name: input.Name,
+	}
+
+	result := db.Create(&app)
 	if result.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Internal server error",
 		})
 	}
 
-	return c.JSON(application)
+	return c.JSON(app)
 }
 
 func CreateOrganization(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
 	type OrganizationInput struct {
-		Name string `json:"name"`
+		Name string `json:"name" validate:"required"`
 	}
 
 	var input OrganizationInput
@@ -53,8 +60,11 @@ func CreateOrganization(c *fiber.Ctx) error {
 		})
 	}
 
-	if input.Name == "" {
-		return c.Status(fiber.StatusBadRequest).SendString("Name required")
+	err := config.Validate.Struct(input)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": err.Error(),
+		})
 	}
 
 	org := database.Organization{
@@ -114,8 +124,8 @@ func AddUserToOrganization(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
 	type AddUserToOrganizationInput struct {
-		UserID         string  `json:"user_id"`
-		OrganizationID string  `json:"organization_id"`
+		UserID         string  `json:"user_id" validate:"required"`
+		OrganizationID string  `json:"organization_id" validate:"required"`
 		Role           *string `json:"role"`
 	}
 
@@ -126,8 +136,11 @@ func AddUserToOrganization(c *fiber.Ctx) error {
 		})
 	}
 
-	if input.UserID == "" || input.OrganizationID == "" {
-		return c.Status(fiber.StatusBadRequest).SendString("User ID and Organization ID required")
+	err := config.Validate.Struct(input)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": err.Error(),
+		})
 	}
 
 	var user database.User
@@ -142,6 +155,7 @@ func AddUserToOrganization(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
 	}
 
+	// TODO: Maybe use as default value in validation
 	if input.Role == nil {
 		role := "user"
 		input.Role = &role
@@ -161,7 +175,7 @@ func AddMapsetToOrganization(c *fiber.Ctx) error {
 
 	type AddMapsetToOrganizationInput struct {
 		MapsetID       string `json:"mapset_id" validate:"required"`
-		OrganizationID string `json:"organization_id"`
+		OrganizationID string `json:"organization_id" validate:"required"`
 	}
 
 	var input AddMapsetToOrganizationInput
@@ -171,8 +185,11 @@ func AddMapsetToOrganization(c *fiber.Ctx) error {
 		})
 	}
 
-	if input.MapsetID == "" || input.OrganizationID == "" {
-		return c.Status(fiber.StatusBadRequest).SendString("Mapset ID and Organization ID required")
+	err := config.Validate.Struct(input)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": err.Error(),
+		})
 	}
 
 	// TODO: Just do an insert into the database, the foreign key constraints will handle the rest
@@ -201,7 +218,7 @@ func CreateAuthKey(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
 	type APITokenInput struct {
-		UserID string `json:"user_id"`
+		UserID string `json:"user_id" validate:"required"`
 	}
 
 	var input APITokenInput
@@ -211,9 +228,10 @@ func CreateAuthKey(c *fiber.Ctx) error {
 		})
 	}
 
-	if input.UserID == "" {
+	err := config.Validate.Struct(input)
+	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "User ID required",
+			"message": err.Error(),
 		})
 	}
 
