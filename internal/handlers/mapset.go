@@ -31,7 +31,21 @@ func (u *Mapset) TableName() string {
 func GetMapset(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
+	// TODO: mapset_id is optional
 	mapsetID := c.Params("mapset_id")
+
+	if mapsetID == "" {
+		var mapsets []Mapset
+		// TODO: Select mapsets based on organization
+		result := db.Where("public = true").Find(&mapsets)
+
+		if result.Error != nil {
+			// TODO: return 404 if no mapsets are found
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "Internal server error",
+			})
+		}
+	}
 
 	if strings.HasPrefix(mapsetID, "cl") || strings.HasPrefix(mapsetID, "ck") {
 		var mapset Mapset
