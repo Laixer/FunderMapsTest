@@ -72,3 +72,32 @@ func GetCurrentUserMetadata(c *fiber.Ctx) error {
 
 	return c.JSON(metadata)
 }
+
+// TODO; Untested
+func UpdateCurrentUserMetadata(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+	user := c.Locals("user").(database.User)
+
+	var input struct {
+		Metadata string `json:"metadata"`
+	}
+
+	if err := c.BodyParser(&input); err != nil {
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+
+	result := db.Exec(`
+		INSERT INTO application.application_user (user_id, application_id, metadata, update_date)
+		VALUES (?, ?, ?, now())
+		ON CONFLICT (user_id, application_id)
+		DO UPDATE SET metadata = excluded.metadata, update_date = excluded.update_date;`,
+		user.ID, ApplicationID, input.Metadata)
+
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Internal server error",
+		})
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
+}

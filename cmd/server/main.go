@@ -78,7 +78,7 @@ func main() {
 	user.Get("/me", handlers.GetCurrentUser) // Return User + Organization + Organization Role
 	user.Put("/me", handlers.UpdateCurrentUser)
 	user.Get("/metadata", handlers.GetCurrentUserMetadata)
-	// user.Put("/metadata", handlers.UpdateCurrentUserMetadata)
+	user.Put("/metadata", handlers.UpdateCurrentUserMetadata)
 
 	management := api.Group("/v1/management", middleware.AuthMiddleware) // middleware.AdminMiddleware
 	management.Post("/create-app", handlers.CreateApplication)
