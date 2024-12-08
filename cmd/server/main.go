@@ -35,6 +35,7 @@ func main() {
 		EnableTrustedProxyCheck: true,
 		// TrustedProxies:          []string{"10.0.0.0/8"},
 		TrustedProxies: []string{"10.244.4.113"},
+		ProxyHeader:    "X-Forwarded-For",
 	})
 
 	app.Use(compress.New())
