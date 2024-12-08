@@ -59,12 +59,12 @@ func SigninWithPassword(c *fiber.Ctx) error {
 
 	if strings.HasPrefix(user.PasswordHash, "$argon2id$") {
 		if !utils.VerifyPassword(input.Password, user.PasswordHash) {
-			// TODO: Increment access failed count
+			db.Exec("UPDATE application.user SET access_failed_count = access_failed_count + 1 WHERE id = ?", user.ID)
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
 		}
 	} else {
 		if !utils.VerifyLegacyPassword(input.Password, user.PasswordHash) {
-			// TODO: Increment access failed count
+			db.Exec("UPDATE application.user SET access_failed_count = access_failed_count + 1 WHERE id = ?", user.ID)
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
 		}
 	}
@@ -155,12 +155,12 @@ func ChangePassword(c *fiber.Ctx) error {
 
 	if strings.HasPrefix(user.PasswordHash, "$argon2id$") {
 		if !utils.VerifyPassword(input.CurrentPassword, user.PasswordHash) {
-			// TODO: Increment access failed count
+			db.Exec("UPDATE application.user SET access_failed_count = access_failed_count + 1 WHERE id = ?", user.ID)
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
 		}
 	} else {
 		if !utils.VerifyLegacyPassword(input.CurrentPassword, user.PasswordHash) {
-			// TODO: Increment access failed count
+			db.Exec("UPDATE application.user SET access_failed_count = access_failed_count + 1 WHERE id = ?", user.ID)
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
 		}
 	}
