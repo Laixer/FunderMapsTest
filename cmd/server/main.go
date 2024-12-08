@@ -86,7 +86,7 @@ func main() {
 	management.Post("/create-org", handlers.CreateOrganization)
 	management.Post("/create-auth-token", handlers.CreateAuthKey)
 	management.Post("/add-user-to-org", handlers.AddUserToOrganization)
-	// management.Post("/remove-user-from-org", handlers.RemoveUserFromOrganization)
+	management.Post("/remove-user-from-org", handlers.RemoveUserFromOrganization)
 	management.Post("/add-mapset-to-org", handlers.AddMapsetToOrganization)
 
 	geocoder := api.Group("/geocoder", func(c *fiber.Ctx) error {
@@ -94,7 +94,13 @@ func main() {
 		return c.Next()
 	})
 	geocoder.Get("/:geocoder_id", handlers.GetGeocoder)
-	// geocoder.Get("/:geocoder_id/address", handlers.GetAddress)
+	// geocoder.Get("/:geocoder_id/address", handlers.GetAllAddresses)
+
+	// data := api.Group("/data", middleware.AuthMiddleware, func(c *fiber.Ctx) error {
+	// 	c.Set(fiber.HeaderCacheControl, "public, max-age=86400")
+	// 	return c.Next()
+	// })
+	// data.Get("/subsidence/:geocoder_id", handlers.GetDataSubsidence)
 
 	// TODO: Needs 'user,admin' role
 	// api.Get("/incident", middleware.AuthMiddleware, handlers.GetIncident)

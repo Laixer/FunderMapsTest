@@ -170,6 +170,49 @@ func AddUserToOrganization(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusCreated)
 }
 
+// TOOD: Untested
+func RemoveUserFromOrganization(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	type RemoveUserFromOrganizationInput struct {
+		UserID         string `json:"user_id" validate:"required"`
+		OrganizationID string `json:"organization_id" validate:"required"`
+	}
+
+	var input RemoveUserFromOrganizationInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid input",
+		})
+	}
+
+	err := config.Validate.Struct(input)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	var user database.User
+	result := db.First(&user, "id = ?", input.UserID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusBadRequest).SendString("User not found")
+	}
+
+	var org database.Organization
+	result = db.First(&org, "id = ?", input.OrganizationID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
+	}
+
+	result = db.Exec("DELETE FROM application.organization_user WHERE user_id = ? AND organization_id = ?", user.ID, org.ID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
 func AddMapsetToOrganization(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
