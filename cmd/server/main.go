@@ -109,6 +109,13 @@ func main() {
 	product.Get("/statistics/:building_id", handlers.GetAnalysis)
 
 	test := api.Group("/test")
+	test.Get("/dump", func(c *fiber.Ctx) error {
+		headers := c.GetReqHeaders()
+
+		fmt.Println(headers)
+
+		return c.JSON(headers)
+	})
 	// test.Get("/:short_code", handlers.GetRewriteUrl)
 	test.Post("/mail", func(c *fiber.Ctx) error {
 		type EmailInput struct {
