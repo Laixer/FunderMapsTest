@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/favicon"
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
@@ -59,16 +60,14 @@ func main() {
 		return c.Next()
 	})
 
-	// TODO: We might want different loggers for different routes
 	app.Use(logger.New(logger.Config{
 		Format: "${method} | ${status} | ${latency} | ${ip} | ${path}\n",
 	}))
 
 	api := app.Group("/api")
-	api.Get("/app/:application_id", handlers.GetApplication) // TODO: Make the parameter optional
+	api.Get("/app/:application_id?", handlers.GetApplication)
 
-	// TODO: Add the limiter middleware
-	auth := api.Group("/auth")
+	auth := api.Group("/auth", limiter.New())
 	auth.Post("/signin", handlers.SigninWithPassword)
 	auth.Get("/token-refresh", middleware.AuthMiddleware, handlers.RefreshToken)
 	auth.Post("/change-password", middleware.AuthMiddleware, handlers.ChangePassword)
@@ -95,6 +94,7 @@ func main() {
 		return c.Next()
 	})
 	geocoder.Get("/:geocoder_id", handlers.GetGeocoder)
+	// geocoder.Get("/:geocoder_id/address", handlers.GetAddress)
 
 	// TODO: Needs 'user,admin' role
 	// api.Get("/incident", middleware.AuthMiddleware, handlers.GetIncident)

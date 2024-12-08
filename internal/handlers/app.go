@@ -3,17 +3,20 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	"fundermaps/internal/database"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
+
+	"fundermaps/internal/config"
+	"fundermaps/internal/database"
 )
 
 func GetApplication(c *fiber.Ctx) error {
+	cfg := c.Locals("config").(*config.Config)
 	db := c.Locals("db").(*gorm.DB)
 
-	applicationID := c.Params("application_id")
+	applicationID := c.Params("application_id", cfg.ApplicationID)
 
 	if !strings.HasPrefix(applicationID, "app-") {
 		applicationID = fmt.Sprintf("app-%s", applicationID)
