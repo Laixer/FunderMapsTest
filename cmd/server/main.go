@@ -89,7 +89,7 @@ func main() {
 		c.Set(fiber.HeaderCacheControl, "public, max-age=86400")
 		return c.Next()
 	})
-	geocoder.Get("/:building_id", handlers.GetGeocoder)
+	geocoder.Get("/:geocoder_id", handlers.GetGeocoder)
 
 	// TODO: Needs 'user,admin' role
 	// api.Get("/incident", middleware.AuthMiddleware, handlers.GetIncident)

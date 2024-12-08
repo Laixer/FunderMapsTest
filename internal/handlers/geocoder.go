@@ -24,29 +24,30 @@ func (b *Building) TableName() string {
 func GetGeocoder(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
-	// TODO: Not always a building_id
-	BuildingID := c.Params("building_id")
+	geocoderID := c.Params("geocoder_id")
 
 	// TODO: Move into a platform service
-	getBuilding := func(BuildingID string) (Building, error) {
-		switch utils.FromIdentifier(BuildingID) {
+	getBuilding := func(geocoderID string) (Building, error) {
+		// TODO: Normalize the geocoder identifier
+
+		switch utils.FromIdentifier(geocoderID) {
 		case utils.NlBagBuilding:
 			var building Building
 
-			result := db.First(&building, "external_id = ?", BuildingID)
+			result := db.First(&building, "external_id = ?", geocoderID)
 			return building, result.Error
 
 		case utils.NlBagLegacyBuilding:
 			var building Building
 
-			result := db.First(&building, "external_id = 'NL.IMBAG.PAND.' || ?", BuildingID)
+			result := db.First(&building, "external_id = 'NL.IMBAG.PAND.' || ?", geocoderID)
 			return building, result.Error
 
 		case utils.NlBagAddress:
 			var building Building
 
 			result := db.Joins("JOIN geocoder.address ON geocoder.address.building_id = geocoder.building.id").
-				Where("geocoder.address.external_id = ?", BuildingID).
+				Where("geocoder.address.external_id = ?", geocoderID).
 				First(&building)
 			return building, result.Error
 
@@ -54,7 +55,7 @@ func GetGeocoder(c *fiber.Ctx) error {
 			var building Building
 
 			result := db.Joins("JOIN geocoder.address ON geocoder.address.building_id = geocoder.building.id").
-				Where("geocoder.address.external_id = 'NL.IMBAG.NUMMERAANDUIDING.' || ?", BuildingID).
+				Where("geocoder.address.external_id = 'NL.IMBAG.NUMMERAANDUIDING.' || ?", geocoderID).
 				First(&building)
 			return building, result.Error
 		}
@@ -62,7 +63,7 @@ func GetGeocoder(c *fiber.Ctx) error {
 		return Building{}, errors.New("unknown geocoder identifier")
 	}
 
-	building, err := getBuilding(BuildingID)
+	building, err := getBuilding(geocoderID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
