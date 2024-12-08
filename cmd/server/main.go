@@ -34,7 +34,7 @@ func main() {
 	// TODO: All of this proxy stuff should be configurable
 	app := fiber.New(fiber.Config{
 		EnableTrustedProxyCheck: true,
-		TrustedProxies:          []string{"10.0.0.0/8"},
+		TrustedProxies:          []string{"10.0.0.0/8", "fc00::/7"},
 		ProxyHeader:             "Do-Connecting-Ip",
 	})
 
@@ -64,10 +64,7 @@ func main() {
 		Format: "${method} | ${status} | ${latency} | ${ip} | ${path}\n",
 	}))
 
-	api := app.Group("/api", func(c *fiber.Ctx) error {
-		c.Set(fiber.HeaderCacheControl, "public, max-age=3600")
-		return c.Next()
-	})
+	api := app.Group("/api")
 	api.Get("/app/:application_id", handlers.GetApplication) // TODO: Make the parameter optional
 
 	// TODO: Add the limiter middleware

@@ -33,5 +33,6 @@ func GetApplication(c *fiber.Ctx) error {
 		})
 	}
 
+	c.Set(fiber.HeaderCacheControl, "public, max-age=3600")
 	return c.JSON(application)
 }
