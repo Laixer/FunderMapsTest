@@ -73,13 +73,12 @@ func GetCurrentUserMetadata(c *fiber.Ctx) error {
 	return c.JSON(metadata)
 }
 
-// TODO; Untested
 func UpdateCurrentUserMetadata(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 	user := c.Locals("user").(database.User)
 
 	var input struct {
-		Metadata string `json:"metadata"`
+		Metadata interface{} `json:"metadata"`
 	}
 
 	if err := c.BodyParser(&input); err != nil {

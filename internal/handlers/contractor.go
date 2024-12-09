@@ -13,5 +13,6 @@ func GetAllContractors(c *fiber.Ctx) error {
 	var contractors []database.Contractor
 	db.Order("id").Find(&contractors)
 
+	c.Set(fiber.HeaderCacheControl, "public, max-age=3600")
 	return c.JSON(contractors)
 }
