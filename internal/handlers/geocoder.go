@@ -10,36 +10,17 @@ import (
 	"fundermaps/pkg/utils"
 )
 
-type Building struct {
-	ID             string `json:"-" gorm:"primaryKey"`
-	BuiltYear      string `json:"built_year"`
-	IsActive       bool   `json:"is_active"`
-	ExternalID     string `json:"external_id"`
-	NeighborhoodID string `json:"neighborhood_id"`
-}
+// type Building struct {
+// 	ID             string `json:"-" gorm:"primaryKey"`
+// 	BuiltYear      string `json:"built_year"`
+// 	IsActive       bool   `json:"is_active"`
+// 	ExternalID     string `json:"external_id"`
+// 	NeighborhoodID string `json:"neighborhood_id"`
+// }
 
-func (b *Building) TableName() string {
-	return "geocoder.building"
-}
-
-// -- geocoder.building_geocoder source
-
-// CREATE OR REPLACE VIEW geocoder.building_geocoder
-// AS SELECT b.built_year AS building_built_year,
-//     b.external_id AS building_id,
-//     b.building_type,
-//     b.zone_function AS building_zone_function,
-//     r.id AS residence_id,
-//     st_y(r.geom) AS residence_lat,
-//     st_x(r.geom) AS residence_lon,
-//     n.external_id AS neighborhood_id,
-//     n.name AS neighborhood_name,
-//     d.external_id AS district_id,
-//     d.name AS district_name,
-//     m.external_id AS municipality_id,
-//     m.name AS municipality_name,
-//     s.external_id AS state_id,
-//     s.name AS state_name
+// func (b *Building) TableName() string {
+// 	return "geocoder.building"
+// }
 
 type BuildingGeocoder struct {
 	BuildingBuiltYear time.Time `json:"building_built_year"`
@@ -59,46 +40,52 @@ type BuildingGeocoder struct {
 	StateName        string  `json:"state_name"`
 }
 
+func (b *BuildingGeocoder) TableName() string {
+	return "geocoder.building_geocoder"
+}
+
 func GetGeocoder(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
 	geocoderID := c.Params("geocoder_id")
 
 	// TODO: Move into a platform service
-	getBuilding := func(geocoderID string) (Building, error) {
+	getBuilding := func(geocoderID string) (BuildingGeocoder, error) {
 		// TODO: Normalize the geocoder identifier
 
 		switch utils.FromIdentifier(geocoderID) {
 		case utils.NlBagBuilding:
-			var building Building
+			var buildingGeocoder BuildingGeocoder
 
-			result := db.First(&building, "external_id = ?", geocoderID)
-			return building, result.Error
+			result := db.First(&buildingGeocoder, "building_id = ?", geocoderID)
+			return buildingGeocoder, result.Error
 
 		case utils.NlBagLegacyBuilding:
-			var building Building
+			var buildingGeocoder BuildingGeocoder
 
-			result := db.First(&building, "external_id = 'NL.IMBAG.PAND.' || ?", geocoderID)
-			return building, result.Error
+			result := db.First(&buildingGeocoder, "building_id = 'NL.IMBAG.PAND.' || ?", geocoderID)
+			return buildingGeocoder, result.Error
 
 		case utils.NlBagAddress:
-			var building Building
+			var buildingGeocoder BuildingGeocoder
 
-			result := db.Joins("JOIN geocoder.address ON geocoder.address.building_id = geocoder.building.id").
+			result := db.Joins("join geocoder.building on geocoder.building.external_id = geocoder.building_geocoder.building_id").
+				Joins("JOIN geocoder.address ON geocoder.address.building_id = geocoder.building.id").
 				Where("geocoder.address.external_id = ?", geocoderID).
-				First(&building)
-			return building, result.Error
+				First(&buildingGeocoder)
+			return buildingGeocoder, result.Error
 
 		case utils.NlBagLegacyAddress:
-			var building Building
+			var buildingGeocoder BuildingGeocoder
 
-			result := db.Joins("JOIN geocoder.address ON geocoder.address.building_id = geocoder.building.id").
+			result := db.Joins("join geocoder.building on geocoder.building.external_id = geocoder.building_geocoder.building_id").
+				Joins("JOIN geocoder.address ON geocoder.address.building_id = geocoder.building.id").
 				Where("geocoder.address.external_id = 'NL.IMBAG.NUMMERAANDUIDING.' || ?", geocoderID).
-				First(&building)
-			return building, result.Error
+				First(&buildingGeocoder)
+			return buildingGeocoder, result.Error
 		}
 
-		return Building{}, errors.New("unknown geocoder identifier")
+		return BuildingGeocoder{}, errors.New("unknown geocoder identifier")
 	}
 
 	building, err := getBuilding(geocoderID)
