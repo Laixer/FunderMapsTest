@@ -96,24 +96,17 @@ func main() {
 	geocoder.Get("/:geocoder_id", handlers.GetGeocoder)
 	geocoder.Get("/:geocoder_id/address", handlers.GetAllAddresses)
 
-	// TODO: What about including this in the /v4/product group?
-	data := api.Group("/data", middleware.AuthMiddleware, func(c *fiber.Ctx) error {
-		c.Set(fiber.HeaderCacheControl, "public, max-age=86400")
-		return c.Next()
-	})
-	data.Get("/:building_id/subsidence", handlers.GetDataSubsidence)
-	data.Get("/:building_id/subsidence_historic", handlers.GetDataSubsidenceHistoric)
-
 	// TODO: Needs 'user,admin' role
 	// api.Get("/incident", middleware.AuthMiddleware, handlers.GetIncident)
 	api.Post("/incident", handlers.CreateIncident)
 	api.Get("/contractor", middleware.AuthMiddleware, handlers.GetAllContractors)
 	api.Get("/mapset/:mapset_id?", middleware.AuthMiddleware, handlers.GetMapset)
 
-	// TODO: Maybe the API should be :building_id/analysis, :building_id/statistics
-	product := api.Group("/v4/product", middleware.AuthMiddleware, requestid.New())
-	product.Get("/analysis/:building_id", handlers.GetAnalysis)
-	product.Get("/statistics/:building_id", handlers.GetAnalysis)
+	product := api.Group("/v4/product/:building_id", middleware.AuthMiddleware, requestid.New())
+	product.Get("/analysis", handlers.GetAnalysis)
+	product.Get("/statistics", handlers.GetAnalysis)
+	product.Get("/subsidence", handlers.GetDataSubsidence)
+	product.Get("/subsidence_historic", handlers.GetDataSubsidenceHistoric)
 
 	test := api.Group("/test")
 	test.Get("/dump", func(c *fiber.Ctx) error {
