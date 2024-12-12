@@ -109,18 +109,21 @@ func main() {
 	product.Get("/subsidence", handlers.GetDataSubsidence)
 	product.Get("/subsidence_historic", handlers.GetDataSubsidenceHistoric)
 
-	test := api.Group("/test")
-	test.Get("/dump", func(c *fiber.Ctx) error {
+	diag := api.Group("/diag")
+	diag.Get("/ip", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"ip": c.IP()})
+	})
+	diag.Get("/req", func(c *fiber.Ctx) error {
 		headers := c.GetReqHeaders()
 		return c.JSON(headers)
 	})
-	// test.Get("/:short_code", handlers.GetRewriteUrl)
-	test.Post("/mail", func(c *fiber.Ctx) error {
+	// diag.Get("/:short_code", handlers.GetRewriteUrl)
+	diag.Post("/mail", func(c *fiber.Ctx) error {
 		type EmailInput struct {
-			Subject string `json:"subject"`
-			Body    string `json:"body"`
-			From    string `json:"from"`
-			To      string `json:"to"`
+			Subject string `json:"subject" validate:"required"`
+			Body    string `json:"body" validate:"required"`
+			From    string `json:"from" validate:"required"`
+			To      string `json:"to" validate:"required"`
 		}
 
 		var input EmailInput
@@ -128,8 +131,9 @@ func main() {
 			return c.SendStatus(fiber.StatusBadRequest)
 		}
 
-		if input.Subject == "" || input.Body == "" || input.From == "" || input.To == "" {
-			return c.SendStatus(fiber.StatusBadRequest)
+		err := config.Validate.Struct(input)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
 		}
 
 		message := mail.Email{
@@ -142,13 +146,11 @@ func main() {
 		mailer := mail.NewMailer(cfg.MailgunDomain, cfg.MailgunAPIKey, cfg.MailgunAPIBase)
 		mailer.SendMail(&message)
 
-		return c.SendStatus(fiber.StatusOK)
+		return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "Message queued"})
 	})
 
 	app.Use(func(c *fiber.Ctx) error {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Not Found",
-		})
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Not found"})
 	})
 
 	log.Fatal(app.Listen(fmt.Sprintf(":%d", cfg.ServerPort)))
