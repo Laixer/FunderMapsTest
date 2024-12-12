@@ -80,7 +80,7 @@ func main() {
 	user.Get("/metadata", handlers.GetCurrentUserMetadata)
 	user.Put("/metadata", handlers.UpdateCurrentUserMetadata)
 
-	management := api.Group("/v1/management", middleware.AuthMiddleware) // middleware.AdminMiddleware
+	management := api.Group("/v1/management", middleware.AuthMiddleware, middleware.AdminMiddleware)
 	management.Post("/create-app", handlers.CreateApplication)
 	management.Post("/create-user", handlers.CreateUser)
 	management.Post("/create-org", handlers.CreateOrganization)

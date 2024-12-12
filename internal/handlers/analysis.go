@@ -38,6 +38,7 @@ func GetAnalysis(c *fiber.Ctx) error {
 
 	firstOrganization := user.Organizations[0]
 
+	// TODO: Move this into middleware so we can use it in other handlers
 	var isRegistered bool
 	db.Raw(`
 		WITH register_product_request AS (

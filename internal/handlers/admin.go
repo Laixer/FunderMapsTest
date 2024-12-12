@@ -46,6 +46,7 @@ func CreateApplication(c *fiber.Ctx) error {
 	return c.JSON(app)
 }
 
+// TODO: Check if organization name already exists
 func CreateOrganization(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
@@ -82,6 +83,7 @@ func CreateOrganization(c *fiber.Ctx) error {
 	return c.JSON(org)
 }
 
+// TODO: Check if user email already exists
 func CreateUser(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 

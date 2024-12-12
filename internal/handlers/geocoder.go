@@ -10,18 +10,6 @@ import (
 	"fundermaps/pkg/utils"
 )
 
-// type Building struct {
-// 	ID             string `json:"-" gorm:"primaryKey"`
-// 	BuiltYear      string `json:"built_year"`
-// 	IsActive       bool   `json:"is_active"`
-// 	ExternalID     string `json:"external_id"`
-// 	NeighborhoodID string `json:"neighborhood_id"`
-// }
-
-// func (b *Building) TableName() string {
-// 	return "geocoder.building"
-// }
-
 type BuildingGeocoder struct {
 	BuildingBuiltYear time.Time `json:"building_built_year"`
 	BuildingID        string    `json:"building_id"`
