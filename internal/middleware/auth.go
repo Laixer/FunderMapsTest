@@ -46,7 +46,6 @@ func AuthMiddleware(c *fiber.Ctx) error {
 		db.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'api_token', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, c.IP(), cfg.ApplicationID)
 
 		// TODO: Fetch organization and organization role
-		// TODO: Save user global role
 		c.Locals("auth_provider", AuthProviderAPIToken)
 		c.Locals("user", user)
 
@@ -84,7 +83,6 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	db.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'jwt', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, c.IP(), cfg.ApplicationID)
 
 	// TODO: Fetch organization and organization role
-	// TODO: Save user global role
 	c.Locals("auth_provider", AuthProviderJWT)
 	c.Locals("user", user)
 

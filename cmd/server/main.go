@@ -86,6 +86,7 @@ func main() {
 	management.Post("/create-org", handlers.CreateOrganization)
 	management.Post("/create-auth-token", handlers.CreateAuthKey)
 	management.Post("/add-user-to-org", handlers.AddUserToOrganization)
+	management.Post("/reset-password", handlers.ResetUserPassword)
 	management.Post("/remove-user-from-org", handlers.RemoveUserFromOrganization)
 	management.Post("/add-mapset-to-org", handlers.AddMapsetToOrganization)
 

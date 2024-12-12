@@ -122,6 +122,48 @@ func CreateUser(c *fiber.Ctx) error {
 	return c.JSON(user)
 }
 
+func ResetUserPassword(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	type ResetPasswordInput struct {
+		UserID   string `json:"user_id" validate:"required"`
+		Password string `json:"password" validate:"required,min=6"`
+	}
+
+	var input ResetPasswordInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid input",
+		})
+	}
+
+	err := config.Validate.Struct(input)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	var user database.User
+	result := db.First(&user, "id = ?", input.UserID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "User not found",
+		})
+	}
+
+	user.PasswordHash = utils.HashPassword(input.Password)
+
+	result = db.Save(&user)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Internal server error",
+		})
+	}
+
+	return c.JSON(user)
+}
+
 func AddUserToOrganization(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
