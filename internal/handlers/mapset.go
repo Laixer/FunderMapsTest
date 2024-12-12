@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -38,9 +39,10 @@ func GetMapset(c *fiber.Ctx) error {
 		var mapsets []Mapset
 		// TODO: Select mapsets based on organization
 		result := db.Where("public = true").Find(&mapsets)
-
 		if result.Error != nil {
-			// TODO: return 404 if no mapsets are found
+			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+				return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Mapset not found"})
+			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "Internal server error",
 			})
@@ -50,8 +52,10 @@ func GetMapset(c *fiber.Ctx) error {
 	if strings.HasPrefix(mapsetID, "cl") || strings.HasPrefix(mapsetID, "ck") {
 		var mapset Mapset
 		result := db.Where("public = true").First(&mapset, "id = ?", mapsetID)
-
 		if result.Error != nil {
+			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+				return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Mapset not found"})
+			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "Internal server error",
 			})
@@ -62,8 +66,10 @@ func GetMapset(c *fiber.Ctx) error {
 
 	var mapset Mapset
 	result := db.Where("public = true").First(&mapset, "slug = ?", mapsetID)
-
 	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Mapset not found"})
+		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Internal server error",
 		})
