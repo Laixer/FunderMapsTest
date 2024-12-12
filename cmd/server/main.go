@@ -81,21 +81,26 @@ func main() {
 	user.Put("/metadata", handlers.UpdateCurrentUserMetadata)
 
 	management := api.Group("/v1/management", middleware.AuthMiddleware, middleware.AdminMiddleware)
-	management.Post("/create-app", handlers.CreateApplication)
-	management.Post("/create-user", handlers.CreateUser)
-	management.Post("/create-org", handlers.CreateOrganization)
-	management.Post("/create-auth-token", handlers.CreateAuthKey)
-	management.Post("/add-user-to-org", handlers.AddUserToOrganization)
-	management.Post("/reset-password", handlers.ResetUserPassword)
-	management.Post("/remove-user-from-org", handlers.RemoveUserFromOrganization)
-	management.Post("/add-mapset-to-org", handlers.AddMapsetToOrganization)
+	management.Post("/app", handlers.CreateApplication)
+	management.Post("/org", handlers.CreateOrganization)
+	management_org := management.Group("/org/:org_id")
+	management_org.Put("/attach-to-org", handlers.AddMapsetToOrganization)
+	// management_org.Put("/detach-from-org", handlers.RemoveMapsetFromOrganization)
+	// management_org.Delete("/", handlers.DeleteOrganization)
+	management.Post("/user", handlers.CreateUser)
+	management_user := management.Group("/user/:user_id")
+	management_user.Post("/auth-token", handlers.CreateAuthKey) // TODO: Find all AuthKey references and replace with ApiKey
+	management_user.Post("/reset-password", handlers.ResetUserPassword)
+	management_user.Put("/attach-to-org", handlers.AddUserToOrganization)
+	management_user.Put("/detach-from-org", handlers.RemoveUserFromOrganization)
+	// management_user.Delete("/", handlers.DeleteUser)
 
-	geocoder := api.Group("/geocoder", func(c *fiber.Ctx) error {
+	geocoder := api.Group("/geocoder/:geocoder_id", func(c *fiber.Ctx) error {
 		c.Set(fiber.HeaderCacheControl, "public, max-age=86400")
 		return c.Next()
 	})
-	geocoder.Get("/:geocoder_id", handlers.GetGeocoder)
-	geocoder.Get("/:geocoder_id/address", handlers.GetAllAddresses)
+	geocoder.Get("/", handlers.GetGeocoder)
+	geocoder.Get("/address", handlers.GetAllAddresses)
 
 	// TODO: Needs 'user,admin' role
 	// api.Get("/incident", middleware.AuthMiddleware, handlers.GetIncident)
@@ -106,7 +111,7 @@ func main() {
 	product := api.Group("/v4/product/:building_id", middleware.AuthMiddleware, requestid.New())
 	product.Get("/analysis", handlers.GetAnalysis)
 	product.Get("/statistics", handlers.GetAnalysis)
-	product.Get("/subsidence", handlers.GetDataSubsidence)
+	// product.Get("/subsidence", handlers.GetDataSubsidence)
 	product.Get("/subsidence_historic", handlers.GetDataSubsidenceHistoric)
 
 	diag := api.Group("/diag")
