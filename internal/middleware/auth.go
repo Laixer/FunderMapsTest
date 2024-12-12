@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -31,7 +32,11 @@ func AuthMiddleware(c *fiber.Ctx) error {
 			Where("application.auth_key.key = ?", xAPIKey).
 			Preload("Organizations").
 			First(&user)
+
 		if result.Error != nil {
+			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Unauthorized"})
+			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "Internal server error",
 			})
@@ -50,30 +55,26 @@ func AuthMiddleware(c *fiber.Ctx) error {
 
 	authHeader := c.Get(fiber.HeaderAuthorization)
 	if authHeader == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": "Unauthorized",
-		})
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Unauthorized"})
 	}
 
 	if !strings.HasPrefix(authHeader, "Bearer ") {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": "Unauthorized",
-		})
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Unauthorized"})
 	}
 
 	token := strings.TrimPrefix(authHeader, "Bearer ")
 
 	claims, err := auth.VerifyJWT(token)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": "Unauthorized",
-		})
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Unauthorized"})
 	}
 
 	var user database.User
-	// result := db.First(&user, "id = ?", claims["id"])
 	result := db.Model(&database.User{}).Where("id = ?", claims["id"]).Preload("Organizations").Find(&user)
 	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Unauthorized"})
+		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Internal server error",
 		})
