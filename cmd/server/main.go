@@ -108,9 +108,11 @@ func main() {
 	api.Get("/contractor", middleware.AuthMiddleware, handlers.GetAllContractors)
 	api.Get("/mapset/:mapset_id?", middleware.AuthMiddleware, handlers.GetMapset)
 
+	// TODO: Add tracker middleware
 	product := api.Group("/v4/product/:building_id", middleware.AuthMiddleware, requestid.New())
 	product.Get("/analysis", handlers.GetAnalysis)
-	product.Get("/statistics", handlers.GetAnalysis)
+	// product.Get("/analysis", handlers.GetAnalysis, middleware.TrackerMiddleware)
+	// product.Get("/statistics", handlers.GetAnalysis)
 	// product.Get("/subsidence", handlers.GetDataSubsidence)
 	product.Get("/subsidence_historic", handlers.GetDataSubsidenceHistoric)
 
