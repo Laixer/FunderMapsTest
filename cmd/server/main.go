@@ -94,7 +94,7 @@ func main() {
 		return c.Next()
 	})
 	geocoder.Get("/:geocoder_id", handlers.GetGeocoder)
-	// geocoder.Get("/:geocoder_id/address", handlers.GetAllAddresses)
+	geocoder.Get("/:geocoder_id/address", handlers.GetAllAddresses)
 
 	// data := api.Group("/data", middleware.AuthMiddleware, func(c *fiber.Ctx) error {
 	// 	c.Set(fiber.HeaderCacheControl, "public, max-age=86400")
