@@ -63,9 +63,9 @@ type User struct {
 	// NormalizedEmail   string    `json:"normalized_email"` // TODO: Do we need this?
 	ID                uuid.UUID      `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
 	GivenName         *string        `json:"given_name"`
-	LastName          *string        `json:"last_name"`
+	LastName          *string        `json:"family_name"` // TODO: Update database column name
 	Email             string         `json:"email"`
-	Avatar            *string        `json:"avatar"`
+	Avatar            *string        `json:"picture"` // TODO: Update database column name
 	JobTitle          *string        `json:"job_title"`
 	PasswordHash      string         `json:"-"`
 	PhoneNumber       *string        `json:"phone_number"`

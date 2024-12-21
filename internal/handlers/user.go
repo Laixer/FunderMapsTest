@@ -17,6 +17,21 @@ func GetCurrentUser(c *fiber.Ctx) error {
 	return c.JSON(user)
 }
 
+func GetUserInfo(c *fiber.Ctx) error {
+	user := c.Locals("user").(database.User)
+
+	userInfo := fiber.Map{
+		"sub": user.ID,
+		// "name":        user.
+		"given_name":   user.GivenName,
+		"family_name":  user.LastName,
+		"email":        user.Email,
+		"picture":      user.Avatar,
+		"phone_number": user.PhoneNumber,
+	}
+	return c.JSON(userInfo)
+}
+
 func UpdateCurrentUser(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 	user := c.Locals("user").(database.User)
