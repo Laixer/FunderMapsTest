@@ -108,7 +108,7 @@ type Application struct {
 	ApplicationID string `json:"id" gorm:"primaryKey"`
 	Name          string `json:"name"`
 	Data          string `json:"data" gorm:"type:jsonb"`
-	Secret        string `json:"-"`
+	Secret        string `json:"-"` // TODO Rename to SecretHash
 }
 
 func (a *Application) TableName() string {

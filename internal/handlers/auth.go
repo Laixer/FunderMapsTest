@@ -29,16 +29,12 @@ func SigninWithPassword(c *fiber.Ctx) error {
 
 	var input LoginInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid input",
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
 	}
 
 	err := config.Validate.Struct(input)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
 	}
 
 	var user database.User
@@ -91,6 +87,7 @@ func SigninWithPassword(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"token": token})
 }
 
+// TODO: Succeeded by Oauth2 Refresh Token
 func RefreshToken(c *fiber.Ctx) error {
 	cfg := c.Locals("config").(*config.Config)
 	db := c.Locals("db").(*gorm.DB)
@@ -135,16 +132,12 @@ func ChangePassword(c *fiber.Ctx) error {
 
 	var input ChangePasswordInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid input",
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
 	}
 
 	err := config.Validate.Struct(input)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
 	}
 
 	// TODO: From this point on, move into a platform service
