@@ -18,7 +18,7 @@ import (
 // TODO: Move into config
 const JWTTokenValidity = time.Hour * 72
 
-func generateTokensFromPassword(c *fiber.Ctx, user database.User) (string, string, error) {
+func generateTokensFromUser(c *fiber.Ctx, user database.User) (string, string, error) {
 	cfg := c.Locals("config").(*config.Config)
 	db := c.Locals("db").(*gorm.DB)
 
@@ -32,8 +32,22 @@ func generateTokensFromPassword(c *fiber.Ctx, user database.User) (string, strin
 		return "", "", err
 	}
 
-	// accessToken := utils.GenerateRandomString(40)
-	refreshToken := utils.GenerateRandomString(40)
+	authAccessToken := database.AuthAccessToken{
+		AccessToken:   utils.GenerateRandomString(40),
+		IPAddress:     c.IP(),
+		ApplicationID: cfg.ApplicationID,
+		UserID:        user.ID,
+		ExpiredAt:     time.Now().Add(1 * time.Hour),
+	}
+	db.Create(&authAccessToken)
+
+	authRefreshToken := database.AuthRefreshToken{
+		Token:         utils.GenerateRandomString(40),
+		ApplicationID: cfg.ApplicationID,
+		UserID:        user.ID,
+		ExpiredAt:     time.Now().Add(200 * time.Hour),
+	}
+	db.Create(&authRefreshToken)
 
 	// TODO: Store accessToken in table auth_access_token
 	// TODO: Store refreshToken in table auth_refresh_token
@@ -46,21 +60,53 @@ func generateTokensFromPassword(c *fiber.Ctx, user database.User) (string, strin
 		return nil
 	})
 
-	return token, refreshToken, nil
+	return token, authRefreshToken.Token, nil
 }
 
 func generateTokensFromAuthCode(c *fiber.Ctx, authCode database.AuthCode) (string, string, error) {
-	accessToken := utils.GenerateRandomString(40)
-	refreshToken := utils.GenerateRandomString(40)
+	db := c.Locals("db").(*gorm.DB)
 
-	return accessToken, refreshToken, nil
+	authAccessToken := database.AuthAccessToken{
+		AccessToken:   utils.GenerateRandomString(40),
+		IPAddress:     c.IP(),
+		ApplicationID: authCode.ApplicationID,
+		UserID:        authCode.UserID,
+		ExpiredAt:     time.Now().Add(1 * time.Hour),
+	}
+	db.Create(&authAccessToken)
+
+	authRefreshToken := database.AuthRefreshToken{
+		Token:         utils.GenerateRandomString(40),
+		ApplicationID: authCode.ApplicationID,
+		UserID:        authCode.UserID,
+		ExpiredAt:     time.Now().Add(200 * time.Hour),
+	}
+	db.Create(&authRefreshToken)
+
+	return authAccessToken.AccessToken, authRefreshToken.Token, nil
 }
 
 func generateTokensFromRefreshToken(c *fiber.Ctx, refreshToken database.AuthRefreshToken) (string, string, error) {
-	accessToken := utils.GenerateRandomString(40)
-	newRefreshToken := utils.GenerateRandomString(40)
+	db := c.Locals("db").(*gorm.DB)
 
-	return accessToken, newRefreshToken, nil
+	authAccessToken := database.AuthAccessToken{
+		AccessToken:   utils.GenerateRandomString(40),
+		IPAddress:     c.IP(),
+		ApplicationID: refreshToken.ApplicationID,
+		UserID:        refreshToken.UserID,
+		ExpiredAt:     time.Now().Add(1 * time.Hour),
+	}
+	db.Create(&authAccessToken)
+
+	authRefreshToken := database.AuthRefreshToken{
+		Token:         utils.GenerateRandomString(40),
+		ApplicationID: refreshToken.ApplicationID,
+		UserID:        refreshToken.UserID,
+		ExpiredAt:     time.Now().Add(200 * time.Hour),
+	}
+	db.Create(&authRefreshToken)
+
+	return authAccessToken.AccessToken, authRefreshToken.Token, nil
 }
 
 func SigninWithPassword(c *fiber.Ctx) error {
@@ -109,10 +155,13 @@ func SigninWithPassword(c *fiber.Ctx) error {
 		}
 	}
 
-	accessToken, refreshToken, err := generateTokensFromPassword(c, user)
+	accessToken, refreshToken, err := generateTokensFromUser(c, user)
 	if err != nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
+	// if err := revokeAuthKey(db, code); err != nil {
+	// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
+	// }
 
 	tokenResponse := fiber.Map{
 		"access_token":  accessToken,
@@ -349,7 +398,7 @@ func TokenRequest(c *fiber.Ctx) error {
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 		}
-		if newRefreshToken != "" { // If a new refresh token was generated
+		if newRefreshToken != "" {
 			if err := revokeRefreshToken(db, refreshToken); err != nil {
 				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 			}
