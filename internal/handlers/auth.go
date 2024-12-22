@@ -18,6 +18,13 @@ import (
 // TODO: Move into config
 const JWTTokenValidity = time.Hour * 72
 
+type AuthToken struct {
+	AccessToken  string `json:"access_token"`
+	TokenType    string `json:"token_type"`
+	ExpiresIn    int    `json:"expires_in"`
+	RefreshToken string `json:"refresh_token"`
+}
+
 func generateTokensFromUser(c *fiber.Ctx, user database.User) (string, string, error) {
 	cfg := c.Locals("config").(*config.Config)
 	db := c.Locals("db").(*gorm.DB)
@@ -55,7 +62,7 @@ func generateTokensFromUser(c *fiber.Ctx, user database.User) (string, string, e
 	db.Transaction(func(tx *gorm.DB) error {
 		tx.Exec("UPDATE application.user SET access_failed_count = 0, login_count = login_count + 1, last_login = CURRENT_TIMESTAMP WHERE id = ?", user.ID)
 		tx.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'jwt', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, c.IP(), cfg.ApplicationID)
-		tx.Exec("DELETE FROM application.reset_key WHERE user_id = ?", user.ID)
+		// tx.Exec("DELETE FROM application.reset_key WHERE user_id = ?", user.ID)
 
 		return nil
 	})
@@ -159,17 +166,17 @@ func SigninWithPassword(c *fiber.Ctx) error {
 	if err != nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
-	// if err := revokeAuthKey(db, code); err != nil {
-	// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
-	// }
-
-	tokenResponse := fiber.Map{
-		"access_token":  accessToken,
-		"token_type":    "Bearer",
-		"expires_in":    3600, //config.AccessTokenExp,
-		"refresh_token": refreshToken,
+	if err := revokeAuthKey(db, user); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 	}
-	return c.JSON(tokenResponse)
+
+	authToken := AuthToken{
+		AccessToken:  accessToken,
+		TokenType:    "Bearer",
+		ExpiresIn:    3600,
+		RefreshToken: refreshToken,
+	}
+	return c.JSON(authToken)
 }
 
 // TODO: Succeeded by Oauth2 Refresh Token
@@ -342,6 +349,11 @@ func revokeRefreshToken(db *gorm.DB, refreshToken string) error {
 	return db.Delete(&database.AuthRefreshToken{}, "token = ?", refreshToken).Error
 }
 
+func revokeAuthKey(db *gorm.DB, user database.User) error {
+	db.Exec("DELETE FROM application.reset_key WHERE user_id = ?", user.ID)
+	return nil
+}
+
 func TokenRequest(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
@@ -379,13 +391,13 @@ func TokenRequest(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 		}
 
-		tokenResponse := fiber.Map{
-			"access_token":  accessToken,
-			"token_type":    "Bearer",
-			"expires_in":    3600, //config.AccessTokenExp,
-			"refresh_token": refreshToken,
+		authToken := AuthToken{
+			AccessToken:  accessToken,
+			TokenType:    "Bearer",
+			ExpiresIn:    3600, //config.AccessTokenExp,
+			RefreshToken: refreshToken,
 		}
-		return c.JSON(tokenResponse)
+		return c.JSON(authToken)
 
 	case "refresh_token":
 		refreshToken := c.FormValue("refresh_token")
@@ -404,13 +416,13 @@ func TokenRequest(c *fiber.Ctx) error {
 			}
 		}
 
-		tokenResponse := fiber.Map{
-			"access_token":  accessToken,
-			"token_type":    "Bearer",
-			"expires_in":    3600, //config.AccessTokenExp,
-			"refresh_token": newRefreshToken,
+		authToken := AuthToken{
+			AccessToken:  accessToken,
+			TokenType:    "Bearer",
+			ExpiresIn:    3600, //config.AccessTokenExp,
+			RefreshToken: newRefreshToken,
 		}
-		return c.JSON(tokenResponse)
+		return c.JSON(authToken)
 
 	default:
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "unsupported_grant_type"})
