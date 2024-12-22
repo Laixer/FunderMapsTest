@@ -109,8 +109,54 @@ type Application struct {
 	Name          string `json:"name"`
 	Data          string `json:"data" gorm:"type:jsonb"`
 	Secret        string `json:"-"` // TODO Rename to SecretHash
+	RedirectURL   string `json:"-"`
 }
 
 func (a *Application) TableName() string {
 	return "application.application"
+}
+
+type AuthCode struct {
+	Code          string      `json:"code" gorm:"primaryKey"`
+	Application   Application `json:"application" gorm:"foreignKey:ApplicationID;references:ApplicationID"`
+	ApplicationID string      `json:"-" gorm:"type:uuid"`
+	User          User        `json:"user" gorm:"foreignKey:UserID;references:ID"`
+	UserID        uuid.UUID   `json:"-" gorm:"type:uuid"`
+	CreatedAt     time.Time   `json:"created_at" gorm:"default:now()"`
+	ExpiredAt     time.Time   `json:"expired_at"`
+}
+
+func (ac *AuthCode) TableName() string {
+	return "application.auth_code"
+}
+
+type AuthAccessToken struct {
+	AccessToken   string      `json:"access_token" gorm:"primaryKey"`
+	IPAddress     string      `json:"ip_address"`
+	Application   Application `json:"application" gorm:"foreignKey:ApplicationID;references:ApplicationID"`
+	ApplicationID string      `json:"application_id" gorm:"type:uuid"`
+	User          User        `json:"user" gorm:"foreignKey:UserID;references:ID"`
+	UserID        uuid.UUID   `json:"user_id" gorm:"type:uuid"`
+	CreatedAt     time.Time   `json:"created_at" gorm:"default:now()"`
+	UpdatedAt     time.Time   `json:"updated_at"`
+	ExpiredAt     time.Time   `json:"expired_at"`
+	RefreshToken  string      `json:"refresh_token"`
+}
+
+func (aat *AuthAccessToken) TableName() string {
+	return "application.auth_access_token"
+}
+
+type AuthRefreshToken struct {
+	Token         string      `json:"token" gorm:"primaryKey"`
+	Application   Application `json:"application" gorm:"foreignKey:ApplicationID;references:ApplicationID"`
+	ApplicationID string      `json:"application_id" gorm:"type:uuid"`
+	User          User        `json:"user" gorm:"foreignKey:UserID;references:ID"`
+	UserID        uuid.UUID   `json:"user_id" gorm:"type:uuid"`
+	CreatedAt     time.Time   `json:"created_at" gorm:"default:now()"`
+	ExpiredAt     time.Time   `json:"expired_at"`
+}
+
+func (art *AuthRefreshToken) TableName() string {
+	return "application.auth_refresh_token"
 }
