@@ -151,7 +151,9 @@ func SigninWithPassword(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
 	}
 
-	if strings.HasPrefix(user.PasswordHash, "$argon2id$") {
+	if user.PasswordHash == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
+	} else if strings.HasPrefix(user.PasswordHash, "$argon2id$") {
 		if !utils.VerifyPassword(input.Password, user.PasswordHash) {
 			db.Exec("UPDATE application.user SET access_failed_count = access_failed_count + 1 WHERE id = ?", user.ID)
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
