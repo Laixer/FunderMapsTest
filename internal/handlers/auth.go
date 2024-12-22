@@ -18,8 +18,52 @@ import (
 // TODO: Move into config
 const JWTTokenValidity = time.Hour * 72
 
-func SigninWithPassword(c *fiber.Ctx) error {
+func generateTokensFromPassword(c *fiber.Ctx, user database.User) (string, string, error) {
 	cfg := c.Locals("config").(*config.Config)
+	db := c.Locals("db").(*gorm.DB)
+
+	claims := jwt.MapClaims{
+		"id":  user.ID,
+		"exp": time.Now().Add(JWTTokenValidity).Unix(),
+	}
+
+	token, err := auth.GenerateJWT(claims)
+	if err != nil {
+		return "", "", err
+	}
+
+	// accessToken := utils.GenerateRandomString(40)
+	refreshToken := utils.GenerateRandomString(40)
+
+	// TODO: Store accessToken in table auth_access_token
+	// TODO: Store refreshToken in table auth_refresh_token
+	// TODO: Move into database stored procedure
+	db.Transaction(func(tx *gorm.DB) error {
+		tx.Exec("UPDATE application.user SET access_failed_count = 0, login_count = login_count + 1, last_login = CURRENT_TIMESTAMP WHERE id = ?", user.ID)
+		tx.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'jwt', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, c.IP(), cfg.ApplicationID)
+		tx.Exec("DELETE FROM application.reset_key WHERE user_id = ?", user.ID)
+
+		return nil
+	})
+
+	return token, refreshToken, nil
+}
+
+func generateTokensFromAuthCode(c *fiber.Ctx, authCode database.AuthCode) (string, string, error) {
+	accessToken := utils.GenerateRandomString(40)
+	refreshToken := utils.GenerateRandomString(40)
+
+	return accessToken, refreshToken, nil
+}
+
+func generateTokensFromRefreshToken(c *fiber.Ctx, refreshToken database.AuthRefreshToken) (string, string, error) {
+	accessToken := utils.GenerateRandomString(40)
+	newRefreshToken := utils.GenerateRandomString(40)
+
+	return accessToken, newRefreshToken, nil
+}
+
+func SigninWithPassword(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
 	type LoginInput struct {
@@ -65,26 +109,18 @@ func SigninWithPassword(c *fiber.Ctx) error {
 		}
 	}
 
-	// TODO: Move into database stored procedure
-	db.Transaction(func(tx *gorm.DB) error {
-		tx.Exec("UPDATE application.user SET access_failed_count = 0, login_count = login_count + 1, last_login = CURRENT_TIMESTAMP WHERE id = ?", user.ID)
-		tx.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'jwt', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, c.IP(), cfg.ApplicationID)
-		tx.Exec("DELETE FROM application.reset_key WHERE user_id = ?", user.ID)
-
-		return nil
-	})
-
-	claims := jwt.MapClaims{
-		"id":  user.ID,
-		"exp": time.Now().Add(JWTTokenValidity).Unix(),
-	}
-
-	token, err := auth.GenerateJWT(claims)
+	accessToken, refreshToken, err := generateTokensFromPassword(c, user)
 	if err != nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
 
-	return c.JSON(fiber.Map{"token": token})
+	tokenResponse := fiber.Map{
+		"access_token":  accessToken,
+		"token_type":    "Bearer",
+		"expires_in":    3600, //config.AccessTokenExp,
+		"refresh_token": refreshToken,
+	}
+	return c.JSON(tokenResponse)
 }
 
 // TODO: Succeeded by Oauth2 Refresh Token
@@ -170,4 +206,164 @@ func ChangePassword(c *fiber.Ctx) error {
 	})
 
 	return c.SendStatus(fiber.StatusNoContent)
+}
+
+func AuthorizationRequest(c *fiber.Ctx) error {
+	// db := c.Locals("db").(*gorm.DB)
+
+	// clientID := c.Query("client_id")
+	// redirectURI := c.Query("redirect_uri")
+	// responseType := c.Query("response_type")
+	// scope := c.Query("scope")
+	// state := c.Query("state") // Optional, for CSRF protection
+
+	// client, err := getClient(db, clientID)
+	// if err != nil {
+	// 	return c.Status(http.StatusBadRequest).SendString("Invalid client ID")
+	// }
+	// if !isValidRedirectURI(client, redirectURI) {
+	// 	return c.Status(http.StatusBadRequest).SendString("Invalid redirect URI")
+	// }
+
+	// Validate response_type (should be "code" for authorization code flow)
+	// if responseType != "code" {
+	// 	return c.Status(http.StatusUnsupportedMediaType).SendString("Unsupported response type")
+	// }
+
+	// 2. Authenticate the user (if not already authenticated)
+	// This might involve redirecting to a login page or checking an existing session
+	// userID, err := authenticateUser(c)
+	// if err != nil {
+	// 	return c.Status(http.StatusUnauthorized).SendString("User authentication failed")
+	// }
+
+	// // 3. (Optional) Display a consent screen to the user
+	// if shouldShowConsentScreen(client, userID, scope) {
+	// 	// Render a consent screen with details about the requested permissions
+	// 	// If the user denies access, redirect back with an "access_denied" error
+	// 	if !userConsents(c) { // Implement your consent logic
+	// 		return redirectWithError(redirectURI, "access_denied", state)
+	// 	}
+	// }
+
+	// 4. Generate an authorization code
+	// authCode, err := generateAuthCode(config, clientID, userID, redirectURI, scope)
+	// if err != nil {
+	// 	return c.Status(http.StatusInternalServerError).SendString("Failed to generate authorization code")
+	// }
+
+	// return c.Redirect(redirectURI + "?code=" + authCode + "&state=" + state)
+	return c.SendStatus(fiber.StatusNotImplemented)
+}
+
+func getClient(db *gorm.DB, clientID string) (database.Application, error) {
+	var client database.Application
+	result := db.First(&client, "application_id = ?", clientID)
+	if result.Error != nil {
+		return client, result.Error
+	}
+	return client, nil
+}
+
+// TODO: check expiration
+func getAuthCode(db *gorm.DB, clientID string, code string) (database.AuthCode, error) {
+	var authToken database.AuthCode
+	result := db.First(&authToken, "code = ? AND application_id = ?", code, clientID)
+	if result.Error != nil {
+		return authToken, result.Error
+	}
+	return authToken, nil
+}
+
+// TODO: check expiration
+func getRefreshToken(db *gorm.DB, clientID string, refreshToken string) (database.AuthRefreshToken, error) {
+	var token database.AuthRefreshToken
+	result := db.First(&token, "token = ? AND application_id = ?", refreshToken, clientID)
+	if result.Error != nil {
+		return token, result.Error
+	}
+	return token, nil
+}
+
+func revokeAuthCode(db *gorm.DB, code string) error {
+	return db.Delete(&database.AuthCode{}, "code = ?", code).Error
+}
+
+func revokeRefreshToken(db *gorm.DB, refreshToken string) error {
+	return db.Delete(&database.AuthRefreshToken{}, "token = ?", refreshToken).Error
+}
+
+func TokenRequest(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	type tokenRequest struct{}
+
+	if err := c.BodyParser(&tokenRequest{}); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid_request"})
+	}
+
+	clientID := c.FormValue("client_id")
+	clientSecret := c.FormValue("client_secret")
+	client, err := getClient(db, clientID)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_client"})
+	}
+
+	if !utils.VerifyPassword(clientSecret, client.Secret) {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_client"})
+	}
+
+	grantType := c.FormValue("grant_type")
+	switch grantType {
+	case "authorization_code":
+		code := c.FormValue("code")
+		authCode, err := getAuthCode(db, clientID, code)
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_grant"})
+		}
+
+		accessToken, refreshToken, err := generateTokensFromAuthCode(c, authCode)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
+		}
+		if err := revokeAuthCode(db, code); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
+		}
+
+		tokenResponse := fiber.Map{
+			"access_token":  accessToken,
+			"token_type":    "Bearer",
+			"expires_in":    3600, //config.AccessTokenExp,
+			"refresh_token": refreshToken,
+		}
+		return c.JSON(tokenResponse)
+
+	case "refresh_token":
+		refreshToken := c.FormValue("refresh_token")
+		refresh, err := getRefreshToken(db, clientID, refreshToken)
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_grant"})
+		}
+
+		accessToken, newRefreshToken, err := generateTokensFromRefreshToken(c, refresh)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
+		}
+		if newRefreshToken != "" { // If a new refresh token was generated
+			if err := revokeRefreshToken(db, refreshToken); err != nil {
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
+			}
+		}
+
+		tokenResponse := fiber.Map{
+			"access_token":  accessToken,
+			"token_type":    "Bearer",
+			"expires_in":    3600, //config.AccessTokenExp,
+			"refresh_token": newRefreshToken,
+		}
+		return c.JSON(tokenResponse)
+
+	default:
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "unsupported_grant_type"})
+	}
 }

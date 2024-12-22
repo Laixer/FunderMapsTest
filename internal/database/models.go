@@ -104,6 +104,7 @@ func (o *Organization) TableName() string {
 // 	return "application.organization_user"
 // }
 
+// TODO: Add RedirectURI
 type Application struct {
 	ApplicationID string `json:"id" gorm:"primaryKey"`
 	Name          string `json:"name"`
