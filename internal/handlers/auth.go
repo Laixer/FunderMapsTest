@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -40,7 +41,7 @@ func generateTokensFromUser(c *fiber.Ctx, user database.User) (string, string, e
 	}
 
 	authAccessToken := database.AuthAccessToken{
-		AccessToken:   utils.GenerateRandomString(40),
+		AccessToken:   fmt.Sprintf("fmac.%s", utils.GenerateRandomString(40)),
 		IPAddress:     c.IP(),
 		ApplicationID: cfg.ApplicationID,
 		UserID:        user.ID,
@@ -49,7 +50,7 @@ func generateTokensFromUser(c *fiber.Ctx, user database.User) (string, string, e
 	db.Create(&authAccessToken)
 
 	authRefreshToken := database.AuthRefreshToken{
-		Token:         utils.GenerateRandomString(40),
+		Token:         fmt.Sprintf("fmrt.%s", utils.GenerateRandomString(40)),
 		ApplicationID: cfg.ApplicationID,
 		UserID:        user.ID,
 		ExpiredAt:     time.Now().Add(200 * time.Hour),
@@ -74,7 +75,7 @@ func generateTokensFromAuthCode(c *fiber.Ctx, authCode database.AuthCode) (strin
 	db := c.Locals("db").(*gorm.DB)
 
 	authAccessToken := database.AuthAccessToken{
-		AccessToken:   utils.GenerateRandomString(40),
+		AccessToken:   fmt.Sprintf("fmac.%s", utils.GenerateRandomString(40)),
 		IPAddress:     c.IP(),
 		ApplicationID: authCode.ApplicationID,
 		UserID:        authCode.UserID,
@@ -83,7 +84,7 @@ func generateTokensFromAuthCode(c *fiber.Ctx, authCode database.AuthCode) (strin
 	db.Create(&authAccessToken)
 
 	authRefreshToken := database.AuthRefreshToken{
-		Token:         utils.GenerateRandomString(40),
+		Token:         fmt.Sprintf("fmrt.%s", utils.GenerateRandomString(40)),
 		ApplicationID: authCode.ApplicationID,
 		UserID:        authCode.UserID,
 		ExpiredAt:     time.Now().Add(200 * time.Hour),
@@ -97,7 +98,7 @@ func generateTokensFromRefreshToken(c *fiber.Ctx, refreshToken database.AuthRefr
 	db := c.Locals("db").(*gorm.DB)
 
 	authAccessToken := database.AuthAccessToken{
-		AccessToken:   utils.GenerateRandomString(40),
+		AccessToken:   fmt.Sprintf("fmac.%s", utils.GenerateRandomString(40)),
 		IPAddress:     c.IP(),
 		ApplicationID: refreshToken.ApplicationID,
 		UserID:        refreshToken.UserID,
@@ -106,7 +107,7 @@ func generateTokensFromRefreshToken(c *fiber.Ctx, refreshToken database.AuthRefr
 	db.Create(&authAccessToken)
 
 	authRefreshToken := database.AuthRefreshToken{
-		Token:         utils.GenerateRandomString(40),
+		Token:         fmt.Sprintf("fmrt.%s", utils.GenerateRandomString(40)),
 		ApplicationID: refreshToken.ApplicationID,
 		UserID:        refreshToken.UserID,
 		ExpiredAt:     time.Now().Add(200 * time.Hour),
