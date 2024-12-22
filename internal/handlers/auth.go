@@ -53,7 +53,7 @@ func generateTokensFromUser(c *fiber.Ctx, user database.User) (string, string, e
 		Token:         fmt.Sprintf("fmrt.%s", utils.GenerateRandomString(40)),
 		ApplicationID: cfg.ApplicationID,
 		UserID:        user.ID,
-		ExpiredAt:     time.Now().Add(200 * time.Hour),
+		ExpiredAt:     time.Now().AddDate(1, 0, 0),
 	}
 	db.Create(&authRefreshToken)
 
@@ -68,6 +68,7 @@ func generateTokensFromUser(c *fiber.Ctx, user database.User) (string, string, e
 		return nil
 	})
 
+	// return authAccessToken.AccessToken, authRefreshToken.Token, nil
 	return token, authRefreshToken.Token, nil
 }
 
@@ -87,7 +88,7 @@ func generateTokensFromAuthCode(c *fiber.Ctx, authCode database.AuthCode) (strin
 		Token:         fmt.Sprintf("fmrt.%s", utils.GenerateRandomString(40)),
 		ApplicationID: authCode.ApplicationID,
 		UserID:        authCode.UserID,
-		ExpiredAt:     time.Now().Add(200 * time.Hour),
+		ExpiredAt:     time.Now().AddDate(1, 0, 0),
 	}
 	db.Create(&authRefreshToken)
 
@@ -102,7 +103,7 @@ func generateTokensFromRefreshToken(c *fiber.Ctx, refreshToken database.AuthRefr
 		IPAddress:     c.IP(),
 		ApplicationID: refreshToken.ApplicationID,
 		UserID:        refreshToken.UserID,
-		ExpiredAt:     time.Now().Add(1 * time.Hour),
+		ExpiredAt:     time.Now().AddDate(1, 0, 0),
 	}
 	db.Create(&authAccessToken)
 
@@ -110,7 +111,7 @@ func generateTokensFromRefreshToken(c *fiber.Ctx, refreshToken database.AuthRefr
 		Token:         fmt.Sprintf("fmrt.%s", utils.GenerateRandomString(40)),
 		ApplicationID: refreshToken.ApplicationID,
 		UserID:        refreshToken.UserID,
-		ExpiredAt:     time.Now().Add(200 * time.Hour),
+		ExpiredAt:     time.Now().AddDate(1, 0, 0),
 	}
 	db.Create(&authRefreshToken)
 
@@ -137,7 +138,6 @@ func SigninWithPassword(c *fiber.Ctx) error {
 
 	var user database.User
 	result := db.First(&user, "email = ?", strings.ToLower(input.Email))
-
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
@@ -182,7 +182,6 @@ func SigninWithPassword(c *fiber.Ctx) error {
 
 // TODO: Succeeded by Oauth2 Refresh Token
 func RefreshToken(c *fiber.Ctx) error {
-	cfg := c.Locals("config").(*config.Config)
 	db := c.Locals("db").(*gorm.DB)
 	user := c.Locals("user").(database.User)
 
@@ -192,25 +191,21 @@ func RefreshToken(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
 	}
 
-	// TODO: Move into database stored procedure
-	db.Transaction(func(tx *gorm.DB) error {
-		tx.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'jwt', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, c.IP(), cfg.ApplicationID)
-		tx.Exec("DELETE FROM application.reset_key WHERE user_id = ?", user.ID)
-
-		return nil
-	})
-
-	claims := jwt.MapClaims{
-		"id":  user.ID,
-		"exp": time.Now().Add(JWTTokenValidity).Unix(),
-	}
-
-	token, err := auth.GenerateJWT(claims)
+	accessToken, refreshToken, err := generateTokensFromUser(c, user)
 	if err != nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
+	if err := revokeAuthKey(db, user); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
+	}
 
-	return c.JSON(fiber.Map{"token": token})
+	authToken := AuthToken{
+		AccessToken:  accessToken,
+		TokenType:    "Bearer",
+		ExpiresIn:    3600,
+		RefreshToken: refreshToken,
+	}
+	return c.JSON(authToken)
 }
 
 func ChangePassword(c *fiber.Ctx) error {
