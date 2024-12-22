@@ -20,16 +20,12 @@ func CreateApplication(c *fiber.Ctx) error {
 
 	var input ApplicationInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid input",
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
 	}
 
 	err := config.Validate.Struct(input)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
 	}
 
 	app := database.Application{
@@ -38,9 +34,7 @@ func CreateApplication(c *fiber.Ctx) error {
 
 	result := db.Create(&app)
 	if result.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal server error",
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	return c.JSON(app)
@@ -56,16 +50,12 @@ func CreateOrganization(c *fiber.Ctx) error {
 
 	var input OrganizationInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid input",
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
 	}
 
 	err := config.Validate.Struct(input)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
 	}
 
 	org := database.Organization{
@@ -75,9 +65,7 @@ func CreateOrganization(c *fiber.Ctx) error {
 
 	result := db.Create(&org)
 	if result.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal server error",
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	return c.JSON(org)
@@ -94,16 +82,12 @@ func CreateUser(c *fiber.Ctx) error {
 
 	var input UserInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid input",
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
 	}
 
 	err := config.Validate.Struct(input)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
 	}
 
 	user := database.User{
@@ -114,9 +98,7 @@ func CreateUser(c *fiber.Ctx) error {
 
 	result := db.Create(&user)
 	if result.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal server error",
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	return c.JSON(user)
@@ -132,33 +114,25 @@ func ResetUserPassword(c *fiber.Ctx) error {
 
 	var input ResetPasswordInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid input",
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
 	}
 
 	err := config.Validate.Struct(input)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
 	}
 
 	var user database.User
 	result := db.First(&user, "id = ?", input.UserID)
 	if result.Error != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "User not found",
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User not found"})
 	}
 
 	user.PasswordHash = utils.HashPassword(input.Password)
 
 	result = db.Save(&user)
 	if result.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal server error",
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	return c.JSON(user)
@@ -175,16 +149,12 @@ func AddUserToOrganization(c *fiber.Ctx) error {
 
 	var input AddUserToOrganizationInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid input",
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
 	}
 
 	err := config.Validate.Struct(input)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
 	}
 
 	var user database.User
@@ -225,16 +195,12 @@ func RemoveUserFromOrganization(c *fiber.Ctx) error {
 
 	var input RemoveUserFromOrganizationInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid input",
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
 	}
 
 	err := config.Validate.Struct(input)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
 	}
 
 	var user database.User
@@ -267,16 +233,12 @@ func AddMapsetToOrganization(c *fiber.Ctx) error {
 
 	var input AddMapsetToOrganizationInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid input",
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
 	}
 
 	err := config.Validate.Struct(input)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
 	}
 
 	// TODO: Just do an insert into the database, the foreign key constraints will handle the rest
@@ -310,24 +272,18 @@ func CreateAuthKey(c *fiber.Ctx) error {
 
 	var input APITokenInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid input",
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
 	}
 
 	err := config.Validate.Struct(input)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": err.Error(),
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
 	}
 
 	var user database.User
 	result := db.First(&user, "id = ?", input.UserID)
 	if result.Error != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "User not found",
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User not found"})
 	}
 
 	authKey := database.AuthKey{
@@ -336,9 +292,7 @@ func CreateAuthKey(c *fiber.Ctx) error {
 
 	result = db.Create(&authKey)
 	if result.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal server error",
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	return c.JSON(authKey)
