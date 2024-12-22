@@ -49,7 +49,7 @@ func UpdateCurrentUser(c *fiber.Ctx) error {
 
 	var input database.User
 	if err := c.BodyParser(&input); err != nil {
-		return c.SendStatus(fiber.StatusBadRequest)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
 	}
 
 	updateNullableString := func(target **string, value *string) {
@@ -70,9 +70,7 @@ func UpdateCurrentUser(c *fiber.Ctx) error {
 
 	result := db.Save(&user)
 	if result.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal server error",
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	return c.JSON(user)
@@ -108,7 +106,7 @@ func UpdateCurrentUserMetadata(c *fiber.Ctx) error {
 	}
 
 	if err := c.BodyParser(&input); err != nil {
-		return c.SendStatus(fiber.StatusBadRequest)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
 	}
 
 	result := db.Exec(`
@@ -119,9 +117,7 @@ func UpdateCurrentUserMetadata(c *fiber.Ctx) error {
 		user.ID, ApplicationID, input.Metadata)
 
 	if result.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal server error",
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	return c.SendStatus(fiber.StatusNoContent)
