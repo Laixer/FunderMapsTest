@@ -37,9 +37,7 @@ func AuthMiddleware(c *fiber.Ctx) error {
 			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Unauthorized"})
 			}
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "Internal server error",
-			})
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 		}
 
 		// TODO: Move into database stored procedure
@@ -63,6 +61,11 @@ func AuthMiddleware(c *fiber.Ctx) error {
 
 	token := strings.TrimPrefix(authHeader, "Bearer ")
 
+	if strings.HasPrefix(token, "fmat.") {
+		// TODO: Implement access token verification
+		return c.Status(fiber.StatusNotImplemented).JSON(fiber.Map{"message": "Not implemented"})
+	}
+
 	claims, err := auth.VerifyJWT(token)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Unauthorized"})
@@ -74,9 +77,7 @@ func AuthMiddleware(c *fiber.Ctx) error {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Unauthorized"})
 		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal server error",
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	// TODO: Move into database stored procedure

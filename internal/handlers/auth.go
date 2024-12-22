@@ -41,7 +41,7 @@ func generateTokensFromUser(c *fiber.Ctx, user database.User) (string, string, e
 	}
 
 	authAccessToken := database.AuthAccessToken{
-		AccessToken:   fmt.Sprintf("fmac.%s", utils.GenerateRandomString(40)),
+		AccessToken:   fmt.Sprintf("fmat.%s", utils.GenerateRandomString(40)),
 		IPAddress:     c.IP(),
 		ApplicationID: cfg.ApplicationID,
 		UserID:        user.ID,
@@ -76,7 +76,7 @@ func generateTokensFromAuthCode(c *fiber.Ctx, authCode database.AuthCode) (strin
 	db := c.Locals("db").(*gorm.DB)
 
 	authAccessToken := database.AuthAccessToken{
-		AccessToken:   fmt.Sprintf("fmac.%s", utils.GenerateRandomString(40)),
+		AccessToken:   fmt.Sprintf("fmat.%s", utils.GenerateRandomString(40)),
 		IPAddress:     c.IP(),
 		ApplicationID: authCode.ApplicationID,
 		UserID:        authCode.UserID,
@@ -99,7 +99,7 @@ func generateTokensFromRefreshToken(c *fiber.Ctx, refreshToken database.AuthRefr
 	db := c.Locals("db").(*gorm.DB)
 
 	authAccessToken := database.AuthAccessToken{
-		AccessToken:   fmt.Sprintf("fmac.%s", utils.GenerateRandomString(40)),
+		AccessToken:   fmt.Sprintf("fmat.%s", utils.GenerateRandomString(40)),
 		IPAddress:     c.IP(),
 		ApplicationID: refreshToken.ApplicationID,
 		UserID:        refreshToken.UserID,
