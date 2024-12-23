@@ -7,10 +7,8 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 
-	"fundermaps/internal/auth"
 	"fundermaps/internal/config"
 	"fundermaps/internal/database"
 	"fundermaps/pkg/utils"
@@ -30,18 +28,18 @@ func generateTokensFromUser(c *fiber.Ctx, user database.User) (string, string, e
 	cfg := c.Locals("config").(*config.Config)
 	db := c.Locals("db").(*gorm.DB)
 
-	claims := jwt.MapClaims{
-		"id":  user.ID,
-		"exp": time.Now().Add(JWTTokenValidity).Unix(),
-	}
+	// claims := jwt.MapClaims{
+	// 	"id":  user.ID,
+	// 	"exp": time.Now().Add(JWTTokenValidity).Unix(),
+	// }
 
-	token, err := auth.GenerateJWT(claims)
-	if err != nil {
-		return "", "", err
-	}
+	// token, err := auth.GenerateJWT(claims)
+	// if err != nil {
+	// 	return "", "", err
+	// }
 
 	authAccessToken := database.AuthAccessToken{
-		AccessToken:   fmt.Sprintf("fmat.%s", utils.GenerateRandomString(40)),
+		AccessToken:   fmt.Sprintf("fmat%s", utils.GenerateRandomString(40)),
 		IPAddress:     c.IP(),
 		ApplicationID: cfg.ApplicationID,
 		UserID:        user.ID,
@@ -50,7 +48,7 @@ func generateTokensFromUser(c *fiber.Ctx, user database.User) (string, string, e
 	db.Create(&authAccessToken)
 
 	authRefreshToken := database.AuthRefreshToken{
-		Token:         fmt.Sprintf("fmrt.%s", utils.GenerateRandomString(40)),
+		Token:         fmt.Sprintf("fmrt%s", utils.GenerateRandomString(40)),
 		ApplicationID: cfg.ApplicationID,
 		UserID:        user.ID,
 		ExpiredAt:     time.Now().AddDate(1, 0, 0),
@@ -62,21 +60,20 @@ func generateTokensFromUser(c *fiber.Ctx, user database.User) (string, string, e
 	// TODO: Move into database stored procedure
 	db.Transaction(func(tx *gorm.DB) error {
 		tx.Exec("UPDATE application.user SET access_failed_count = 0, login_count = login_count + 1, last_login = CURRENT_TIMESTAMP WHERE id = ?", user.ID)
-		tx.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'jwt', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, c.IP(), cfg.ApplicationID)
-		// tx.Exec("DELETE FROM application.reset_key WHERE user_id = ?", user.ID)
+		// tx.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'jwt', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, c.IP(), cfg.ApplicationID)
 
 		return nil
 	})
 
-	// return authAccessToken.AccessToken, authRefreshToken.Token, nil
-	return token, authRefreshToken.Token, nil
+	return authAccessToken.AccessToken, authRefreshToken.Token, nil
+	// return token, authRefreshToken.Token, nil
 }
 
 func generateTokensFromAuthCode(c *fiber.Ctx, authCode database.AuthCode) (string, string, error) {
 	db := c.Locals("db").(*gorm.DB)
 
 	authAccessToken := database.AuthAccessToken{
-		AccessToken:   fmt.Sprintf("fmat.%s", utils.GenerateRandomString(40)),
+		AccessToken:   fmt.Sprintf("fmat%s", utils.GenerateRandomString(40)),
 		IPAddress:     c.IP(),
 		ApplicationID: authCode.ApplicationID,
 		UserID:        authCode.UserID,
@@ -85,7 +82,7 @@ func generateTokensFromAuthCode(c *fiber.Ctx, authCode database.AuthCode) (strin
 	db.Create(&authAccessToken)
 
 	authRefreshToken := database.AuthRefreshToken{
-		Token:         fmt.Sprintf("fmrt.%s", utils.GenerateRandomString(40)),
+		Token:         fmt.Sprintf("fmrt%s", utils.GenerateRandomString(40)),
 		ApplicationID: authCode.ApplicationID,
 		UserID:        authCode.UserID,
 		ExpiredAt:     time.Now().AddDate(1, 0, 0),
@@ -99,7 +96,7 @@ func generateTokensFromRefreshToken(c *fiber.Ctx, refreshToken database.AuthRefr
 	db := c.Locals("db").(*gorm.DB)
 
 	authAccessToken := database.AuthAccessToken{
-		AccessToken:   fmt.Sprintf("fmat.%s", utils.GenerateRandomString(40)),
+		AccessToken:   fmt.Sprintf("fmat%s", utils.GenerateRandomString(40)),
 		IPAddress:     c.IP(),
 		ApplicationID: refreshToken.ApplicationID,
 		UserID:        refreshToken.UserID,
@@ -108,7 +105,7 @@ func generateTokensFromRefreshToken(c *fiber.Ctx, refreshToken database.AuthRefr
 	db.Create(&authAccessToken)
 
 	authRefreshToken := database.AuthRefreshToken{
-		Token:         fmt.Sprintf("fmrt.%s", utils.GenerateRandomString(40)),
+		Token:         fmt.Sprintf("fmrt%s", utils.GenerateRandomString(40)),
 		ApplicationID: refreshToken.ApplicationID,
 		UserID:        refreshToken.UserID,
 		ExpiredAt:     time.Now().AddDate(1, 0, 0),
@@ -211,7 +208,7 @@ func RefreshToken(c *fiber.Ctx) error {
 }
 
 func ChangePassword(c *fiber.Ctx) error {
-	cfg := c.Locals("config").(*config.Config)
+	// cfg := c.Locals("config").(*config.Config)
 	db := c.Locals("db").(*gorm.DB)
 	user := c.Locals("user").(database.User)
 
@@ -253,7 +250,7 @@ func ChangePassword(c *fiber.Ctx) error {
 	// TODO: Move into database stored procedure
 	db.Transaction(func(tx *gorm.DB) error {
 		tx.Exec("UPDATE application.user SET password_hash = ?, access_failed_count = 0, login_count = login_count + 1, last_login = CURRENT_TIMESTAMP WHERE id = ?", hash, user.ID)
-		tx.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'jwt', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, c.IP(), cfg.ApplicationID)
+		// tx.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'jwt', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, c.IP(), cfg.ApplicationID)
 		tx.Exec("DELETE FROM application.reset_key WHERE user_id = ?", user.ID)
 
 		return nil
