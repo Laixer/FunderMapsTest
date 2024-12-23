@@ -11,10 +11,10 @@ import (
 	"fundermaps/internal/database"
 )
 
-const (
-	AuthProviderJWT      = "jwt"
-	AuthProviderAPIToken = "api_token"
-)
+// const (
+// 	AuthProviderJWT      = "jwt"
+// 	AuthProviderAPIToken = "api_token"
+// )
 
 const (
 	HeaderXAPIKey = "X-API-Key"

@@ -73,8 +73,10 @@ func main() {
 	auth.Post("/change-password", middleware.AuthMiddleware, handlers.ChangePassword)
 	// auth.Post("/forgot-password", handlers.ForgotPassword)
 	// auth.Post("/reset-password", handlers.ResetPassword)
-	auth.Get("/authorize", handlers.AuthorizationRequest)
-	auth.Post("/token", handlers.TokenRequest)
+
+	oauth2 := api.Group("/v1/oauth2")
+	oauth2.Get("/authorize", handlers.AuthorizationRequest)
+	oauth2.Post("/token", handlers.TokenRequest)
 
 	// TODO: Add versioning
 	user := api.Group("/user", middleware.AuthMiddleware)

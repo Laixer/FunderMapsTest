@@ -179,7 +179,6 @@ func SigninWithPassword(c *fiber.Ctx) error {
 	return c.JSON(authToken)
 }
 
-// TODO: Succeeded by Oauth2 Refresh Token
 func RefreshToken(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 	user := c.Locals("user").(database.User)
@@ -365,9 +364,13 @@ func TokenRequest(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_client"})
 	}
 
-	if !utils.VerifyPassword(clientSecret, client.Secret) {
+	// TODO: Replace with a secure comparison
+	if clientSecret != client.Secret {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_client"})
 	}
+	// if !utils.VerifyPassword(clientSecret, client.Secret) {
+	// 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_client"})
+	// }
 
 	grantType := c.FormValue("grant_type")
 	switch grantType {
