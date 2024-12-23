@@ -48,7 +48,6 @@ func AuthMiddleware(c *fiber.Ctx) error {
 
 	token := strings.TrimPrefix(authHeader, "Bearer ")
 
-	// if strings.HasPrefix(token, "fmat") {
 	var user database.User
 	result := db.Joins("JOIN application.auth_access_token ON application.auth_access_token.user_id = application.user.id").
 		Where("application.auth_access_token.access_token = ? AND application.auth_access_token.expired_at > now()", token).

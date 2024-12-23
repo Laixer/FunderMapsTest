@@ -21,15 +21,13 @@ type AuthToken struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-// TODO: Pass clientID as a parameter
-func generateTokensFromUser(c *fiber.Ctx, user database.User) (AuthToken, error) {
-	cfg := c.Locals("config").(*config.Config) // TODO: Don't use cfg
+func generateTokensFromUser(c *fiber.Ctx, clientID string, user database.User) (AuthToken, error) {
 	db := c.Locals("db").(*gorm.DB)
 
 	authAccessToken := database.AuthAccessToken{
 		AccessToken:   fmt.Sprintf("fmat%s", utils.GenerateRandomString(40)),
 		IPAddress:     c.IP(),
-		ApplicationID: cfg.ApplicationID,
+		ApplicationID: clientID,
 		UserID:        user.ID,
 		ExpiredAt:     time.Now().Add(1 * time.Hour), // TODO: Move into config
 	}
@@ -37,7 +35,7 @@ func generateTokensFromUser(c *fiber.Ctx, user database.User) (AuthToken, error)
 
 	authRefreshToken := database.AuthRefreshToken{
 		Token:         fmt.Sprintf("fmrt%s", utils.GenerateRandomString(40)),
-		ApplicationID: cfg.ApplicationID,
+		ApplicationID: clientID,
 		UserID:        user.ID,
 		ExpiredAt:     time.Now().AddDate(1, 0, 0), // TODO: Move into config
 	}
@@ -119,6 +117,7 @@ func generateTokensFromRefreshToken(c *fiber.Ctx, refreshToken database.AuthRefr
 }
 
 func SigninWithPassword(c *fiber.Ctx) error {
+	cfg := c.Locals("config").(*config.Config)
 	db := c.Locals("db").(*gorm.DB)
 
 	type LoginInput struct {
@@ -165,7 +164,7 @@ func SigninWithPassword(c *fiber.Ctx) error {
 		}
 	}
 
-	authToken, err := generateTokensFromUser(c, user)
+	authToken, err := generateTokensFromUser(c, cfg.ApplicationID, user)
 	if err != nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
