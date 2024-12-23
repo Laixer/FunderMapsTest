@@ -14,9 +14,6 @@ import (
 	"fundermaps/pkg/utils"
 )
 
-// TODO: Move into config
-const JWTTokenValidity = time.Hour * 72
-
 type AuthToken struct {
 	AccessToken  string `json:"access_token"`
 	TokenType    string `json:"token_type"`
@@ -28,22 +25,12 @@ func generateTokensFromUser(c *fiber.Ctx, user database.User) (string, string, e
 	cfg := c.Locals("config").(*config.Config)
 	db := c.Locals("db").(*gorm.DB)
 
-	// claims := jwt.MapClaims{
-	// 	"id":  user.ID,
-	// 	"exp": time.Now().Add(JWTTokenValidity).Unix(),
-	// }
-
-	// token, err := auth.GenerateJWT(claims)
-	// if err != nil {
-	// 	return "", "", err
-	// }
-
 	authAccessToken := database.AuthAccessToken{
 		AccessToken:   fmt.Sprintf("fmat%s", utils.GenerateRandomString(40)),
 		IPAddress:     c.IP(),
 		ApplicationID: cfg.ApplicationID,
 		UserID:        user.ID,
-		ExpiredAt:     time.Now().Add(1 * time.Hour),
+		ExpiredAt:     time.Now().Add(1 * time.Hour), // TODO: Move into config
 	}
 	db.Create(&authAccessToken)
 
@@ -51,22 +38,18 @@ func generateTokensFromUser(c *fiber.Ctx, user database.User) (string, string, e
 		Token:         fmt.Sprintf("fmrt%s", utils.GenerateRandomString(40)),
 		ApplicationID: cfg.ApplicationID,
 		UserID:        user.ID,
-		ExpiredAt:     time.Now().AddDate(1, 0, 0),
+		ExpiredAt:     time.Now().AddDate(1, 0, 0), // TODO: Move into config
 	}
 	db.Create(&authRefreshToken)
 
-	// TODO: Store accessToken in table auth_access_token
-	// TODO: Store refreshToken in table auth_refresh_token
 	// TODO: Move into database stored procedure
 	db.Transaction(func(tx *gorm.DB) error {
 		tx.Exec("UPDATE application.user SET access_failed_count = 0, login_count = login_count + 1, last_login = CURRENT_TIMESTAMP WHERE id = ?", user.ID)
-		// tx.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'jwt', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, c.IP(), cfg.ApplicationID)
 
 		return nil
 	})
 
 	return authAccessToken.AccessToken, authRefreshToken.Token, nil
-	// return token, authRefreshToken.Token, nil
 }
 
 func generateTokensFromAuthCode(c *fiber.Ctx, authCode database.AuthCode) (string, string, error) {
@@ -180,46 +163,54 @@ func SigninWithPassword(c *fiber.Ctx) error {
 }
 
 func RefreshToken(c *fiber.Ctx) error {
+	cfg := c.Locals("config").(*config.Config)
 	db := c.Locals("db").(*gorm.DB)
-	user := c.Locals("user").(database.User)
+	// user := c.Locals("user").(database.User)
+
+	type RefreshInput struct {
+		RefreshToken string `json:"refresh_token" validate:"required"`
+	}
+
+	var input RefreshInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
+	}
+
+	err := config.Validate.Struct(input)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
+	}
 
 	// TODO: From this point on, move into a platform service
 
-	// TODO: Lookup refresh token (provided in request)
-	// refreshToken := c.FormValue("refresh_token")
-	// refresh, err := getRefreshToken(db, clientID, refreshToken)
-	// if err != nil {
-	// 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_grant"})
-	// }
-
-	if user.AccessFailedCount >= 5 {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
-	}
-
-	// accessToken, newRefreshToken, err := generateTokensFromRefreshToken(c, refresh)
-	// if err != nil {
-	// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
-	// }
-	// if newRefreshToken != "" {
-	// 	if err := revokeRefreshToken(db, refreshToken); err != nil {
-	// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
-	// 	}
-	// }
-
-	accessToken, refreshToken, err := generateTokensFromUser(c, user)
+	refreshToken, err := getRefreshToken(db, cfg.ApplicationID, input.RefreshToken)
 	if err != nil {
-		return c.SendStatus(fiber.StatusInternalServerError)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_grant"})
 	}
-	// TODO: Revoke old refresh token
-	if err := revokeAuthKey(db, user); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+
+	// if user.AccessFailedCount >= 5 {
+	// 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
+	// }
+
+	// TODO: Return the entire object, not just the token
+	accessToken, newRefreshToken, err := generateTokensFromRefreshToken(c, refreshToken)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 	}
+	if newRefreshToken != "" {
+		if err := revokeRefreshToken(db, refreshToken.Token); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
+		}
+	}
+	// if err := revokeAuthKey(db, user); err != nil {
+	// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	// }
 
 	authToken := AuthToken{
 		AccessToken:  accessToken,
 		TokenType:    "Bearer",
 		ExpiresIn:    3600,
-		RefreshToken: refreshToken,
+		RefreshToken: newRefreshToken,
 	}
 	return c.JSON(authToken)
 }
@@ -337,7 +328,6 @@ func getClient(db *gorm.DB, clientID string) (database.Application, error) {
 	return client, nil
 }
 
-// TODO: check expiration
 func getAuthCode(db *gorm.DB, clientID string, code string) (database.AuthCode, error) {
 	if code == "" {
 		return database.AuthCode{}, errors.New("code is required")
@@ -415,9 +405,10 @@ func TokenRequest(c *fiber.Ctx) error {
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 		}
-		if err := revokeAuthCode(db, code); err != nil {
+		if err := revokeAuthCode(db, authCode.Code); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 		}
+		// TODO: revokeAuthKey
 
 		authToken := AuthToken{
 			AccessToken:  accessToken,
@@ -444,10 +435,11 @@ func TokenRequest(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 		}
 		if newRefreshToken != "" {
-			if err := revokeRefreshToken(db, refreshToken); err != nil {
+			if err := revokeRefreshToken(db, refresh.Token); err != nil {
 				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 			}
 		}
+		// TODO: revokeAuthKey
 
 		authToken := AuthToken{
 			AccessToken:  accessToken,
