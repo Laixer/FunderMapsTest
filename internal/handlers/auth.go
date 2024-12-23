@@ -136,6 +136,8 @@ func SigninWithPassword(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
 	}
 
+	// TODO: From this point on, move into a platform service
+
 	var user database.User
 	result := db.First(&user, "email = ?", strings.ToLower(input.Email))
 	if result.Error != nil {
@@ -144,8 +146,6 @@ func SigninWithPassword(c *fiber.Ctx) error {
 		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
-
-	// TODO: From this point on, move into a platform service
 
 	if user.AccessFailedCount >= 5 {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
@@ -202,9 +202,18 @@ func RefreshToken(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_grant"})
 	}
 
-	// if user.AccessFailedCount >= 5 {
-	// 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
-	// }
+	var user database.User
+	result := db.First(&user, "id = ?", refreshToken.UserID)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	if user.AccessFailedCount >= 5 {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
+	}
 
 	authToken, err := generateTokensFromRefreshToken(c, refreshToken)
 	if err != nil {
@@ -403,10 +412,18 @@ func TokenRequest(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_grant"})
 		}
 
-		// TODO: Check user access failed count
-		// if user.AccessFailedCount >= 5 {
-		// 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
-		// }
+		var user database.User
+		result := db.First(&user, "id = ?", authCode.UserID)
+		if result.Error != nil {
+			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
+			}
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+		}
+
+		if user.AccessFailedCount >= 5 {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
+		}
 
 		authToken, err := generateTokensFromAuthCode(c, authCode)
 		if err != nil {
@@ -415,7 +432,6 @@ func TokenRequest(c *fiber.Ctx) error {
 		if err := revokeAuthCode(db, authCode.Code); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 		}
-		// TODO: revokeAuthKey
 
 		return c.JSON(authToken)
 
@@ -426,10 +442,18 @@ func TokenRequest(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_grant"})
 		}
 
-		// TODO: Check user access failed count
-		// if user.AccessFailedCount >= 5 {
-		// 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
-		// }
+		var user database.User
+		result := db.First(&user, "id = ?", refresh.UserID)
+		if result.Error != nil {
+			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
+			}
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+		}
+
+		if user.AccessFailedCount >= 5 {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
+		}
 
 		authToken, err := generateTokensFromRefreshToken(c, refresh)
 		if err != nil {
@@ -440,7 +464,6 @@ func TokenRequest(c *fiber.Ctx) error {
 				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 			}
 		}
-		// TODO: revokeAuthKey
 
 		return c.JSON(authToken)
 
