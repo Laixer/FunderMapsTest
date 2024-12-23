@@ -185,16 +185,34 @@ func RefreshToken(c *fiber.Ctx) error {
 
 	// TODO: From this point on, move into a platform service
 
+	// TODO: Lookup refresh token (provided in request)
+	// refreshToken := c.FormValue("refresh_token")
+	// refresh, err := getRefreshToken(db, clientID, refreshToken)
+	// if err != nil {
+	// 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_grant"})
+	// }
+
 	if user.AccessFailedCount >= 5 {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
 	}
+
+	// accessToken, newRefreshToken, err := generateTokensFromRefreshToken(c, refresh)
+	// if err != nil {
+	// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
+	// }
+	// if newRefreshToken != "" {
+	// 	if err := revokeRefreshToken(db, refreshToken); err != nil {
+	// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
+	// 	}
+	// }
 
 	accessToken, refreshToken, err := generateTokensFromUser(c, user)
 	if err != nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
+	// TODO: Revoke old refresh token
 	if err := revokeAuthKey(db, user); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	authToken := AuthToken{
@@ -307,6 +325,10 @@ func AuthorizationRequest(c *fiber.Ctx) error {
 }
 
 func getClient(db *gorm.DB, clientID string) (database.Application, error) {
+	if clientID == "" {
+		return database.Application{}, errors.New("client_id is required")
+	}
+
 	var client database.Application
 	result := db.First(&client, "application_id = ?", clientID)
 	if result.Error != nil {
@@ -317,6 +339,10 @@ func getClient(db *gorm.DB, clientID string) (database.Application, error) {
 
 // TODO: check expiration
 func getAuthCode(db *gorm.DB, clientID string, code string) (database.AuthCode, error) {
+	if code == "" {
+		return database.AuthCode{}, errors.New("code is required")
+	}
+
 	var authToken database.AuthCode
 	result := db.First(&authToken, "code = ? AND application_id = ? AND expired_at > now()", code, clientID)
 	if result.Error != nil {
@@ -326,6 +352,10 @@ func getAuthCode(db *gorm.DB, clientID string, code string) (database.AuthCode, 
 }
 
 func getRefreshToken(db *gorm.DB, clientID string, refreshToken string) (database.AuthRefreshToken, error) {
+	if refreshToken == "" {
+		return database.AuthRefreshToken{}, errors.New("refresh_token is required")
+	}
+
 	var token database.AuthRefreshToken
 	result := db.First(&token, "token = ? AND application_id = ? AND expired_at > now()", refreshToken, clientID)
 	if result.Error != nil {
@@ -376,6 +406,11 @@ func TokenRequest(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_grant"})
 		}
 
+		// TODO: Check user access failed count
+		// if user.AccessFailedCount >= 5 {
+		// 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
+		// }
+
 		accessToken, refreshToken, err := generateTokensFromAuthCode(c, authCode)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
@@ -398,6 +433,11 @@ func TokenRequest(c *fiber.Ctx) error {
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_grant"})
 		}
+
+		// TODO: Check user access failed count
+		// if user.AccessFailedCount >= 5 {
+		// 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
+		// }
 
 		accessToken, newRefreshToken, err := generateTokensFromRefreshToken(c, refresh)
 		if err != nil {
