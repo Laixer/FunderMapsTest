@@ -318,17 +318,16 @@ func getClient(db *gorm.DB, clientID string) (database.Application, error) {
 // TODO: check expiration
 func getAuthCode(db *gorm.DB, clientID string, code string) (database.AuthCode, error) {
 	var authToken database.AuthCode
-	result := db.First(&authToken, "code = ? AND application_id = ?", code, clientID)
+	result := db.First(&authToken, "code = ? AND application_id = ? AND expired_at > now()", code, clientID)
 	if result.Error != nil {
 		return authToken, result.Error
 	}
 	return authToken, nil
 }
 
-// TODO: check expiration
 func getRefreshToken(db *gorm.DB, clientID string, refreshToken string) (database.AuthRefreshToken, error) {
 	var token database.AuthRefreshToken
-	result := db.First(&token, "token = ? AND application_id = ?", refreshToken, clientID)
+	result := db.First(&token, "token = ? AND application_id = ? AND expired_at > now()", refreshToken, clientID)
 	if result.Error != nil {
 		return token, result.Error
 	}
@@ -364,13 +363,9 @@ func TokenRequest(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_client"})
 	}
 
-	// TODO: Replace with a secure comparison
-	if clientSecret != client.Secret {
+	if !utils.VerifyPassword(clientSecret, client.Secret) {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_client"})
 	}
-	// if !utils.VerifyPassword(clientSecret, client.Secret) {
-	// 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_client"})
-	// }
 
 	grantType := c.FormValue("grant_type")
 	switch grantType {
