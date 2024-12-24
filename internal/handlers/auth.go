@@ -31,6 +31,8 @@ type AuthContext struct {
 }
 
 func (ctx *AuthContext) generateTokens(clientID string, userID uuid.UUID) (AuthToken, error) {
+	const tokenType = "Bearer"
+
 	authAccessToken := database.AuthAccessToken{
 		AccessToken:   fmt.Sprintf("fmat%s", utils.GenerateRandomString(40)),
 		IPAddress:     ctx.ipAddress,
@@ -50,7 +52,7 @@ func (ctx *AuthContext) generateTokens(clientID string, userID uuid.UUID) (AuthT
 
 	authToken := AuthToken{
 		AccessToken:  authAccessToken.AccessToken,
-		TokenType:    "Bearer",
+		TokenType:    tokenType,
 		ExpiresIn:    accessTokenExp,
 		RefreshToken: authRefreshToken.Token,
 	}
@@ -58,20 +60,7 @@ func (ctx *AuthContext) generateTokens(clientID string, userID uuid.UUID) (AuthT
 }
 
 func (ctx *AuthContext) generateTokensFromUser(clientID string, user database.User) (AuthToken, error) {
-	authToken, err := ctx.generateTokens(clientID, user.ID)
-	if err != nil {
-		return AuthToken{}, err
-	}
-
-	// TODO; Dont need this here
-	// TODO: Move into database stored procedure
-	ctx.db.Transaction(func(tx *gorm.DB) error {
-		tx.Exec("UPDATE application.user SET access_failed_count = 0, login_count = login_count + 1, last_login = CURRENT_TIMESTAMP WHERE id = ?", user.ID)
-
-		return nil
-	})
-
-	return authToken, nil
+	return ctx.generateTokens(clientID, user.ID)
 }
 
 func (ctx *AuthContext) generateTokensFromAuthCode(authCode database.AuthCode) (AuthToken, error) {
@@ -137,6 +126,15 @@ func SigninWithPassword(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
 		}
 	}
+
+	db.Exec("UPDATE application.user SET access_failed_count = 0, login_count = login_count + 1, last_login = CURRENT_TIMESTAMP WHERE id = ?", user.ID)
+
+	// TODO: Move into database stored procedure
+	// db.Transaction(func(tx *gorm.DB) error {
+	// 	tx.Exec("UPDATE application.user SET access_failed_count = 0, login_count = login_count + 1, last_login = CURRENT_TIMESTAMP WHERE id = ?", user.ID)
+
+	// 	return nil
+	// })
 
 	ctx := AuthContext{db: db, ipAddress: c.IP()}
 	authToken, err := ctx.generateTokensFromUser(cfg.ApplicationID, user)
