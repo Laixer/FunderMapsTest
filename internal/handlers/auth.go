@@ -40,15 +40,20 @@ func (ctx *AuthContext) generateTokens(clientID string, userID uuid.UUID) (AuthT
 		UserID:        userID,
 		ExpiredAt:     time.Now().Add(accessTokenExp * time.Second),
 	}
-	ctx.db.Create(&authAccessToken)
-
 	authRefreshToken := database.AuthRefreshToken{
 		Token:         fmt.Sprintf("fmrt%s", utils.GenerateRandomString(40)),
 		ApplicationID: clientID,
 		UserID:        userID,
 		ExpiredAt:     time.Now().AddDate(0, 0, refreshTokenExp),
 	}
-	ctx.db.Create(&authRefreshToken)
+
+	// TODO: Transaction should be handled by the service
+	ctx.db.Transaction(func(tx *gorm.DB) error {
+		tx.Create(&authAccessToken)
+		tx.Create(&authRefreshToken)
+
+		return nil
+	})
 
 	authToken := AuthToken{
 		AccessToken:  authAccessToken.AccessToken,
@@ -191,11 +196,10 @@ func RefreshToken(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
-	if authToken.RefreshToken != "" {
-		if err := ctx.revokeRefreshToken(refreshToken); err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
-		}
+	if err := ctx.revokeRefreshToken(refreshToken); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
+
 	// if err := revokeAuthKey(db, user); err != nil {
 	// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	// }
@@ -425,10 +429,8 @@ func TokenRequest(c *fiber.Ctx) error {
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 		}
-		if authToken.RefreshToken != "" {
-			if err := ctx.revokeRefreshToken(refresh); err != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
-			}
+		if err := ctx.revokeRefreshToken(refresh); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 		}
 
 		return c.JSON(authToken)
