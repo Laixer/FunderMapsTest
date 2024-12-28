@@ -66,7 +66,6 @@ func main() {
 	api := app.Group("/api")
 	api.Get("/app/:application_id?", handlers.GetApplication)
 
-	// TODO: Add versioning
 	auth := api.Group("/auth", limiter.New())
 	auth.Post("/signin", handlers.SigninWithPassword)
 	auth.Get("/token-refresh", middleware.AuthMiddleware, handlers.RefreshToken)
@@ -77,14 +76,13 @@ func main() {
 	oauth2 := api.Group("/v1/oauth2")
 	oauth2.Get("/authorize", handlers.AuthorizationRequest)
 	oauth2.Post("/token", handlers.TokenRequest)
+	oauth2.Get("/userinfo", middleware.AuthMiddleware, handlers.GetUserInfo)
 
-	// TODO: Add versioning
 	user := api.Group("/user", middleware.AuthMiddleware)
-	user.Get("/me", handlers.GetCurrentUser) // Return User + Organization + Organization Role
+	user.Get("/me", handlers.GetCurrentUser)
 	user.Put("/me", handlers.UpdateCurrentUser)
 	user.Get("/metadata", handlers.GetCurrentUserMetadata)
 	user.Put("/metadata", handlers.UpdateCurrentUserMetadata)
-	user.Get("/userinfo", handlers.GetUserInfo)
 
 	management := api.Group("/v1/management", middleware.AuthMiddleware, middleware.AdminMiddleware)
 	management.Post("/app", handlers.CreateApplication)
@@ -125,37 +123,6 @@ func main() {
 	diag := api.Group("/diag")
 	diag.Get("/ip", handlers.GetIP)
 	diag.Get("/req", handlers.GetHeaders)
-	// diag.Get("/:short_code", handlers.GetRewriteUrl)
-	// diag.Post("/mail", func(c *fiber.Ctx) error {
-	// 	type EmailInput struct {
-	// 		Subject string `json:"subject" validate:"required"`
-	// 		Body    string `json:"body" validate:"required"`
-	// 		From    string `json:"from" validate:"required"`
-	// 		To      string `json:"to" validate:"required"`
-	// 	}
-
-	// 	var input EmailInput
-	// 	if err := c.BodyParser(&input); err != nil {
-	// 		return c.SendStatus(fiber.StatusBadRequest)
-	// 	}
-
-	// 	err := config.Validate.Struct(input)
-	// 	if err != nil {
-	// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
-	// 	}
-
-	// 	message := mail.Email{
-	// 		Subject: input.Subject,
-	// 		Body:    input.Body,
-	// 		From:    input.From,
-	// 		To:      []string{input.To},
-	// 	}
-
-	// 	mailer := mail.NewMailer(cfg.MailgunDomain, cfg.MailgunAPIKey, cfg.MailgunAPIBase)
-	// 	mailer.SendMail(&message)
-
-	// 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "Message queued"})
-	// })
 
 	app.Use(func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Not found"})

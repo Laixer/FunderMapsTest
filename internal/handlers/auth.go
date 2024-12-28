@@ -351,6 +351,7 @@ func revokeAuthKey(db *gorm.DB, user database.User) error {
 	return nil
 }
 
+// TODO: Move to other file
 func TokenRequest(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
