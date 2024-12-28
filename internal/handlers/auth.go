@@ -12,6 +12,7 @@ import (
 
 	"fundermaps/internal/config"
 	"fundermaps/internal/database"
+	"fundermaps/internal/platform/user"
 	"fundermaps/pkg/utils"
 )
 
@@ -406,23 +407,32 @@ func TokenRequest(c *fiber.Ctx) error {
 		return c.JSON(authToken)
 
 	case "client_credentials":
-		const userID = "7a015c0a-55ce-4b8e-84b5-784bd3363d5b"
+		userID := uuid.MustParse("7a015c0a-55ce-4b8e-84b5-784bd3363d5b")
 
-		var user database.User
-		result := db.First(&user, "id = ?", userID)
-		if result.Error != nil {
-			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		userService := user.NewService(db)
+		user, err := userService.GetUserByID(userID)
+		if err != nil {
+			if errors.Is(err, errors.New("user not found")) {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_grant"})
 			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 		}
+
+		// var user database.User
+		// result := db.First(&user, "id = ?", userID)
+		// if result.Error != nil {
+		// 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		// 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_grant"})
+		// 	}
+		// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
+		// }
 
 		if user.AccessFailedCount >= 5 {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "account_locked"})
 		}
 
 		ctx := AuthContext{db: db, ipAddress: c.IP()}
-		authToken, err := ctx.generateTokensFromUser(clientID, user)
+		authToken, err := ctx.generateTokensFromUser(clientID, *user)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 		}
