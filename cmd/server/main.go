@@ -39,7 +39,7 @@ func main() {
 	})
 
 	app.Use(compress.New())
-	app.Use(helmet.New()) // TODO: We only need this for internal routes
+	app.Use(helmet.New())
 	app.Use(recover.New())
 
 	app.Use(healthcheck.New())
@@ -85,7 +85,9 @@ func main() {
 	user.Put("/metadata", handlers.UpdateCurrentUserMetadata)
 
 	management := api.Group("/v1/management", middleware.AuthMiddleware, middleware.AdminMiddleware)
+	// management.Get("/app", handlers.GetAllApplications) // TODO: Implement GetAllApplications
 	management.Post("/app", handlers.CreateApplication)
+	// management.Get("/org", handlers.GetAllOrganizations) // TODO: Implement GetAllOrganizations
 	management.Post("/org", handlers.CreateOrganization)
 	management_org := management.Group("/org/:org_id")
 	management_org.Put("/attach-to-org", handlers.AddMapsetToOrganization)

@@ -20,6 +20,7 @@ func GetUserInfo(c *fiber.Ctx) error {
 		name += *user.LastName
 	}
 
+	// TODO: Create a struct for this
 	userInfo := fiber.Map{
 		"sub":          user.ID,
 		"name":         name, // TODO: Should be null if both given_name and family_name are null
