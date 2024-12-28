@@ -356,6 +356,8 @@ func revokeAuthKey(db *gorm.DB, user database.User) error {
 func TokenRequest(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
+	userService := user.NewService(db)
+
 	type tokenRequest struct{}
 
 	if err := c.BodyParser(&tokenRequest{}); err != nil {
@@ -382,16 +384,15 @@ func TokenRequest(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_grant"})
 		}
 
-		var user database.User
-		result := db.First(&user, "id = ?", authCode.UserID)
-		if result.Error != nil {
-			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		user, err := userService.GetUserByID(authCode.UserID)
+		if err != nil {
+			if errors.Is(err, errors.New("user not found")) {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_grant"})
 			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 		}
 
-		if user.AccessFailedCount >= 5 {
+		if userService.IsLocked(user) {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "account_locked"})
 		}
 
@@ -409,7 +410,6 @@ func TokenRequest(c *fiber.Ctx) error {
 	case "client_credentials":
 		userID := uuid.MustParse("7a015c0a-55ce-4b8e-84b5-784bd3363d5b")
 
-		userService := user.NewService(db)
 		user, err := userService.GetUserByID(userID)
 		if err != nil {
 			if errors.Is(err, errors.New("user not found")) {
@@ -418,21 +418,12 @@ func TokenRequest(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 		}
 
-		// var user database.User
-		// result := db.First(&user, "id = ?", userID)
-		// if result.Error != nil {
-		// 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		// 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_grant"})
-		// 	}
-		// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
-		// }
-
-		if user.AccessFailedCount >= 5 {
+		if userService.IsLocked(user) {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "account_locked"})
 		}
 
 		ctx := AuthContext{db: db, ipAddress: c.IP()}
-		authToken, err := ctx.generateTokensFromUser(clientID, *user)
+		authToken, err := ctx.generateTokensFromUser(clientID, *user) // TODO: pass pointer
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 		}
@@ -446,16 +437,15 @@ func TokenRequest(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_grant"})
 		}
 
-		var user database.User
-		result := db.First(&user, "id = ?", refresh.UserID)
-		if result.Error != nil {
-			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		user, err := userService.GetUserByID(refresh.UserID)
+		if err != nil {
+			if errors.Is(err, errors.New("user not found")) {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_grant"})
 			}
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 		}
 
-		if user.AccessFailedCount >= 5 {
+		if userService.IsLocked(user) {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "account_locked"})
 		}
 

@@ -30,7 +30,6 @@ func GetUserInfo(c *fiber.Ctx) error {
 		name += *user.LastName
 	}
 
-	// TODO: Cannot dereference
 	userInfo := UserInfo{
 		Sub:         user.ID.String(),
 		Name:        name,

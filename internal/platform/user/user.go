@@ -37,3 +37,19 @@ func (s *UserService) GetUserByID(userID uuid.UUID) (*database.User, error) {
 	}
 	return &user, nil
 }
+
+func (s *UserService) GetUserByEmail(email string) (*database.User, error) {
+	var user database.User
+	result := s.db.First(&user, "email = ?", email)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, errors.New("user not found")
+		}
+		return nil, result.Error
+	}
+	return &user, nil
+}
+
+func (s *UserService) IsLocked(user *database.User) bool {
+	return user.AccessFailedCount >= 5
+}
