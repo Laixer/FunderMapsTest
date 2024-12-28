@@ -6,6 +6,16 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+type UserInfo struct {
+	Sub         string `json:"sub"`
+	Name        string `json:"name"`
+	GivenName   string `json:"given_name"`
+	FamilyName  string `json:"family_name"`
+	Email       string `json:"email"`
+	Picture     string `json:"picture"`
+	PhoneNumber string `json:"phone_number"`
+}
+
 func GetUserInfo(c *fiber.Ctx) error {
 	user := c.Locals("user").(database.User)
 
@@ -20,15 +30,15 @@ func GetUserInfo(c *fiber.Ctx) error {
 		name += *user.LastName
 	}
 
-	// TODO: Create a struct for this
-	userInfo := fiber.Map{
-		"sub":          user.ID,
-		"name":         name, // TODO: Should be null if both given_name and family_name are null
-		"given_name":   user.GivenName,
-		"family_name":  user.LastName,
-		"email":        user.Email,
-		"picture":      user.Avatar,
-		"phone_number": user.PhoneNumber,
+	// TODO: Cannot dereference
+	userInfo := UserInfo{
+		Sub:         user.ID.String(),
+		Name:        name,
+		GivenName:   *user.GivenName,
+		FamilyName:  *user.LastName,
+		Email:       user.Email,
+		Picture:     *user.Avatar,
+		PhoneNumber: *user.PhoneNumber,
 	}
 	return c.JSON(userInfo)
 }
