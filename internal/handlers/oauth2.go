@@ -7,13 +7,13 @@ import (
 )
 
 type UserInfo struct {
-	Sub         string `json:"sub"`
-	Name        string `json:"name"`
-	GivenName   string `json:"given_name"`
-	FamilyName  string `json:"family_name"`
-	Email       string `json:"email"`
-	Picture     string `json:"picture"`
-	PhoneNumber string `json:"phone_number"`
+	Sub         string  `json:"sub"`
+	Name        string  `json:"name"`
+	GivenName   *string `json:"given_name,omitempty"`
+	FamilyName  *string `json:"family_name,omitempty"`
+	Email       string  `json:"email"`
+	Picture     *string `json:"picture,omitempty"`
+	PhoneNumber *string `json:"phone_number,omitempty"`
 }
 
 func GetUserInfo(c *fiber.Ctx) error {
@@ -34,11 +34,11 @@ func GetUserInfo(c *fiber.Ctx) error {
 	userInfo := UserInfo{
 		Sub:         user.ID.String(),
 		Name:        name,
-		GivenName:   *user.GivenName,
-		FamilyName:  *user.LastName,
+		GivenName:   user.GivenName,
+		FamilyName:  user.LastName,
 		Email:       user.Email,
-		Picture:     *user.Avatar,
-		PhoneNumber: *user.PhoneNumber,
+		Picture:     user.Avatar,
+		PhoneNumber: user.PhoneNumber,
 	}
 	return c.JSON(userInfo)
 }
