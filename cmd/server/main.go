@@ -26,7 +26,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	db, err := database.Connect(cfg)
+	db, err := database.Open(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}

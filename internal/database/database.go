@@ -1,7 +1,10 @@
 package database
 
 import (
-	"github.com/gofiber/fiber/v2/log"
+	"log"
+	"os"
+	"time"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -9,15 +12,20 @@ import (
 	"fundermaps/internal/config"
 )
 
-func Connect(c *config.Config) (*gorm.DB, error) {
+func Open(c *config.Config) (*gorm.DB, error) {
+	newLogger := logger.New(log.New(os.Stdout, "\r\n", log.LstdFlags), logger.Config{
+		SlowThreshold:             200 * time.Millisecond,
+		LogLevel:                  logger.Warn,
+		IgnoreRecordNotFoundError: true,
+		Colorful:                  true,
+	})
+
 	db, err := gorm.Open(postgres.Open(c.DatabaseURL), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Error),
+		Logger: newLogger,
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	log.Debug("GORM connected to database")
 
 	return db, err
 }
