@@ -26,13 +26,9 @@ func GetDataSubsidence(c *fiber.Ctx) error {
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"message": "Subsidence not found",
-			})
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Subsidence not found"})
 		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal server error",
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	return c.JSON(subsidence)
@@ -58,13 +54,9 @@ func GetDataSubsidenceHistoric(c *fiber.Ctx) error {
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"message": "Subsidence history not found",
-			})
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Subsidence history not found"})
 		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal server error",
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	return c.JSON(subsidenceHistory)

@@ -3,6 +3,8 @@ package handlers
 import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
+
+	"fundermaps/internal/platform/geocoder"
 )
 
 type Incident struct {
@@ -37,6 +39,8 @@ func (i *Incident) TableName() string {
 func CreateIncident(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
+	geocoderService := geocoder.NewService(db)
+
 	var input Incident
 	if err := c.BodyParser(&input); err != nil {
 		return c.SendStatus(fiber.StatusBadRequest)
@@ -46,8 +50,22 @@ func CreateIncident(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).SendString("Building ID required")
 	}
 
-	// TODO: Validate client_id, not all clients can create incidents
+	building, err := geocoderService.GetBuildingByGeocoderID(input.Building)
+	if err != nil {
+		if err.Error() == "building not found" || err.Error() == "unknown geocoder identifier" {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Building not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
 
+	legacyBuildingID, err := geocoderService.GetOldBuildingID(building.BuildingID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	input.Building = legacyBuildingID
+
+	// TODO: Validate client_id, not all clients can create incidents
 	if input.ClientID == 0 {
 		input.ClientID = 10
 	}
@@ -72,9 +90,7 @@ func CreateIncident(c *fiber.Ctx) error {
 
 	result := db.Create(&incident)
 	if result.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal server error",
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	// TODO: Upload files to S3

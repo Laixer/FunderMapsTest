@@ -43,9 +43,7 @@ func GetMapset(c *fiber.Ctx) error {
 			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 				return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Mapset not found"})
 			}
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "Internal server error",
-			})
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 		}
 	}
 
@@ -56,9 +54,7 @@ func GetMapset(c *fiber.Ctx) error {
 			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 				return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Mapset not found"})
 			}
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "Internal server error",
-			})
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 		}
 
 		return c.JSON(mapset)
@@ -70,9 +66,7 @@ func GetMapset(c *fiber.Ctx) error {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Mapset not found"})
 		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal server error",
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	return c.JSON(mapset)

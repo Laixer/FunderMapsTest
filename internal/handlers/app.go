@@ -27,13 +27,9 @@ func GetApplication(c *fiber.Ctx) error {
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"message": "Application not found",
-			})
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Application not found"})
 		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Internal server error",
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	c.Set(fiber.HeaderCacheControl, "public, max-age=3600")
