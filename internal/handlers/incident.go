@@ -95,6 +95,14 @@ func CreateIncident(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Building is required"})
 	}
 
+	if input.Contact == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Contact is required"})
+	}
+
+	if input.ContactName == nil || *input.ContactName == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Contact name is required"})
+	}
+
 	building, err := geocoderService.GetBuildingByGeocoderID(input.Building)
 	if err != nil {
 		if err.Error() == "building not found" || err.Error() == "unknown geocoder identifier" {
