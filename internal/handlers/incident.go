@@ -90,6 +90,8 @@ func CreateIncident(c *fiber.Ctx) error {
 	}
 
 	// TODO: Add data validation
+	// TODO: Check email is valid (regex)
+	// TODO: Replace empty strings with db null
 
 	if input.Building == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Building is required"})
@@ -150,4 +152,23 @@ func CreateIncident(c *fiber.Ctx) error {
 	// TODO: Send email to client
 
 	return c.JSON(incident)
+}
+
+func UploadFiles(c *fiber.Ctx) error {
+	form, err := c.MultipartForm()
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Failed to parse form"})
+	}
+
+	files := form.File["files"]
+	if len(files) == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "No files uploaded"})
+	}
+
+	for _, file := range files {
+		// For now, just discard the files
+		fmt.Printf("Received file: %s\n", file.Filename)
+	}
+
+	return c.JSON(fiber.Map{"message": "Files uploaded successfully"})
 }

@@ -111,6 +111,7 @@ func main() {
 	// TODO: Needs 'user,admin' role
 	// api.Get("/incident", middleware.AuthMiddleware, handlers.GetIncident)
 	api.Post("/incident", handlers.CreateIncident)
+	api.Post("/incident/upload", handlers.UploadFiles)
 	api.Get("/contractor", middleware.AuthMiddleware, handlers.GetAllContractors)
 	api.Get("/mapset/:mapset_id?", middleware.AuthMiddleware, handlers.GetMapset)
 
