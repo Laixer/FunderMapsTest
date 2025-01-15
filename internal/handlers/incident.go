@@ -1,29 +1,65 @@
 package handlers
 
 import (
+	"database/sql/driver"
+	"fmt"
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
 	"fundermaps/internal/platform/geocoder"
 )
 
+type StringArray []string
+
+// Implement the sql.Scanner interface
+func (a *StringArray) Scan(value interface{}) error {
+	if value == nil {
+		*a = []string{}
+		return nil
+	}
+
+	switch v := value.(type) {
+	case []byte:
+		str := string(v)
+		str = strings.Trim(str, "{}")
+		if str == "" {
+			*a = []string{}
+		} else {
+			*a = strings.Split(str, ",")
+		}
+		return nil
+	default:
+		return fmt.Errorf("unsupported Scan, storing driver.Value type %T into type StringArray", value)
+	}
+}
+
+// Implement the driver.Valuer interface
+func (a StringArray) Value() (driver.Value, error) {
+	if len(a) == 0 {
+		return "{}", nil
+	}
+	return fmt.Sprintf("{%s}", strings.Join(a, ",")), nil
+}
+
 type Incident struct {
-	ID                               string   `json:"id" gorm:"primaryKey;<-:create"`
-	ClientID                         int      `json:"client_id" gorm:"-:all"`
-	FoundationType                   *string  `json:"foundation_type"`
-	ChainedBuilding                  bool     `json:"chained_building"`
-	Owner                            bool     `json:"owner"`
-	FoundationRecovery               bool     `json:"foundation_recovery"`
-	NeightborRecovery                bool     `json:"neightbor_recovery"` // TODO: Fix typo
-	FoundationDamageCause            *string  `json:"foundation_damage_cause"`
-	DocumentFile                     []string `json:"document_file" gorm:"type:text[]"`
-	Note                             *string  `json:"note"`
-	Contact                          string   `json:"contact"`
-	ContactName                      *string  `json:"contact_name"`
-	ContactPhoneNumber               *string  `json:"contact_phone_number"`
-	EnvironmentDamageCharacteristics []string `json:"environment_damage_characteristics" gorm:"type:text[]"`
-	FoundationDamageCharacteristics  []string `json:"foundation_damage_characteristics" gorm:"type:text[]"`
-	Building                         string   `json:"building"` // TODO: Rename to BuildingID
+	ID                               string      `json:"id" gorm:"primaryKey;<-:create"`
+	ClientID                         int         `json:"client_id" gorm:"-:all"`
+	FoundationType                   *string     `json:"foundation_type"`
+	ChainedBuilding                  bool        `json:"chained_building"`
+	Owner                            bool        `json:"owner"`
+	FoundationRecovery               bool        `json:"foundation_recovery"`
+	NeightborRecovery                bool        `json:"neightbor_recovery"` // TODO: Fix typo
+	FoundationDamageCause            *string     `json:"foundation_damage_cause"`
+	DocumentFile                     StringArray `json:"document_file" gorm:"type:text[]"`
+	Note                             *string     `json:"note"`
+	Contact                          string      `json:"contact"`
+	ContactName                      *string     `json:"contact_name"`
+	ContactPhoneNumber               *string     `json:"contact_phone_number"`
+	EnvironmentDamageCharacteristics StringArray `json:"environment_damage_characteristics" gorm:"type:text[]"`
+	FoundationDamageCharacteristics  StringArray `json:"foundation_damage_characteristics" gorm:"type:text[]"`
+	Building                         string      `json:"building"` // TODO: Rename to BuildingID
 	// Meta							 *string  `json:"meta"`
 }
 
@@ -46,8 +82,10 @@ func CreateIncident(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusBadRequest)
 	}
 
+	// TODO: Add data validation
+
 	if input.Building == "" {
-		return c.Status(fiber.StatusBadRequest).SendString("Building ID required")
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Building is required"})
 	}
 
 	building, err := geocoderService.GetBuildingByGeocoderID(input.Building)
