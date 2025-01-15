@@ -11,6 +11,7 @@ import (
 	"fundermaps/internal/platform/geocoder"
 )
 
+// TODO: Move into a models package
 type StringArray []string
 
 // Implement the sql.Scanner interface
@@ -37,10 +38,16 @@ func (a *StringArray) Scan(value interface{}) error {
 
 // Implement the driver.Valuer interface
 func (a StringArray) Value() (driver.Value, error) {
-	if len(a) == 0 {
-		return "{}", nil
+	var cleanedArray []string
+	for _, str := range a {
+		if strings.TrimSpace(str) != "" {
+			cleanedArray = append(cleanedArray, str)
+		}
 	}
-	return fmt.Sprintf("{%s}", strings.Join(a, ",")), nil
+	if len(cleanedArray) == 0 {
+		return nil, nil
+	}
+	return fmt.Sprintf("{%s}", strings.Join(cleanedArray, ",")), nil
 }
 
 type Incident struct {
