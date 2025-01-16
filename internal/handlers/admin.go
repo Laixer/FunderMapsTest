@@ -11,6 +11,18 @@ import (
 	"fundermaps/pkg/utils"
 )
 
+func GetAllApplications(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	var apps []database.Application
+	result := db.Find(&apps)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	return c.JSON(apps)
+}
+
 func CreateApplication(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
@@ -38,6 +50,18 @@ func CreateApplication(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(app)
+}
+
+func GetAllOrganizations(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	var orgs []database.Organization
+	result := db.Find(&orgs)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	return c.JSON(orgs)
 }
 
 // TODO: Check if organization name already exists
@@ -261,6 +285,39 @@ func AddMapsetToOrganization(c *fiber.Ctx) error {
 	}
 
 	return c.SendStatus(fiber.StatusCreated)
+}
+
+func RemoveMapsetFromOrganization(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	type RemoveMapsetFromOrganizationInput struct {
+		MapsetID       string `json:"mapset_id" validate:"required"`
+		OrganizationID string `json:"organization_id" validate:"required"`
+	}
+
+	var input RemoveMapsetFromOrganizationInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
+	}
+
+	err := config.Validate.Struct(input)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
+	}
+
+	// TODO: Just do an insert into the database, the foreign key constraints will handle the rest
+	var org database.Organization
+	result := db.First(&org, "id = ?", input.OrganizationID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
+	}
+
+	result = db.Exec("DELETE FROM maplayer.map_organization WHERE map_id = ? AND organization_id = ?", input.MapsetID, org.ID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
 }
 
 func CreateAuthKey(c *fiber.Ctx) error {

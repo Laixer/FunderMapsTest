@@ -85,13 +85,13 @@ func main() {
 	user.Put("/metadata", handlers.UpdateCurrentUserMetadata)
 
 	management := api.Group("/v1/management", middleware.AuthMiddleware, middleware.AdminMiddleware)
-	// management.Get("/app", handlers.GetAllApplications) // TODO: Implement GetAllApplications
+	management.Get("/app", handlers.GetAllApplications)
 	management.Post("/app", handlers.CreateApplication)
-	// management.Get("/org", handlers.GetAllOrganizations) // TODO: Implement GetAllOrganizations
+	management.Get("/org", handlers.GetAllOrganizations)
 	management.Post("/org", handlers.CreateOrganization)
 	management_org := management.Group("/org/:org_id")
-	management_org.Put("/attach-to-org", handlers.AddMapsetToOrganization)
-	// management_org.Put("/detach-from-org", handlers.RemoveMapsetFromOrganization)
+	management_org.Put("/add-mapset", handlers.AddMapsetToOrganization)
+	management_org.Put("/remove-mapset", handlers.RemoveMapsetFromOrganization)
 	// management_org.Delete("/", handlers.DeleteOrganization)
 	management.Post("/user", handlers.CreateUser)
 	management_user := management.Group("/user/:user_id")
