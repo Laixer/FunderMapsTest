@@ -31,13 +31,11 @@ func GetAnalysis(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
-	analysisTracker := middleware.ProductTracker{
+	c.Locals("tracker", middleware.ProductTracker{
 		Name:       "analysis3",
 		BuildingID: analysis.BuildingID,
 		Identifier: buildingID,
-	}
-
-	c.Locals("tracker", analysisTracker)
+	})
 
 	// firstOrganization := user.Organizations[0]
 
