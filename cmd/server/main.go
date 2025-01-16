@@ -110,10 +110,12 @@ func main() {
 
 	// TODO: Needs 'user,admin' role
 	// api.Get("/incident", middleware.AuthMiddleware, handlers.GetIncident)
-	api.Post("/incident", handlers.CreateIncident)
-	api.Post("/incident/upload", handlers.UploadFiles)
 	api.Get("/contractor", middleware.AuthMiddleware, handlers.GetAllContractors)
 	api.Get("/mapset/:mapset_id?", middleware.AuthMiddleware, handlers.GetMapset)
+
+	incident := api.Group("/incident")
+	incident.Post("/", handlers.CreateIncident)
+	incident.Post("/upload", handlers.UploadFiles)
 
 	// TODO: Add tracker middleware
 	product := api.Group("/v4/product/:building_id", middleware.AuthMiddleware, requestid.New())
@@ -121,7 +123,7 @@ func main() {
 	// product.Get("/analysis", handlers.GetAnalysis, middleware.TrackerMiddleware)
 	// product.Get("/statistics", handlers.GetAnalysis)
 	// product.Get("/subsidence", handlers.GetDataSubsidence)
-	product.Get("/subsidence_historic", handlers.GetDataSubsidenceHistoric)
+	product.Get("/subsidence/historic", handlers.GetDataSubsidenceHistoric)
 
 	diag := api.Group("/diag")
 	diag.Get("/ip", handlers.GetIP)
