@@ -65,6 +65,7 @@ func main() {
 
 	api := app.Group("/api")
 	api.Get("/app/:application_id?", handlers.GetApplication)
+	api.Get("/data/contractor", middleware.AuthMiddleware, handlers.GetAllContractors) // TODO: Why not add the contractors to the application data?
 
 	auth := api.Group("/auth", limiter.New())
 	auth.Post("/signin", handlers.SigninWithPassword)
@@ -73,17 +74,28 @@ func main() {
 	// auth.Post("/forgot-password", handlers.ForgotPassword)
 	// auth.Post("/reset-password", handlers.ResetPassword)
 
-	oauth2 := api.Group("/v1/oauth2")
-	oauth2.Get("/authorize", handlers.AuthorizationRequest)
-	oauth2.Post("/token", handlers.TokenRequest)
-	oauth2.Get("/userinfo", middleware.AuthMiddleware, handlers.GetUserInfo)
-
 	user := api.Group("/user", middleware.AuthMiddleware)
 	user.Get("/me", handlers.GetCurrentUser)
 	user.Put("/me", handlers.UpdateCurrentUser)
 	user.Get("/metadata", handlers.GetCurrentUserMetadata)
 	user.Put("/metadata", handlers.UpdateCurrentUserMetadata)
 
+	// Mapset application
+	mapset := api.Group("/mapset")
+	mapset.Get("/:mapset_id?", middleware.AuthMiddleware, handlers.GetMapset)
+
+	// Incident application
+	incident := api.Group("/incident")
+	incident.Post("/", handlers.CreateIncident)
+	incident.Post("/upload", handlers.UploadFiles)
+
+	// OAuth2 API
+	oauth2 := api.Group("/v1/oauth2")
+	oauth2.Get("/authorize", handlers.AuthorizationRequest)
+	oauth2.Post("/token", handlers.TokenRequest)
+	oauth2.Get("/userinfo", middleware.AuthMiddleware, handlers.GetUserInfo)
+
+	// Management API
 	management := api.Group("/v1/management", middleware.AuthMiddleware, middleware.AdminMiddleware)
 	management.Get("/app", handlers.GetAllApplications)
 	management.Post("/app", handlers.CreateApplication)
@@ -92,30 +104,19 @@ func main() {
 	management_org := management.Group("/org/:org_id")
 	management_org.Post("/add-mapset", handlers.AddMapsetToOrganization)
 	management_org.Delete("/remove-mapset", handlers.RemoveMapsetFromOrganization)
-	management_org.Post("/add-user", handlers.AddUserToOrganization) // TODO: This becomes part of the org
+	management_org.Post("/add-user", handlers.AddUserToOrganization)
 	management_org.Delete("/remove-user", handlers.RemoveUserFromOrganization)
-	// management_org.Delete("/", handlers.DeleteOrganization)
 	management.Post("/user", handlers.CreateUser)
 	management_user := management.Group("/user/:user_id")
 	management_user.Get("/auth-token", handlers.CreateAuthKey) // TODO: Find all AuthKey references and replace with ApiKey
 	management_user.Post("/reset-password", handlers.ResetUserPassword)
-	// management_user.Delete("/", handlers.DeleteUser)
 
 	geocoder := api.Group("/geocoder/:geocoder_id", func(c *fiber.Ctx) error {
-		c.Set(fiber.HeaderCacheControl, "public, max-age=86400")
+		c.Set(fiber.HeaderCacheControl, "public, max-age=3600")
 		return c.Next()
 	})
 	geocoder.Get("/", handlers.GetGeocoder)
 	geocoder.Get("/address", handlers.GetAllAddresses)
-
-	// TODO: Needs 'user,admin' role
-	// api.Get("/incident", middleware.AuthMiddleware, handlers.GetIncident)
-	api.Get("/contractor", middleware.AuthMiddleware, handlers.GetAllContractors)
-	api.Get("/mapset/:mapset_id?", middleware.AuthMiddleware, handlers.GetMapset)
-
-	incident := api.Group("/incident")
-	incident.Post("/", handlers.CreateIncident)
-	incident.Post("/upload", handlers.UploadFiles)
 
 	// TODO: Add tracker middleware
 	product := api.Group("/v4/product/:building_id", middleware.AuthMiddleware, requestid.New())

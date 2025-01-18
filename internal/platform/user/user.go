@@ -3,6 +3,7 @@ package user
 import (
 	"errors"
 	"fundermaps/internal/database"
+	"fundermaps/pkg/utils"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -48,6 +49,16 @@ func (s *UserService) GetUserByEmail(email string) (*database.User, error) {
 		return nil, result.Error
 	}
 	return &user, nil
+}
+
+func (s *UserService) UpdatePassword(user *database.User, password string) error {
+	user.PasswordHash = utils.HashLegacyPassword(password)
+
+	result := s.db.Save(user)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }
 
 func (s *UserService) IsLocked(user *database.User) bool {

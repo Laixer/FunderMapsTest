@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 
 	"fundermaps/internal/config"
@@ -138,6 +139,8 @@ func CreateUser(c *fiber.Ctx) error {
 func ResetUserPassword(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
+	userService := user.NewService(db)
+
 	userID := c.Params("user_id")
 
 	type ResetPasswordInput struct {
@@ -154,16 +157,20 @@ func ResetUserPassword(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
 	}
 
-	var user database.User
-	result := db.First(&user, "id = ?", userID)
-	if result.Error != nil {
+	uid, err := uuid.Parse(userID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid user ID"})
+	}
+	user, err := userService.GetUserByID(uid)
+	if err != nil {
+		if err.Error() == "user not found" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User not found"})
+		}
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User not found"})
 	}
 
-	user.PasswordHash = utils.HashLegacyPassword(input.Password)
-
-	result = db.Save(&user)
-	if result.Error != nil {
+	err = userService.UpdatePassword(user, input.Password)
+	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
