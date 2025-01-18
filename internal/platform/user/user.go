@@ -16,18 +16,17 @@ func NewService(db *gorm.DB) *UserService {
 	return &UserService{db: db}
 }
 
-// func (s *UserService) CreateProduct(product *Product) error {
-// 	// ... any validation or business logic ...
-
-// 	result := s.db.Create(product)
-// 	if result.Error != nil {
-// 		return fmt.Errorf("failed to create product: %w", result.Error)
-// 	}
-// 	return nil
-// }
+func (s *UserService) Create(user *database.User) error {
+	result := s.db.Create(user)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
 
 func (s *UserService) GetUserByID(userID uuid.UUID) (*database.User, error) {
 	var user database.User
+
 	result := s.db.First(&user, "id = ?", userID)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -40,6 +39,7 @@ func (s *UserService) GetUserByID(userID uuid.UUID) (*database.User, error) {
 
 func (s *UserService) GetUserByEmail(email string) (*database.User, error) {
 	var user database.User
+
 	result := s.db.First(&user, "email = ?", email)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {

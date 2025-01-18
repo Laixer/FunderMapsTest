@@ -8,6 +8,7 @@ import (
 
 	"fundermaps/internal/config"
 	"fundermaps/internal/database"
+	"fundermaps/internal/platform/user"
 	"fundermaps/pkg/utils"
 )
 
@@ -95,9 +96,10 @@ func CreateOrganization(c *fiber.Ctx) error {
 	return c.JSON(org)
 }
 
-// TODO: Check if user email already exists
 func CreateUser(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
+
+	userService := user.NewService(db)
 
 	type UserInput struct {
 		Email    string `json:"email" validate:"required,email"`
@@ -114,14 +116,19 @@ func CreateUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
 	}
 
-	user := database.User{
+	user, _ := userService.GetUserByEmail(input.Email)
+	if user != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User already exists"})
+	}
+
+	user = &database.User{
 		Email:        input.Email,
 		PasswordHash: utils.HashLegacyPassword(input.Password),
 		Role:         "user",
 	}
 
-	result := db.Create(&user)
-	if result.Error != nil {
+	err = userService.Create(user)
+	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
