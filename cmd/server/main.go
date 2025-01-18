@@ -90,15 +90,15 @@ func main() {
 	management.Get("/org", handlers.GetAllOrganizations)
 	management.Post("/org", handlers.CreateOrganization)
 	management_org := management.Group("/org/:org_id")
-	management_org.Put("/add-mapset", handlers.AddMapsetToOrganization)
-	management_org.Put("/remove-mapset", handlers.RemoveMapsetFromOrganization)
+	management_org.Post("/add-mapset", handlers.AddMapsetToOrganization)
+	management_org.Delete("/remove-mapset", handlers.RemoveMapsetFromOrganization)
+	management_org.Post("/add-user", handlers.AddUserToOrganization) // TODO: This becomes part of the org
+	management_org.Delete("/remove-user", handlers.RemoveUserFromOrganization)
 	// management_org.Delete("/", handlers.DeleteOrganization)
 	management.Post("/user", handlers.CreateUser)
 	management_user := management.Group("/user/:user_id")
-	management_user.Post("/auth-token", handlers.CreateAuthKey) // TODO: Find all AuthKey references and replace with ApiKey
+	management_user.Get("/auth-token", handlers.CreateAuthKey) // TODO: Find all AuthKey references and replace with ApiKey
 	management_user.Post("/reset-password", handlers.ResetUserPassword)
-	management_user.Put("/attach-to-org", handlers.AddUserToOrganization)
-	management_user.Put("/detach-from-org", handlers.RemoveUserFromOrganization)
 	// management_user.Delete("/", handlers.DeleteUser)
 
 	geocoder := api.Group("/geocoder/:geocoder_id", func(c *fiber.Ctx) error {

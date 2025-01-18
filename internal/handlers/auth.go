@@ -246,7 +246,7 @@ func ChangePassword(c *fiber.Ctx) error {
 		}
 	}
 
-	hash := utils.HashPassword(input.NewPassword)
+	hash := utils.HashLegacyPassword(input.NewPassword)
 
 	// TODO: Move into database stored procedure
 	db.Transaction(func(tx *gorm.DB) error {

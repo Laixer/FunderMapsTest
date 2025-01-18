@@ -36,7 +36,7 @@ func (a *StringArray) Scan(value interface{}) error {
 	}
 }
 
-// Implement the driver.Valuer interface
+// Convert the StringArray to a valid string for the database
 func (a StringArray) Value() (driver.Value, error) {
 	var cleanedArray []string
 	for _, str := range a {
@@ -166,9 +166,13 @@ func UploadFiles(c *fiber.Ctx) error {
 	}
 
 	for _, file := range files {
-		// For now, just discard the files
 		fmt.Printf("Received file: %s\n", file.Filename)
 	}
 
-	return c.JSON(fiber.Map{"message": "Files uploaded successfully"})
+	uploadedFiles := []string{}
+	for _, file := range files {
+		uploadedFiles = append(uploadedFiles, file.Filename)
+	}
+
+	return c.JSON(fiber.Map{"files": uploadedFiles})
 }

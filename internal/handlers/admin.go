@@ -116,7 +116,7 @@ func CreateUser(c *fiber.Ctx) error {
 
 	user := database.User{
 		Email:        input.Email,
-		PasswordHash: utils.HashPassword(input.Password),
+		PasswordHash: utils.HashLegacyPassword(input.Password),
 		Role:         "user",
 	}
 
@@ -131,8 +131,9 @@ func CreateUser(c *fiber.Ctx) error {
 func ResetUserPassword(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
+	userID := c.Params("user_id")
+
 	type ResetPasswordInput struct {
-		UserID   string `json:"user_id" validate:"required"`
 		Password string `json:"password" validate:"required,min=6"`
 	}
 
@@ -147,28 +148,29 @@ func ResetUserPassword(c *fiber.Ctx) error {
 	}
 
 	var user database.User
-	result := db.First(&user, "id = ?", input.UserID)
+	result := db.First(&user, "id = ?", userID)
 	if result.Error != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User not found"})
 	}
 
-	user.PasswordHash = utils.HashPassword(input.Password)
+	user.PasswordHash = utils.HashLegacyPassword(input.Password)
 
 	result = db.Save(&user)
 	if result.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
-	return c.JSON(user)
+	return c.SendStatus(fiber.StatusNoContent)
 }
 
 func AddUserToOrganization(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
+	organizationID := c.Params("org_id")
+
 	type AddUserToOrganizationInput struct {
-		UserID         string  `json:"user_id" validate:"required"`
-		OrganizationID string  `json:"organization_id" validate:"required"`
-		Role           *string `json:"role"`
+		UserID string  `json:"user_id" validate:"required"`
+		Role   *string `json:"role"` // TODO: Validate role
 	}
 
 	var input AddUserToOrganizationInput
@@ -188,7 +190,7 @@ func AddUserToOrganization(c *fiber.Ctx) error {
 	}
 
 	var org database.Organization
-	result = db.First(&org, "id = ?", input.OrganizationID)
+	result = db.First(&org, "id = ?", organizationID)
 	if result.Error != nil {
 		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
 	}
@@ -205,16 +207,16 @@ func AddUserToOrganization(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
 	}
 
-	return c.SendStatus(fiber.StatusCreated)
+	return c.SendStatus(fiber.StatusCreated) // TODO: Only send status with no content
 }
 
-// TOOD: Untested
 func RemoveUserFromOrganization(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
+	organizationID := c.Params("org_id")
+
 	type RemoveUserFromOrganizationInput struct {
-		UserID         string `json:"user_id" validate:"required"`
-		OrganizationID string `json:"organization_id" validate:"required"`
+		UserID string `json:"user_id" validate:"required"`
 	}
 
 	var input RemoveUserFromOrganizationInput
@@ -234,7 +236,7 @@ func RemoveUserFromOrganization(c *fiber.Ctx) error {
 	}
 
 	var org database.Organization
-	result = db.First(&org, "id = ?", input.OrganizationID)
+	result = db.First(&org, "id = ?", organizationID)
 	if result.Error != nil {
 		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
 	}
@@ -250,9 +252,10 @@ func RemoveUserFromOrganization(c *fiber.Ctx) error {
 func AddMapsetToOrganization(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
+	organizationID := c.Params("org_id")
+
 	type AddMapsetToOrganizationInput struct {
-		MapsetID       string `json:"mapset_id" validate:"required"`
-		OrganizationID string `json:"organization_id" validate:"required"`
+		MapsetID string `json:"mapset_id" validate:"required"`
 	}
 
 	var input AddMapsetToOrganizationInput
@@ -274,7 +277,7 @@ func AddMapsetToOrganization(c *fiber.Ctx) error {
 
 	// TODO: Just do an insert into the database, the foreign key constraints will handle the rest
 	var org database.Organization
-	result := db.First(&org, "id = ?", input.OrganizationID)
+	result := db.First(&org, "id = ?", organizationID)
 	if result.Error != nil {
 		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
 	}
@@ -290,9 +293,10 @@ func AddMapsetToOrganization(c *fiber.Ctx) error {
 func RemoveMapsetFromOrganization(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
+	organizationID := c.Params("org_id")
+
 	type RemoveMapsetFromOrganizationInput struct {
-		MapsetID       string `json:"mapset_id" validate:"required"`
-		OrganizationID string `json:"organization_id" validate:"required"`
+		MapsetID string `json:"mapset_id" validate:"required"`
 	}
 
 	var input RemoveMapsetFromOrganizationInput
@@ -307,7 +311,7 @@ func RemoveMapsetFromOrganization(c *fiber.Ctx) error {
 
 	// TODO: Just do an insert into the database, the foreign key constraints will handle the rest
 	var org database.Organization
-	result := db.First(&org, "id = ?", input.OrganizationID)
+	result := db.First(&org, "id = ?", organizationID)
 	if result.Error != nil {
 		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
 	}
@@ -323,22 +327,10 @@ func RemoveMapsetFromOrganization(c *fiber.Ctx) error {
 func CreateAuthKey(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
-	type APITokenInput struct {
-		UserID string `json:"user_id" validate:"required"`
-	}
-
-	var input APITokenInput
-	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
-	}
-
-	err := config.Validate.Struct(input)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
-	}
+	userID := c.Params("user_id")
 
 	var user database.User
-	result := db.First(&user, "id = ?", input.UserID)
+	result := db.First(&user, "id = ?", userID)
 	if result.Error != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User not found"})
 	}

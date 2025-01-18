@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	iterationRounds = 10000
-	subkeyLength    = 256 / 8
-	saltSize        = 128 / 8
+	pbkdf2IterationRounds = 10000
+	pbkdf2SubkeyLength    = 256 / 8
+	pbkdf2SaltSize        = 128 / 8
 )
 
 func init() {
@@ -24,7 +24,7 @@ func init() {
 }
 
 func HashPassword(password string) string {
-	salt := []byte("somesalt")
+	salt := []byte("somesalt") // TODO: Replace with random string
 	var time uint32 = 1
 	var memory uint32 = 64 * 1024
 	var threads uint8 = 4
@@ -38,7 +38,20 @@ func HashPassword(password string) string {
 	return fmt.Sprintf("$argon2id$m=%d,t=%d,p=%d$%s$%s", memory, time, threads, saltBase64, hashBase64)
 }
 
-func VerifyLegacyPassword(password, hash string) bool {
+func HashLegacyPassword(password string) string {
+	salt := []byte("somesaltsomesalt") // TODO: Replace with random string
+
+	hash := pbkdf2.Key([]byte(password), salt, pbkdf2IterationRounds, pbkdf2SubkeyLength, sha256.New)
+
+	encodedHash := make([]byte, 1+len(salt)+len(hash))
+	encodedHash[0] = 0x1
+	copy(encodedHash[1:], salt)
+	copy(encodedHash[1+len(salt):], hash)
+
+	return base64.StdEncoding.EncodeToString(encodedHash)
+}
+
+func VerifyLegacyPassword(password string, hash string) bool {
 	decodedHash, err := base64.StdEncoding.DecodeString(hash)
 	if err != nil {
 		return false
@@ -48,15 +61,15 @@ func VerifyLegacyPassword(password, hash string) bool {
 		return false
 	}
 
-	salt := decodedHash[1 : saltSize+1]
-	subkey := decodedHash[saltSize+1:]
+	salt := decodedHash[1 : pbkdf2SaltSize+1]
+	subkey := decodedHash[pbkdf2SaltSize+1:]
 
-	derivedKey := pbkdf2.Key([]byte(password), salt, iterationRounds, subkeyLength, sha256.New)
+	derivedKey := pbkdf2.Key([]byte(password), salt, pbkdf2IterationRounds, pbkdf2SubkeyLength, sha256.New)
 
 	return subtle.ConstantTimeCompare(derivedKey, subkey) == 1
 }
 
-func VerifyPassword(password, hash string) bool {
+func VerifyPassword(password string, hash string) bool {
 	var time uint32
 	var memory uint32
 	var threads uint8
