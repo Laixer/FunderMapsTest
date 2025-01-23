@@ -177,6 +177,28 @@ func ResetUserPassword(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+func GetAllOrganizationUsers(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	organizationID := c.Params("org_id")
+
+	var org database.Organization
+	result := db.First(&org, "id = ?", organizationID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
+	}
+
+	var users []database.User
+	result = db.Joins("JOIN application.organization_user ON application.organization_user.user_id = application.user.id").
+		Where("application.organization_user.organization_id = ?", org.ID).
+		Find(&users)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
+	}
+
+	return c.JSON(users)
+}
+
 func AddUserToOrganization(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
