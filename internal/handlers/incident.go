@@ -80,6 +80,7 @@ func (i *Incident) TableName() string {
 }
 
 func CreateIncident(c *fiber.Ctx) error {
+	// cfg := c.Locals("config").(*config.Config)
 	db := c.Locals("db").(*gorm.DB)
 
 	geocoderService := geocoder.NewService(db)
@@ -149,7 +150,16 @@ func CreateIncident(c *fiber.Ctx) error {
 	}
 
 	// TODO: Upload files to S3
-	// TODO: Send email to client
+
+	// message := mail.Email{
+	// 	Subject: input.Subject,
+	// 	Body:    input.Body,
+	// 	From:    input.From,
+	// 	To:      []string{input.To},
+	// }
+
+	// mailer := mail.NewMailer(cfg.MailgunDomain, cfg.MailgunAPIKey, cfg.MailgunAPIBase)
+	// mailer.SendMail(&message)
 
 	return c.JSON(incident)
 }

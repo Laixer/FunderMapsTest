@@ -111,10 +111,7 @@ func main() {
 	management_user.Get("/auth-token", handlers.CreateAuthKey) // TODO: Find all AuthKey references and replace with ApiKey
 	management_user.Post("/reset-password", handlers.ResetUserPassword)
 
-	geocoder := api.Group("/geocoder/:geocoder_id", func(c *fiber.Ctx) error {
-		c.Set(fiber.HeaderCacheControl, "public, max-age=3600")
-		return c.Next()
-	})
+	geocoder := api.Group("/geocoder/:geocoder_id")
 	geocoder.Get("/", handlers.GetGeocoder)
 	geocoder.Get("/address", handlers.GetAllAddresses)
 

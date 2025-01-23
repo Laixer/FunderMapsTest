@@ -9,6 +9,7 @@ import (
 	"fundermaps/internal/database"
 )
 
+// TODO: Fetch from ENV
 const ApplicationID = "app-0blu4s39"
 
 // TODO: Return User + Organization + Organization Role

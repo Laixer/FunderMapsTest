@@ -26,6 +26,7 @@ func GetGeocoder(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
+	c.Set(fiber.HeaderCacheControl, "public, max-age=3600")
 	return c.JSON(building)
 }
 
@@ -63,5 +64,6 @@ func GetAllAddresses(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
+	c.Set(fiber.HeaderCacheControl, "public, max-age=3600")
 	return c.JSON(addresses)
 }
