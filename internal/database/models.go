@@ -104,17 +104,27 @@ func (o *Organization) TableName() string {
 // 	return "application.organization_user"
 // }
 
-// TODO: Add RedirectURI
 type Application struct {
-	ApplicationID string `json:"id" gorm:"primaryKey"`
-	Name          string `json:"name"`
-	Data          string `json:"data" gorm:"type:jsonb"`
-	Secret        string `json:"-"` // TODO Rename to SecretHash
-	RedirectURL   string `json:"-"`
+	ApplicationID string     `json:"id" gorm:"primaryKey"`
+	Name          string     `json:"name"`
+	Data          JSONObject `json:"data" gorm:"type:jsonb"`
+	Secret        string     `json:"-"` // TODO Rename to SecretHash
+	RedirectURL   string     `json:"-"`
 }
 
 func (a *Application) TableName() string {
 	return "application.application"
+}
+
+type ApplicationUser struct {
+	UserID        string     `json:"-" gorm:"primaryKey"`
+	ApplicationID string     `json:"-" gorm:"primaryKey"`
+	Metadata      JSONObject `json:"metadata" gorm:"type:jsonb"`
+	UpdateDate    time.Time  `json:"update_date"`
+}
+
+func (a *ApplicationUser) TableName() string {
+	return "application.application_user"
 }
 
 type AuthCode struct {

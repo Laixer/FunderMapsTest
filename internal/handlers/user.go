@@ -56,21 +56,16 @@ func GetCurrentUserMetadata(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 	user := c.Locals("user").(database.User)
 
-	type Metadata struct {
-		Metadata   string    `json:"metadata" gorm:"type:jsonb"`
-		UpdateDate time.Time `json:"update_date"`
+	var applicationUser database.ApplicationUser
+	result := db.First(&applicationUser, "user_id = ? AND application_id = ?", user.ID, ApplicationID)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return c.JSON(database.ApplicationUser{})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
-	// TODO: Use gorm instead of raw query
-	var metadata Metadata
-	db.Raw(`
-		SELECT metadata, update_date
-		FROM application.application_user
-		WHERE user_id = ?
-		AND application_id = ?
-		LIMIT 1`, user.ID, ApplicationID).Scan(&metadata)
-
-	return c.JSON(metadata)
+	return c.JSON(applicationUser)
 }
 
 func UpdateCurrentUserMetadata(c *fiber.Ctx) error {
@@ -78,21 +73,27 @@ func UpdateCurrentUserMetadata(c *fiber.Ctx) error {
 	user := c.Locals("user").(database.User)
 
 	var input struct {
-		Metadata interface{} `json:"metadata"`
+		Metadata map[string]interface{} `json:"metadata"`
 	}
 
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
 	}
 
-	result := db.Exec(`
-		INSERT INTO application.application_user (user_id, application_id, metadata, update_date)
-		VALUES (?, ?, ?, now())
-		ON CONFLICT (user_id, application_id)
-		DO UPDATE SET metadata = excluded.metadata, update_date = excluded.update_date;`,
-		user.ID, ApplicationID, input.Metadata)
+	var applicationUser database.ApplicationUser
+	result := db.Where("user_id = ? AND application_id = ?", user.ID.String(), ApplicationID).FirstOrCreate(&applicationUser, database.ApplicationUser{
+		UserID:        user.ID.String(),
+		ApplicationID: ApplicationID,
+	})
 
 	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	applicationUser.Metadata = input.Metadata
+	applicationUser.UpdateDate = time.Now()
+
+	if err := db.Save(&applicationUser).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
