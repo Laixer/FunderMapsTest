@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
+	"fundermaps/internal/database"
 	"fundermaps/internal/platform/geocoder"
 )
 
@@ -30,20 +31,6 @@ func GetGeocoder(c *fiber.Ctx) error {
 	return c.JSON(building)
 }
 
-type Address struct {
-	ID             string `json:"-" gorm:"primaryKey"`
-	ExternalID     string `json:"id"`
-	BuildingID     string `json:"-"`
-	BuildingNumber string `json:"building_number"`
-	PostalCode     string `json:"postal_code"`
-	Street         string `json:"street"`
-	City           string `json:"city"`
-}
-
-func (a *Address) TableName() string {
-	return "geocoder.address"
-}
-
 func GetAllAddresses(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
@@ -51,10 +38,11 @@ func GetAllAddresses(c *fiber.Ctx) error {
 
 	// TODO: Implement the other geocoder identifiers
 
-	var addresses []Address
+	var addresses []database.Address
 	result := db.Joins("JOIN geocoder.building ON geocoder.building.id = geocoder.address.building_id").
 		Where("geocoder.building.external_id = ?", geocoderID).
 		Find(&addresses)
+
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Address not found"})

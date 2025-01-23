@@ -15,6 +15,20 @@ func (u *Contractor) TableName() string {
 	return "application.contractor"
 }
 
+type Address struct {
+	ID             string `json:"-" gorm:"primaryKey"`
+	ExternalID     string `json:"id"`
+	BuildingID     string `json:"-"`
+	BuildingNumber string `json:"building_number"`
+	PostalCode     string `json:"postal_code"`
+	Street         string `json:"street"`
+	City           string `json:"city"`
+}
+
+func (a *Address) TableName() string {
+	return "geocoder.address"
+}
+
 // TODO: Add custom types for the database data types
 type Analysis struct {
 	BuildingID                  string   `json:"building_id" gorm:"->"`
@@ -169,4 +183,23 @@ type AuthRefreshToken struct {
 
 func (art *AuthRefreshToken) TableName() string {
 	return "application.auth_refresh_token"
+}
+
+type Mapset struct {
+	ID       string      `json:"id" gorm:"primaryKey"`
+	Name     string      `json:"name"`
+	Slug     string      `json:"slug"`
+	Style    string      `json:"style"`
+	Layers   StringArray `json:"layers" gorm:"type:text[]"`
+	Options  JSONObject  `json:"options" gorm:"type:jsonb"`
+	Public   bool        `json:"public"`
+	Consent  *string     `json:"consent"`
+	Note     string      `json:"note"`
+	Icon     *string     `json:"icon"`
+	Order    int         `json:"order"`
+	Layerset string      `json:"layerset" gorm:"type:jsonb"`
+}
+
+func (u *Mapset) TableName() string {
+	return "maplayer.mapset_collection"
 }

@@ -17,9 +17,17 @@ func (a *StringArray) Scan(value interface{}) error {
 	}
 
 	switch v := value.(type) {
-	case []byte:
-		str := string(v)
-		str = strings.Trim(str, "{}")
+	// case []byte:
+	// 	str := string(v)
+	// 	str = strings.Trim(str, "{}")
+	// 	if str == "" {
+	// 		*a = []string{}
+	// 	} else {
+	// 		*a = strings.Split(str, ",")
+	// 	}
+	// 	return nil
+	case string:
+		str := strings.Trim(v, "{}")
 		if str == "" {
 			*a = []string{}
 		} else {
