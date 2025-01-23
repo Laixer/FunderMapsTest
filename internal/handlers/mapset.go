@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fundermaps/internal/database"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,15 +15,15 @@ type Mapset struct {
 	Slug  string `json:"slug"`
 	Style string `json:"style"`
 	// Layers  pq.StringArray `json:"layers" gorm:"type:text[]"`
-	Options string  `json:"options" gorm:"type:jsonb"`
-	Public  bool    `json:"public"`
-	Consent *string `json:"consent"`
-	Note    string  `json:"note"`
-	Icon    *string `json:"icon"`
+	Options database.JSONObject `json:"options" gorm:"type:jsonb"`
+	Public  bool                `json:"public"`
+	Consent *string             `json:"consent"`
+	Note    string              `json:"note"`
+	Icon    *string             `json:"icon"`
 	// FenceNeighborhood []string    `json:"fence_neighborhood"`
 	// FenceDistrict     []string    `json:"fence_district"`
 	// FenceMunicipality []string    `json:"fence_municipality"`
-	Layerset string `json:"layerset" gorm:"type:jsonb"`
+	Layerset database.JSONObject `json:"layerset" gorm:"type:jsonb"`
 }
 
 func (u *Mapset) TableName() string {
