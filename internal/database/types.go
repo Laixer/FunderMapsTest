@@ -75,3 +75,27 @@ func (j JSONObject) Value() (driver.Value, error) {
 	valueString, err := json.Marshal(j)
 	return string(valueString), err
 }
+
+type JSONArray []interface{}
+
+func (a *JSONArray) Scan(value interface{}) error {
+	if value == nil {
+		*a = []interface{}{}
+		return nil
+	}
+
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
+	}
+
+	var result []interface{}
+	err := json.Unmarshal(bytes, &result)
+	*a = JSONArray(result)
+	return err
+}
+
+func (a JSONArray) Value() (driver.Value, error) {
+	valueString, err := json.Marshal(a)
+	return string(valueString), err
+}

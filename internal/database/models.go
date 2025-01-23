@@ -197,7 +197,7 @@ type Mapset struct {
 	Note     string      `json:"note"`
 	Icon     *string     `json:"icon"`
 	Order    int         `json:"order"`
-	Layerset string      `json:"layerset" gorm:"type:jsonb"`
+	Layerset JSONArray   `json:"layerset" gorm:"type:jsonb"`
 }
 
 func (u *Mapset) TableName() string {
