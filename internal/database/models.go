@@ -74,7 +74,7 @@ func (ak *AuthKey) TableName() string {
 }
 
 type User struct {
-	// NormalizedEmail   string    `json:"normalized_email"` // TODO: Do we need this?
+	// NormalizedEmail   string    `json:"normalized_email"` // TODO: Drop from database
 	ID                uuid.UUID      `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
 	GivenName         *string        `json:"given_name"`
 	LastName          *string        `json:"family_name"` // TODO: Update database column name

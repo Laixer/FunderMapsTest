@@ -51,6 +51,14 @@ func (s *UserService) GetUserByEmail(email string) (*database.User, error) {
 	return &user, nil
 }
 
+func (s *UserService) Update(user *database.User) error {
+	result := s.db.Save(user)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
 func (s *UserService) UpdatePassword(user *database.User, password string) error {
 	user.PasswordHash = utils.HashLegacyPassword(password)
 
