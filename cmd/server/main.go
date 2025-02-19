@@ -104,14 +104,14 @@ func main() {
 	management.Get("/mapset", mngmt.GetAllMapsets)
 	management.Get("/mapset/:id", mngmt.GetMapsetByID)
 
-	management.Post("/user", handlers.CreateUser)
-	management.Get("/user", handlers.GetAllUsers)
+	management.Post("/user", mngmt.CreateUser)
+	management.Get("/user", mngmt.GetAllUsers)
 	// management.Get("/user/:email", handlers.GetUserByEmail)
 	management_user := management.Group("/user/:user_id")
-	management_user.Get("/", handlers.GetUser)
-	management_user.Put("/", handlers.UpdateUser)
-	management_user.Get("/auth-token", handlers.CreateAuthKey) // TODO: Find all AuthKey references and replace with ApiKey
-	management_user.Post("/reset-password", handlers.ResetUserPassword)
+	management_user.Get("/", mngmt.GetUser)
+	management_user.Put("/", mngmt.UpdateUser)
+	management_user.Get("/auth-token", mngmt.CreateAuthKey) // TODO: Find all AuthKey references and replace with ApiKey
+	management_user.Post("/reset-password", mngmt.ResetUserPassword)
 
 	management.Post("/org", handlers.CreateOrganization)
 	management.Get("/org", handlers.GetAllOrganizations)
@@ -120,12 +120,12 @@ func main() {
 	management_org.Get("/", handlers.GetOrganization)
 	management_org_mapset := management_org.Group("/mapset")
 	// management_org_mapset.Get("/", handlers.GetAllOrganizationMapsets)
-	management_org_mapset.Post("/add", handlers.AddMapsetToOrganization)
-	management_org_mapset.Delete("/remove", handlers.RemoveMapsetFromOrganization)
+	management_org_mapset.Post("/", handlers.AddMapsetToOrganization)
+	management_org_mapset.Delete("/", handlers.RemoveMapsetFromOrganization)
 	management_org_user := management_org.Group("/user")
 	management_org_user.Get("/", handlers.GetAllOrganizationUsers)
-	management_org_user.Post("/add", handlers.AddUserToOrganization)
-	management_org_user.Delete("/remove", handlers.RemoveUserFromOrganization)
+	management_org_user.Post("/", handlers.AddUserToOrganization)
+	management_org_user.Delete("/", handlers.RemoveUserFromOrganization)
 
 	geocoder := api.Group("/geocoder/:geocoder_id")
 	geocoder.Get("/", handlers.GetGeocoder)

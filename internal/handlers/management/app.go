@@ -12,7 +12,9 @@ func GetAllApplications(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
 	var apps []database.Application
-	result := db.Find(&apps)
+	limit := c.QueryInt("limit", 100)
+	offset := c.QueryInt("offset", 0)
+	result := db.Limit(limit).Offset(offset).Find(&apps)
 	if result.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
