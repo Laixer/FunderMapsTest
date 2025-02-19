@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -76,13 +77,16 @@ func CreateUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
 	}
 
-	user, _ := userService.GetUserByEmail(input.Email)
+	// TODO: Create a normalizer for email
+	email := strings.ToLower(strings.TrimSpace(input.Email))
+
+	user, _ := userService.GetUserByEmail(email)
 	if user != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User already exists"})
 	}
 
 	user = &database.User{
-		Email:        input.Email,
+		Email:        email,
 		PasswordHash: utils.HashLegacyPassword(input.Password),
 		Role:         "user",
 	}
@@ -110,12 +114,36 @@ func GetAllUsers(c *fiber.Ctx) error {
 func GetUserByEmail(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
-	email := c.Params("email")
+	userService := user.NewService(db)
 
-	var user database.User
-	result := db.First(&user, "email = ?", email)
-	if result.Error != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User not found"})
+	user, err := userService.GetUserByEmail(c.Params("email"))
+	if err != nil {
+		if err.Error() == "user not found" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	return c.JSON(user)
+}
+
+func GetUser(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	userService := user.NewService(db)
+
+	userID := c.Params("user_id")
+
+	uid, err := uuid.Parse(userID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid user ID"})
+	}
+	user, err := userService.GetUserByID(uid)
+	if err != nil {
+		if err.Error() == "user not found" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	return c.JSON(user)
