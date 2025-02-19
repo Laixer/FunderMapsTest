@@ -13,47 +13,6 @@ import (
 	"fundermaps/pkg/utils"
 )
 
-func GetAllApplications(c *fiber.Ctx) error {
-	db := c.Locals("db").(*gorm.DB)
-
-	var apps []database.Application
-	result := db.Find(&apps)
-	if result.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
-	}
-
-	return c.JSON(apps)
-}
-
-func CreateApplication(c *fiber.Ctx) error {
-	db := c.Locals("db").(*gorm.DB)
-
-	type ApplicationInput struct {
-		Name string `json:"name" validate:"required"`
-	}
-
-	var input ApplicationInput
-	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
-	}
-
-	err := config.Validate.Struct(input)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
-	}
-
-	app := database.Application{
-		Name: input.Name,
-	}
-
-	result := db.Create(&app)
-	if result.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
-	}
-
-	return c.JSON(app)
-}
-
 func GetAllOrganizations(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 

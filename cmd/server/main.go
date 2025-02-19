@@ -17,6 +17,7 @@ import (
 	"fundermaps/internal/config"
 	"fundermaps/internal/database"
 	"fundermaps/internal/handlers"
+	mngmt "fundermaps/internal/handlers/management"
 	"fundermaps/internal/middleware"
 )
 
@@ -97,11 +98,11 @@ func main() {
 
 	// Management API
 	management := api.Group("/v1/management", middleware.AuthMiddleware, middleware.AdminMiddleware)
-	management.Get("/app", handlers.GetAllApplications)
-	management.Post("/app", handlers.CreateApplication)
+	management.Get("/app", mngmt.GetAllApplications)
+	management.Post("/app", mngmt.CreateApplication)
 
-	// management.Get("/mapset", handlers.GetAllMapsets) # TODO: Implement
-	// management.Get("/mapset/:id", handlers.GetMapset) # TODO: Implement
+	management.Get("/mapset", mngmt.GetAllMapsets)
+	management.Get("/mapset/:id", mngmt.GetMapsetByID)
 
 	management.Post("/user", handlers.CreateUser)
 	management.Get("/user", handlers.GetAllUsers)
