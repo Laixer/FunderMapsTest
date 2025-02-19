@@ -372,8 +372,6 @@ func RemoveUserFromOrganization(c *fiber.Ctx) error {
 func AddMapsetToOrganization(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
-	organizationID := c.Params("org_id")
-
 	type AddMapsetToOrganizationInput struct {
 		MapsetID string `json:"mapset_id" validate:"required"`
 	}
@@ -397,7 +395,7 @@ func AddMapsetToOrganization(c *fiber.Ctx) error {
 
 	// TODO: Just do an insert into the database, the foreign key constraints will handle the rest
 	var org database.Organization
-	result := db.First(&org, "id = ?", organizationID)
+	result := db.First(&org, "id = ?", c.Params("org_id"))
 	if result.Error != nil {
 		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
 	}

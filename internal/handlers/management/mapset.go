@@ -11,7 +11,9 @@ func GetAllMapsets(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
 	var mapsets []database.Mapset
-	result := db.Find(&mapsets)
+	limit := c.QueryInt("limit", 100)
+	offset := c.QueryInt("offset", 0)
+	result := db.Limit(limit).Offset(offset).Find(&mapsets)
 	if result.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
