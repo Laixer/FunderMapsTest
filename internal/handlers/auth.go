@@ -20,10 +20,11 @@ const accessTokenExp = 3600
 const refreshTokenExp = 365
 
 type AuthToken struct {
-	AccessToken  string `json:"access_token"`
-	TokenType    string `json:"token_type"`
-	ExpiresIn    int    `json:"expires_in"`
-	RefreshToken string `json:"refresh_token"`
+	AccessToken  string    `json:"access_token"`
+	TokenType    string    `json:"token_type"`
+	ExpiresIn    int       `json:"expires_in"`
+	ExpiresAt    time.Time `json:"expires_at"`
+	RefreshToken string    `json:"refresh_token"`
 }
 
 type AuthContext struct {
@@ -60,6 +61,7 @@ func (ctx *AuthContext) generateTokens(clientID string, userID uuid.UUID) (AuthT
 		AccessToken:  authAccessToken.AccessToken,
 		TokenType:    tokenType,
 		ExpiresIn:    accessTokenExp,
+		ExpiresAt:    authAccessToken.ExpiredAt,
 		RefreshToken: authRefreshToken.Token,
 	}
 	return authToken, nil
