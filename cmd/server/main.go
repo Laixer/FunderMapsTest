@@ -106,7 +106,7 @@ func main() {
 
 	management.Post("/user", handlers.CreateUser)
 	management.Get("/user", handlers.GetAllUsers)
-	management.Get("/user/:email", handlers.GetUserByEmail)
+	// management.Get("/user/:email", handlers.GetUserByEmail)
 	management_user := management.Group("/user/:user_id")
 	management_user.Get("/", handlers.GetUser)
 	// management_user.Put("/", handlers.UpdateUser) # TODO: Implement
@@ -117,7 +117,7 @@ func main() {
 	management.Get("/org", handlers.GetAllOrganizations)
 	// management.Get("/org/:name", handlers.GetOrganizationByName) # TODO: Implement
 	management_org := management.Group("/org/:org_id")
-	// management_org.Get("/", handlers.GetOrganization) # TODO: Implement
+	management_org.Get("/", handlers.GetOrganization)
 	management_org_mapset := management_org.Group("/mapset")
 	// management_org_mapset.Get("/", handlers.GetAllOrganizationMapsets)
 	management_org_mapset.Post("/add", handlers.AddMapsetToOrganization)

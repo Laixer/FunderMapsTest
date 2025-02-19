@@ -190,6 +190,20 @@ func ResetUserPassword(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+func GetOrganization(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	organizationID := c.Params("org_id")
+
+	var org database.Organization
+	result := db.First(&org, "id = ?", organizationID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
+	}
+
+	return c.JSON(org)
+}
+
 func GetAllOrganizationUsers(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
