@@ -23,7 +23,7 @@ func GetMapsetByID(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
 	var mapset database.Mapset
-	result := db.First(&mapset, c.Params("id"))
+	result := db.First(&mapset, "id = ?", c.Params("id"))
 	if result.Error != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Mapset not found"})
 	}
