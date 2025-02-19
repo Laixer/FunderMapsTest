@@ -13,7 +13,7 @@ func GetAllMapsets(c *fiber.Ctx) error {
 	var mapsets []database.Mapset
 	limit := c.QueryInt("limit", 100)
 	offset := c.QueryInt("offset", 0)
-	result := db.Limit(limit).Offset(offset).Find(&mapsets)
+	result := db.Limit(limit).Offset(offset).Order("name ASC").Find(&mapsets)
 	if result.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}

@@ -75,6 +75,12 @@ func main() {
 	// auth.Post("/forgot-password", handlers.ForgotPassword)
 	// auth.Post("/reset-password", handlers.ResetPassword)
 
+	// OAuth2 API
+	oauth2 := api.Group("/v1/oauth2")
+	oauth2.Get("/authorize", handlers.AuthorizationRequest)
+	oauth2.Post("/token", handlers.TokenRequest)
+	oauth2.Get("/userinfo", middleware.AuthMiddleware, handlers.GetUserInfo)
+
 	user := api.Group("/user", middleware.AuthMiddleware)
 	user.Get("/me", handlers.GetCurrentUser)
 	user.Put("/me", handlers.UpdateCurrentUser)
@@ -83,18 +89,12 @@ func main() {
 
 	// Mapset application
 	mapset := api.Group("/mapset")
-	mapset.Get("/:mapset_id?", middleware.AuthMiddleware, handlers.GetMapset)
+	mapset.Get("/:mapset_id?", middleware.AuthMiddleware, handlers.GetMapset) // TODO: Does not work for public mapsets
 
 	// Incident application
 	incident := api.Group("/incident")
 	incident.Post("/", handlers.CreateIncident)
 	incident.Post("/upload", handlers.UploadFiles)
-
-	// OAuth2 API
-	oauth2 := api.Group("/v1/oauth2")
-	oauth2.Get("/authorize", handlers.AuthorizationRequest)
-	oauth2.Post("/token", handlers.TokenRequest)
-	oauth2.Get("/userinfo", middleware.AuthMiddleware, handlers.GetUserInfo)
 
 	// Management API
 	management := api.Group("/v1/management", middleware.AuthMiddleware, middleware.AdminMiddleware)
