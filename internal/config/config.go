@@ -22,6 +22,7 @@ type Config struct {
 	MailgunAPIBase string `mapstructure:"MAILGUN_API_BASE"`
 }
 
+// # TODO: Use FM_ prefix for environment variables
 func Load() (*Config, error) {
 	viper.SetDefault("SERVER_PORT", 3_000)
 	viper.SetDefault("DATABASE_URL", "postgres://postgres:password@localhost:5432/fundermaps")

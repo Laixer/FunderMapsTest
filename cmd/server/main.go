@@ -99,14 +99,26 @@ func main() {
 	management := api.Group("/v1/management", middleware.AuthMiddleware, middleware.AdminMiddleware)
 	management.Get("/app", handlers.GetAllApplications)
 	management.Post("/app", handlers.CreateApplication)
-	management.Get("/org", handlers.GetAllOrganizations)
-	management.Post("/org", handlers.CreateOrganization)
+
+	// management.Get("/mapset", handlers.GetAllMapsets) # TODO: Implement
+	// management.Get("/mapset/:id", handlers.GetMapset) # TODO: Implement
+
 	management.Post("/user", handlers.CreateUser)
+	management.Get("/user", handlers.GetAllUsers)
+	management.Get("/user/:email", handlers.GetUserByEmail)
 	management_user := management.Group("/user/:user_id")
+	// management_user.Get("/", handlers.GetUser) # TODO: Implement
+	// management_user.Put("/", handlers.UpdateUser) # TODO: Implement
 	management_user.Get("/auth-token", handlers.CreateAuthKey) // TODO: Find all AuthKey references and replace with ApiKey
 	management_user.Post("/reset-password", handlers.ResetUserPassword)
+
+	management.Post("/org", handlers.CreateOrganization)
+	management.Get("/org", handlers.GetAllOrganizations)
+	// management.Get("/org/:name", handlers.GetOrganizationByName) # TODO: Implement
 	management_org := management.Group("/org/:org_id")
+	// management_org.Get("/", handlers.GetOrganization) # TODO: Implement
 	management_org_mapset := management_org.Group("/mapset")
+	// management_org_mapset.Get("/", handlers.GetAllOrganizationMapsets)
 	management_org_mapset.Post("/add", handlers.AddMapsetToOrganization)
 	management_org_mapset.Delete("/remove", handlers.RemoveMapsetFromOrganization)
 	management_org_user := management_org.Group("/user")

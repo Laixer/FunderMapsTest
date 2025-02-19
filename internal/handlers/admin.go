@@ -136,6 +136,32 @@ func CreateUser(c *fiber.Ctx) error {
 	return c.JSON(user)
 }
 
+func GetAllUsers(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	var users []database.User
+	result := db.Find(&users)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	return c.JSON(users)
+}
+
+func GetUserByEmail(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	email := c.Params("email")
+
+	var user database.User
+	result := db.First(&user, "email = ?", email)
+	if result.Error != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User not found"})
+	}
+
+	return c.JSON(user)
+}
+
 func ResetUserPassword(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
