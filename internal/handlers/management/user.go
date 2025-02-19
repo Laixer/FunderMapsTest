@@ -205,7 +205,7 @@ func ResetUserPassword(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
-func CreateAuthKey(c *fiber.Ctx) error {
+func CreateApiKey(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
 	var user database.User

@@ -102,15 +102,16 @@ func main() {
 	management.Post("/app", mngmt.CreateApplication)
 
 	management.Get("/mapset", mngmt.GetAllMapsets)
-	management.Get("/mapset/:id", mngmt.GetMapsetByID)
+	management_mapset := management.Group("/mapset/:mapset_id")
+	management_mapset.Get("/", mngmt.GetMapsetByID)
 
-	management.Post("/user", mngmt.CreateUser)
 	management.Get("/user", mngmt.GetAllUsers)
+	management.Post("/user", mngmt.CreateUser)
 	// management.Get("/user/:email", handlers.GetUserByEmail)
 	management_user := management.Group("/user/:user_id")
 	management_user.Get("/", mngmt.GetUser)
 	management_user.Put("/", mngmt.UpdateUser)
-	management_user.Get("/auth-token", mngmt.CreateAuthKey) // TODO: Find all AuthKey references and replace with ApiKey
+	management_user.Get("/api-key", mngmt.CreateApiKey) // TODO: Find all AuthKey references and replace with ApiKey
 	management_user.Post("/reset-password", mngmt.ResetUserPassword)
 
 	management.Post("/org", handlers.CreateOrganization)
