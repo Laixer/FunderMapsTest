@@ -70,7 +70,7 @@ func main() {
 
 	auth := api.Group("/auth", limiter.New())
 	auth.Post("/signin", handlers.SigninWithPassword)
-	auth.Get("/token-refresh", middleware.AuthMiddleware, handlers.RefreshToken)
+	auth.Post("/token-refresh", middleware.AuthMiddleware, handlers.RefreshToken)
 	auth.Post("/change-password", middleware.AuthMiddleware, handlers.ChangePassword)
 	// auth.Post("/forgot-password", handlers.ForgotPassword)
 	// auth.Post("/reset-password", handlers.ResetPassword)
