@@ -13,7 +13,7 @@ require (
 	github.com/mailgun/mailgun-go/v4 v4.22.1
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.19.0
-	golang.org/x/crypto v0.33.0
+	golang.org/x/crypto v0.34.0
 	golang.org/x/exp v0.0.0-20250218142911-aa4b98e5adaa
 	golang.org/x/oauth2 v0.26.0
 	gorm.io/driver/postgres v1.5.11
