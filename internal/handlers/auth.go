@@ -334,7 +334,7 @@ func ResetPassword(c *fiber.Ctx) error {
 	}
 
 	var resetKey database.ResetKey
-	result := db.First(&resetKey, "key = ?", input.ResetKey)
+	result := db.First(&resetKey, "key = ?", input.ResetKey) // TODO: Add expiration date check
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_reset_key"})
