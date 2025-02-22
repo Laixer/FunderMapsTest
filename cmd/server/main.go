@@ -72,8 +72,8 @@ func main() {
 	auth.Post("/signin", handlers.SigninWithPassword)
 	auth.Post("/token-refresh", middleware.AuthMiddleware, handlers.RefreshToken)
 	auth.Post("/change-password", middleware.AuthMiddleware, handlers.ChangePassword)
-	// auth.Post("/forgot-password", handlers.ForgotPassword)
-	// auth.Post("/reset-password", handlers.ResetPassword)
+	auth.Post("/forgot-password", handlers.ForgotPassword)
+	auth.Post("/reset-password", handlers.ResetPassword)
 
 	// OAuth2 API
 	oauth2 := api.Group("/v1/oauth2")

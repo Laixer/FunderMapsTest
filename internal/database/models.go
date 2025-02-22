@@ -156,6 +156,16 @@ func (ac *AuthCode) TableName() string {
 	return "application.auth_code"
 }
 
+type ResetKey struct {
+	Key        uuid.UUID `json:"key" gorm:"primaryKey"`
+	UserID     uuid.UUID `json:"user_id" gorm:"type:uuid"`
+	CreateDate time.Time `json:"create_date" gorm:"default:now()"`
+}
+
+func (rk *ResetKey) TableName() string {
+	return "application.reset_key"
+}
+
 type AuthAccessToken struct {
 	AccessToken   string      `json:"access_token" gorm:"primaryKey"`
 	IPAddress     string      `json:"ip_address"`
