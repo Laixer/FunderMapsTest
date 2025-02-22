@@ -64,6 +64,7 @@ func (a *Analysis) TableName() string {
 	return "data.model_risk_static"
 }
 
+// TODO: Rename to APIKey
 type AuthKey struct {
 	Key    string    `json:"key" gorm:"default:concat('fmsk.', application.random_string(32));primaryKey"` // TODO: Wrap this into a database function
 	UserID uuid.UUID `json:"user_id" gorm:"type:uuid"`

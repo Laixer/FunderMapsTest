@@ -109,7 +109,7 @@ func main() {
 	management_user := management.Group("/user/:user_id")
 	management_user.Get("/", mngmt.GetUser)
 	management_user.Put("/", mngmt.UpdateUser)
-	management_user.Get("/api-key", mngmt.CreateApiKey) // TODO: Find all AuthKey references and replace with ApiKey
+	management_user.Get("/api-key", mngmt.CreateApiKey)
 	management_user.Post("/reset-password", mngmt.ResetUserPassword)
 	management.Post("/org", handlers.CreateOrganization)
 	management.Get("/org", handlers.GetAllOrganizations)

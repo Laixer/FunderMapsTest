@@ -149,7 +149,7 @@ func SigninWithPassword(c *fiber.Ctx) error {
 	if err != nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
-	if err := revokeAuthKey(db, user); err != nil {
+	if err := revokeAPIKey(db, user); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 	}
 
@@ -203,7 +203,7 @@ func RefreshToken(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
-	// if err := revokeAuthKey(db, user); err != nil {
+	// if err := revokeAPIKey(db, user); err != nil {
 	// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	// }
 
@@ -348,7 +348,7 @@ func getRefreshToken(db *gorm.DB, clientID string, refreshToken string) (databas
 	return token, nil
 }
 
-func revokeAuthKey(db *gorm.DB, user database.User) error {
+func revokeAPIKey(db *gorm.DB, user database.User) error {
 	db.Exec("DELETE FROM application.reset_key WHERE user_id = ?", user.ID)
 	return nil
 }

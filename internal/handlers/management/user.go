@@ -214,14 +214,14 @@ func CreateApiKey(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User not found"})
 	}
 
-	authKey := database.AuthKey{
+	apiKey := database.AuthKey{
 		UserID: user.ID,
 	}
 
-	result = db.Create(&authKey)
+	result = db.Create(&apiKey)
 	if result.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
-	return c.JSON(authKey)
+	return c.JSON(apiKey)
 }
