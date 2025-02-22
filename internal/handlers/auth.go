@@ -12,7 +12,7 @@ import (
 
 	"fundermaps/internal/config"
 	"fundermaps/internal/database"
-	"fundermaps/internal/platform/user"
+	puser "fundermaps/internal/platform/user"
 	"fundermaps/pkg/utils"
 )
 
@@ -91,6 +91,8 @@ func SigninWithPassword(c *fiber.Ctx) error {
 	cfg := c.Locals("config").(*config.Config)
 	db := c.Locals("db").(*gorm.DB)
 
+	userService := puser.NewService(db)
+
 	type LoginInput struct {
 		Email    string `json:"email" validate:"required,email"`
 		Password string `json:"password" validate:"required"`
@@ -117,20 +119,20 @@ func SigninWithPassword(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
-	if user.AccessFailedCount >= 5 {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
+	if userService.IsLocked(&user) {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "account_locked"})
 	}
 
 	if user.PasswordHash == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
 	} else if strings.HasPrefix(user.PasswordHash, "$argon2id$") {
 		if !utils.VerifyPassword(input.Password, user.PasswordHash) {
-			db.Exec("UPDATE application.user SET access_failed_count = access_failed_count + 1 WHERE id = ?", user.ID)
+			userService.IncrementAccessFailedCount(&user)
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
 		}
 	} else {
 		if !utils.VerifyLegacyPassword(input.Password, user.PasswordHash) {
-			db.Exec("UPDATE application.user SET access_failed_count = access_failed_count + 1 WHERE id = ?", user.ID)
+			userService.IncrementAccessFailedCount(&user)
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
 		}
 	}
@@ -214,6 +216,8 @@ func ChangePassword(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 	user := c.Locals("user").(database.User)
 
+	userService := puser.NewService(db)
+
 	type ChangePasswordInput struct {
 		CurrentPassword string `json:"current_password" validate:"required"`
 		NewPassword     string `json:"new_password" validate:"required,min=6"`
@@ -231,18 +235,18 @@ func ChangePassword(c *fiber.Ctx) error {
 
 	// TODO: From this point on, move into a platform service
 
-	if user.AccessFailedCount >= 5 {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Account locked"})
+	if userService.IsLocked(&user) {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "account_locked"})
 	}
 
 	if strings.HasPrefix(user.PasswordHash, "$argon2id$") {
 		if !utils.VerifyPassword(input.CurrentPassword, user.PasswordHash) {
-			db.Exec("UPDATE application.user SET access_failed_count = access_failed_count + 1 WHERE id = ?", user.ID)
+			userService.IncrementAccessFailedCount(&user)
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
 		}
 	} else {
 		if !utils.VerifyLegacyPassword(input.CurrentPassword, user.PasswordHash) {
-			db.Exec("UPDATE application.user SET access_failed_count = access_failed_count + 1 WHERE id = ?", user.ID)
+			userService.IncrementAccessFailedCount(&user)
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials"})
 		}
 	}
@@ -264,7 +268,7 @@ func ChangePassword(c *fiber.Ctx) error {
 func ForgotPassword(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
-	userService := user.NewService(db)
+	userService := puser.NewService(db)
 
 	type ForgotPasswordInput struct {
 		Email string `json:"email" validate:"required,email"`
@@ -312,7 +316,7 @@ func ForgotPassword(c *fiber.Ctx) error {
 func ResetPassword(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
-	userService := user.NewService(db)
+	userService := puser.NewService(db)
 
 	type ResetPasswordInput struct {
 		ResetKey    string `json:"reset_key" validate:"required"`

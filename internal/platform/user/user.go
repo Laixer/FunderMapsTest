@@ -72,3 +72,13 @@ func (s *UserService) UpdatePassword(user *database.User, password string) error
 func (s *UserService) IsLocked(user *database.User) bool {
 	return user.AccessFailedCount >= 5
 }
+
+func (s *UserService) IncrementAccessFailedCount(user *database.User) error {
+	user.AccessFailedCount++
+
+	result := s.db.Save(user)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
