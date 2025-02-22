@@ -100,11 +100,9 @@ func main() {
 	management := api.Group("/v1/management", middleware.AuthMiddleware, middleware.AdminMiddleware)
 	management.Get("/app", mngmt.GetAllApplications)
 	management.Post("/app", mngmt.CreateApplication)
-
 	management.Get("/mapset", mngmt.GetAllMapsets)
 	management_mapset := management.Group("/mapset/:mapset_id")
 	management_mapset.Get("/", mngmt.GetMapsetByID)
-
 	management.Get("/user", mngmt.GetAllUsers)
 	management.Post("/user", mngmt.CreateUser)
 	// management.Get("/user/:email", handlers.GetUserByEmail)
@@ -113,7 +111,6 @@ func main() {
 	management_user.Put("/", mngmt.UpdateUser)
 	management_user.Get("/api-key", mngmt.CreateApiKey) // TODO: Find all AuthKey references and replace with ApiKey
 	management_user.Post("/reset-password", mngmt.ResetUserPassword)
-
 	management.Post("/org", handlers.CreateOrganization)
 	management.Get("/org", handlers.GetAllOrganizations)
 	// management.Get("/org/:name", handlers.GetOrganizationByName) # TODO: Implement

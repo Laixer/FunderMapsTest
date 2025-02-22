@@ -211,7 +211,6 @@ func RefreshToken(c *fiber.Ctx) error {
 }
 
 func ChangePassword(c *fiber.Ctx) error {
-	// cfg := c.Locals("config").(*config.Config)
 	db := c.Locals("db").(*gorm.DB)
 	user := c.Locals("user").(database.User)
 
