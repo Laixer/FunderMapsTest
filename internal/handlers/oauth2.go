@@ -5,6 +5,7 @@ import (
 	"fundermaps/internal/database"
 	"fundermaps/internal/platform/user"
 	"fundermaps/pkg/utils"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -35,6 +36,19 @@ func getAuthCode(db *gorm.DB, clientID string, code string) (database.AuthCode, 
 		return authToken, result.Error
 	}
 	return authToken, nil
+}
+
+func generateAuthCode(db *gorm.DB, clientID string, userID uuid.UUID) (string, error) {
+	authToken := database.AuthCode{
+		Code:          utils.GenerateRandomString(32),
+		ApplicationID: clientID,
+		UserID:        userID,
+		ExpiredAt:     time.Now().Add(time.Minute * 5),
+	}
+	if err := db.Create(&authToken).Error; err != nil {
+		return "", err
+	}
+	return authToken.Code, nil
 }
 
 func getRefreshToken(db *gorm.DB, clientID string, refreshToken string) (database.AuthRefreshToken, error) {
@@ -92,49 +106,37 @@ func GetUserInfo(c *fiber.Ctx) error {
 }
 
 func AuthorizationRequest(c *fiber.Ctx) error {
-	// db := c.Locals("db").(*gorm.DB)
+	db := c.Locals("db").(*gorm.DB)
 
-	// clientID := c.Query("client_id")
-	// redirectURI := c.Query("redirect_uri")
-	// responseType := c.Query("response_type")
+	clientID := c.Query("client_id")
+	redirectURI := c.Query("redirect_uri")
+	responseType := c.Query("response_type")
 	// scope := c.Query("scope")
-	// state := c.Query("state") // Optional, for CSRF protection
+	state := c.Query("state")
 
-	// client, err := getClient(db, clientID)
-	// if err != nil {
-	// 	return c.Status(fiber.StatusBadRequest).SendString("Invalid client ID")
-	// }
-	// // if !isValidRedirectURI(client, redirectURI) {
-	// // 	return c.Status(fiber.StatusBadRequest).SendString("Invalid redirect URI")
-	// // }
-
-	// // 1. Validate the request
-	// if responseType != "code" {
-	// 	return c.Status(fiber.StatusUnsupportedMediaType).SendString("Unsupported response type")
+	_, err := getClient(db, clientID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).SendString("Invalid client ID")
+	}
+	// if !isValidRedirectURI(client, redirectURI) {
+	// 	return c.Status(fiber.StatusBadRequest).SendString("Invalid redirect URI")
 	// }
 
-	// // 2. Authenticate the user (if not already authenticated)
-	// // This might involve redirecting to a login page or checking an existing session
-	// userID, err := authenticateUser(c)
-	// if err != nil {
-	// 	return c.Status(fiber.StatusUnauthorized).SendString("User authentication failed")
-	// }
+	if responseType != "code" {
+		return c.Status(fiber.StatusUnsupportedMediaType).SendString("Unsupported response type")
+	}
 
-	// // 3. (Optional) Display a consent screen to the user
-	// if shouldShowConsentScreen(client, userID, scope) {
-	// 	if !userConsents(c) { // Implement your consent logic
-	// 		return redirectWithError(redirectURI, "access_denied", state)
-	// 	}
-	// }
+	userID, err := uuid.Parse("7a015c0a-55ce-4b8e-84b5-784bd3363d5b")
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).SendString("User authentication failed")
+	}
 
-	// // 4. Generate an authorization code
-	// authCode, err := generateAuthCode(config, clientID, userID, redirectURI, scope)|
-	// if err != nil {
-	// 	return c.Status(fiber.StatusInternalServerError).SendString("Failed to generate authorization code")
-	// }
+	authCode, err := generateAuthCode(db, clientID, userID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Failed to generate authorization code")
+	}
 
-	// return c.Redirect(redirectURI + "?code=" + authCode + "&state=" + state)
-	return c.SendStatus(fiber.StatusNotImplemented)
+	return c.Redirect(redirectURI + "?code=" + authCode + "&state=" + state)
 }
 
 func TokenRequest(c *fiber.Ctx) error {

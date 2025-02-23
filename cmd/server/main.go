@@ -81,6 +81,7 @@ func main() {
 	oauth2.Post("/token", handlers.TokenRequest)
 	oauth2.Get("/userinfo", middleware.AuthMiddleware, handlers.GetUserInfo)
 
+	// User API
 	user := api.Group("/user", middleware.AuthMiddleware)
 	user.Get("/me", handlers.GetCurrentUser)
 	user.Put("/me", handlers.UpdateCurrentUser)
