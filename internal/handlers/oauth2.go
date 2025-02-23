@@ -102,37 +102,35 @@ func AuthorizationRequest(c *fiber.Ctx) error {
 
 	// client, err := getClient(db, clientID)
 	// if err != nil {
-	// 	return c.Status(http.StatusBadRequest).SendString("Invalid client ID")
+	// 	return c.Status(fiber.StatusBadRequest).SendString("Invalid client ID")
 	// }
-	// if !isValidRedirectURI(client, redirectURI) {
-	// 	return c.Status(http.StatusBadRequest).SendString("Invalid redirect URI")
-	// }
+	// // if !isValidRedirectURI(client, redirectURI) {
+	// // 	return c.Status(fiber.StatusBadRequest).SendString("Invalid redirect URI")
+	// // }
 
-	// Validate response_type (should be "code" for authorization code flow)
+	// // 1. Validate the request
 	// if responseType != "code" {
-	// 	return c.Status(http.StatusUnsupportedMediaType).SendString("Unsupported response type")
+	// 	return c.Status(fiber.StatusUnsupportedMediaType).SendString("Unsupported response type")
 	// }
 
-	// 2. Authenticate the user (if not already authenticated)
-	// This might involve redirecting to a login page or checking an existing session
+	// // 2. Authenticate the user (if not already authenticated)
+	// // This might involve redirecting to a login page or checking an existing session
 	// userID, err := authenticateUser(c)
 	// if err != nil {
-	// 	return c.Status(http.StatusUnauthorized).SendString("User authentication failed")
+	// 	return c.Status(fiber.StatusUnauthorized).SendString("User authentication failed")
 	// }
 
 	// // 3. (Optional) Display a consent screen to the user
 	// if shouldShowConsentScreen(client, userID, scope) {
-	// 	// Render a consent screen with details about the requested permissions
-	// 	// If the user denies access, redirect back with an "access_denied" error
 	// 	if !userConsents(c) { // Implement your consent logic
 	// 		return redirectWithError(redirectURI, "access_denied", state)
 	// 	}
 	// }
 
-	// 4. Generate an authorization code
-	// authCode, err := generateAuthCode(config, clientID, userID, redirectURI, scope)
+	// // 4. Generate an authorization code
+	// authCode, err := generateAuthCode(config, clientID, userID, redirectURI, scope)|
 	// if err != nil {
-	// 	return c.Status(http.StatusInternalServerError).SendString("Failed to generate authorization code")
+	// 	return c.Status(fiber.StatusInternalServerError).SendString("Failed to generate authorization code")
 	// }
 
 	// return c.Redirect(redirectURI + "?code=" + authCode + "&state=" + state)
