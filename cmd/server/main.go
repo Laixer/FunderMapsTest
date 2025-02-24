@@ -68,7 +68,8 @@ func main() {
 	api.Get("/app/:application_id?", handlers.GetApplication)
 	api.Get("/data/contractor", middleware.AuthMiddleware, handlers.GetAllContractors) // TODO: Why not add the contractors to the application data?
 
-	auth := api.Group("/auth", limiter.New())
+	// Auth API
+	auth := api.Group("/auth", limiter.New(limiter.Config{Max: 50}))
 	auth.Post("/signin", handlers.SigninWithPassword)
 	auth.Post("/token-refresh", middleware.AuthMiddleware, handlers.RefreshToken)
 	auth.Post("/change-password", middleware.AuthMiddleware, handlers.ChangePassword)
@@ -76,7 +77,7 @@ func main() {
 	auth.Post("/reset-password", handlers.ResetPassword)
 
 	// OAuth2 API
-	oauth2 := api.Group("/v1/oauth2")
+	oauth2 := api.Group("/v1/oauth2", limiter.New(limiter.Config{Max: 50}))
 	oauth2.Get("/authorize", handlers.AuthorizationRequest)
 	oauth2.Post("/token", handlers.TokenRequest)
 	oauth2.Get("/userinfo", middleware.AuthMiddleware, handlers.GetUserInfo)
@@ -89,7 +90,7 @@ func main() {
 	user.Put("/metadata", handlers.UpdateCurrentUserMetadata)
 
 	// Mapset application
-	mapset := api.Group("/mapset")
+	mapset := api.Group("/mapset", limiter.New(limiter.Config{Max: 50}))
 	mapset.Get("/:mapset_id?", middleware.AuthMiddleware, handlers.GetMapset) // TODO: Does not work for public mapsets
 
 	// Incident application
@@ -126,7 +127,7 @@ func main() {
 	management_org_user.Post("/", handlers.AddUserToOrganization)
 	management_org_user.Delete("/", handlers.RemoveUserFromOrganization)
 
-	geocoder := api.Group("/geocoder/:geocoder_id")
+	geocoder := api.Group("/geocoder/:geocoder_id", limiter.New(limiter.Config{Max: 50}))
 	geocoder.Get("/", handlers.GetGeocoder)
 	geocoder.Get("/address", handlers.GetAllAddresses)
 
