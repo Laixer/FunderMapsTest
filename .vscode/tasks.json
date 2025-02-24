@@ -6,7 +6,7 @@
 			"label": "go: build server",
 			"command": "build",
 			"args": [
-				"app.go"
+				"cmd/server/main.go"
 			],
 			"problemMatcher": [
 				"$go"
