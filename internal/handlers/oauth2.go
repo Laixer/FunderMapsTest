@@ -77,6 +77,7 @@ type UserInfo struct {
 	Email       string  `json:"email"`
 	Picture     *string `json:"picture,omitempty"`
 	PhoneNumber *string `json:"phone_number,omitempty"`
+	Role        string  `json:"role"`
 }
 
 func GetUserInfo(c *fiber.Ctx) error {
@@ -101,6 +102,7 @@ func GetUserInfo(c *fiber.Ctx) error {
 		Email:       user.Email,
 		Picture:     user.Avatar,
 		PhoneNumber: user.PhoneNumber,
+		Role:        user.Role,
 	}
 	return c.JSON(userInfo)
 }
