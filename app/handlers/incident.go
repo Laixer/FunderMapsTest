@@ -8,7 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
-	"fundermaps/internal/platform/geocoder"
+	"fundermaps/app/platform/geocoder"
 )
 
 // TODO: Move into a models package

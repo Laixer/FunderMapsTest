@@ -6,8 +6,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
-	"fundermaps/internal/database"
-	"fundermaps/internal/middleware"
+	"fundermaps/app/database"
+	"fundermaps/app/middleware"
 )
 
 func GetAnalysis(c *fiber.Ctx) error {

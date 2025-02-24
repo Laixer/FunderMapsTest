@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	"fundermaps/internal/config"
+	"fundermaps/app/config"
 )
 
 func Open(c *config.Config) (*gorm.DB, error) {

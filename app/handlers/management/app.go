@@ -1,8 +1,8 @@
 package mngmt
 
 import (
-	"fundermaps/internal/config"
-	"fundermaps/internal/database"
+	"fundermaps/app/config"
+	"fundermaps/app/database"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"

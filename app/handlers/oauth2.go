@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"errors"
-	"fundermaps/internal/database"
-	"fundermaps/internal/platform/user"
+	"fundermaps/app/database"
+	"fundermaps/app/platform/user"
 	"fundermaps/pkg/utils"
 	"time"
 

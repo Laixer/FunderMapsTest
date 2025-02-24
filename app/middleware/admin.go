@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"fundermaps/internal/database"
+	"fundermaps/app/database"
 
 	"github.com/gofiber/fiber/v2"
 )

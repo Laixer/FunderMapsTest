@@ -6,8 +6,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
-	"fundermaps/internal/database"
-	"fundermaps/internal/platform/geocoder"
+	"fundermaps/app/database"
+	"fundermaps/app/platform/geocoder"
 )
 
 func GetGeocoder(c *fiber.Ctx) error {

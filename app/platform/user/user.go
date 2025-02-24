@@ -2,7 +2,7 @@ package user
 
 import (
 	"errors"
-	"fundermaps/internal/database"
+	"fundermaps/app/database"
 	"fundermaps/pkg/utils"
 
 	"github.com/google/uuid"

@@ -4,7 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
-	"fundermaps/internal/database"
+	"fundermaps/app/database"
 )
 
 func GetAllContractors(c *fiber.Ctx) error {

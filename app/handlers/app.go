@@ -8,8 +8,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
-	"fundermaps/internal/config"
-	"fundermaps/internal/database"
+	"fundermaps/app/config"
+	"fundermaps/app/database"
 )
 
 func GetApplication(c *fiber.Ctx) error {

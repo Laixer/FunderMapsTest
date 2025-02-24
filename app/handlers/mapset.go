@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"errors"
-	"fundermaps/internal/database"
+	"fundermaps/app/database"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"

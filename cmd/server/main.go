@@ -14,11 +14,11 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 
-	"fundermaps/internal/config"
-	"fundermaps/internal/database"
-	"fundermaps/internal/handlers"
-	mngmt "fundermaps/internal/handlers/management"
-	"fundermaps/internal/middleware"
+	"fundermaps/app/config"
+	"fundermaps/app/database"
+	"fundermaps/app/handlers"
+	mngmt "fundermaps/app/handlers/management"
+	"fundermaps/app/middleware"
 )
 
 func main() {

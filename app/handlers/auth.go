@@ -10,9 +10,9 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	"fundermaps/internal/config"
-	"fundermaps/internal/database"
-	puser "fundermaps/internal/platform/user"
+	"fundermaps/app/config"
+	"fundermaps/app/database"
+	puser "fundermaps/app/platform/user"
 	"fundermaps/pkg/utils"
 )
 

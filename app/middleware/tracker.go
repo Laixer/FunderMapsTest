@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
-	"fundermaps/internal/database"
+	"fundermaps/app/database"
 )
 
 type ProductTracker struct {

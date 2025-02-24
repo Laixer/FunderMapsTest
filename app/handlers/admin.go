@@ -6,8 +6,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
-	"fundermaps/internal/config"
-	"fundermaps/internal/database"
+	"fundermaps/app/config"
+	"fundermaps/app/database"
 	"fundermaps/pkg/utils"
 )
 
