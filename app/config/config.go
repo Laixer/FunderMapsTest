@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/go-playground/validator"
+	"github.com/gofiber/storage/s3/v2"
 	"github.com/spf13/viper"
 
 	"fundermaps/pkg/utils"
@@ -20,6 +21,11 @@ type Config struct {
 	MailgunAPIKey  string `mapstructure:"MAILGUN_API_KEY"`
 	MailgunDomain  string `mapstructure:"MAILGUN_DOMAIN"`
 	MailgunAPIBase string `mapstructure:"MAILGUN_API_BASE"`
+	S3Endpoint     string `mapstructure:"S3_ENDPOINT"`
+	S3Region       string `mapstructure:"S3_REGION"`
+	S3Bucket       string `mapstructure:"S3_BUCKET"`
+	S3AccessKey    string `mapstructure:"S3_ACCESS_KEY"`
+	S3SecretKey    string `mapstructure:"S3_SECRET_KEY"`
 }
 
 // # TODO: Use FM_ prefix for environment variables
@@ -56,4 +62,17 @@ func Load() (*Config, error) {
 	Validate = validator.New()
 
 	return &cfg, nil
+}
+
+func (cfg *Config) Storage() *s3.Storage {
+	return s3.New(s3.Config{
+		Bucket:   cfg.S3Bucket,
+		Endpoint: cfg.S3Endpoint,
+		Region:   cfg.S3Region,
+		Reset:    false,
+		Credentials: s3.Credentials{
+			AccessKey:       cfg.S3AccessKey,
+			SecretAccessKey: cfg.S3SecretKey,
+		},
+	})
 }

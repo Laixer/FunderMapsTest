@@ -8,7 +8,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
+	"fundermaps/app/config"
 	"fundermaps/app/platform/geocoder"
+	"fundermaps/pkg/utils"
 )
 
 // TODO: Move into a models package
@@ -164,7 +166,21 @@ func CreateIncident(c *fiber.Ctx) error {
 	return c.JSON(incident)
 }
 
+// TODO: Move into a utils package
+func isFileExtensionAllowed(filename string) bool {
+	allowedExtensions := []string{"jpg", "jpeg", "png", "pdf", "doc", "docx", "xls", "xlsx", "csv", "txt", "zip", "ppt", "pptx"}
+	for _, ext := range allowedExtensions {
+		if strings.HasSuffix(filename, ext) {
+			return true
+		}
+	}
+	return false
+}
+
+// TODO: Move parts into a separate StorageService
 func UploadFiles(c *fiber.Ctx) error {
+	cfg := c.Locals("config").(*config.Config)
+
 	form, err := c.MultipartForm()
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Failed to parse form"})
@@ -175,8 +191,14 @@ func UploadFiles(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "No files uploaded"})
 	}
 
+	keyName := strings.ToLower(utils.GenerateRandomString(8))
+
 	for _, file := range files {
-		fmt.Printf("Received file: %s\n", file.Filename)
+		if isFileExtensionAllowed(file.Filename) {
+			if err := c.SaveFileToStorage(file, fmt.Sprintf("incident/%s/%s", keyName, file.Filename), cfg.Storage()); err != nil {
+				return err
+			}
+		}
 	}
 
 	uploadedFiles := []string{}
@@ -184,5 +206,5 @@ func UploadFiles(c *fiber.Ctx) error {
 		uploadedFiles = append(uploadedFiles, file.Filename)
 	}
 
-	return c.JSON(fiber.Map{"files": uploadedFiles})
+	return c.JSON(fiber.Map{"files": uploadedFiles, "key": keyName})
 }
