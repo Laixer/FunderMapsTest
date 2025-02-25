@@ -38,6 +38,12 @@ func Load() (*Config, error) {
 
 	viper.BindEnv("APP_ID")
 
+	viper.BindEnv("S3_ENDPOINT")
+	viper.BindEnv("S3_REGION")
+	viper.BindEnv("S3_BUCKET")
+	viper.BindEnv("S3_ACCESS_KEY")
+	viper.BindEnv("S3_SECRET_KEY")
+
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
