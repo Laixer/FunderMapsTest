@@ -191,11 +191,11 @@ func UploadFiles(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "No files uploaded"})
 	}
 
-	keyName := strings.ToLower(utils.GenerateRandomString(8))
+	keyName := strings.ToLower(utils.GenerateRandomString(16))
 
 	for _, file := range files {
 		if isFileExtensionAllowed(file.Filename) {
-			if err := c.SaveFileToStorage(file, fmt.Sprintf("incident/%s/%s", keyName, file.Filename), cfg.Storage()); err != nil {
+			if err := c.SaveFileToStorage(file, fmt.Sprintf("user-data/%s/%s", keyName, file.Filename), cfg.Storage()); err != nil {
 				return err
 			}
 		}
