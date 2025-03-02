@@ -151,8 +151,6 @@ func CreateIncident(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
-	// TODO: Upload files to S3
-
 	// message := mail.Email{
 	// 	Subject: input.Subject,
 	// 	Body:    input.Body,
