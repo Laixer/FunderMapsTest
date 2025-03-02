@@ -131,7 +131,6 @@ func main() {
 	geocoder.Get("/", handlers.GetGeocoder)
 	geocoder.Get("/address", handlers.GetAllAddresses)
 
-	// TODO: Add tracker middleware
 	product := api.Group("/v4/product/:building_id", middleware.AuthMiddleware, requestid.New())
 	product.Get("/analysis", middleware.TrackerMiddleware, handlers.GetAnalysis)
 	// product.Get("/statistics", handlers.GetAnalysis)

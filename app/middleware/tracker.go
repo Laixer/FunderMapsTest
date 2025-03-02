@@ -15,7 +15,6 @@ type ProductTracker struct {
 	Identifier string `json:"identifier"`
 }
 
-// TODO: Also check if user is active
 func TrackerMiddleware(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 	user := c.Locals("user").(database.User)
@@ -36,6 +35,7 @@ func TrackerMiddleware(c *fiber.Ctx) error {
 	// - save user_id
 	// - save status
 	// - get the product_id from the endpoint name
+	// - save the product_id to memcache
 	var isRegistered bool
 	db.Raw(`
 		WITH register_product_request AS (
