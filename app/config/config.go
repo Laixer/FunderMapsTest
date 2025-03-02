@@ -28,21 +28,35 @@ type Config struct {
 	S3SecretKey    string `mapstructure:"S3_SECRET_KEY"`
 }
 
-// # TODO: Use FM_ prefix for environment variables
 func Load() (*Config, error) {
+	// Set environment variable prefix for FunderMaps
+	viper.SetEnvPrefix("FM")
+
+	// Default values
 	viper.SetDefault("SERVER_PORT", 3_000)
 	viper.SetDefault("DATABASE_URL", "postgres://postgres:password@localhost:5432/fundermaps")
 	viper.SetDefault("JWT_SECRET", utils.GenerateRandomString(32))
 
+	// Enable automatic environment variable binding with the FM_ prefix
 	viper.AutomaticEnv()
 
-	viper.BindEnv("APP_ID")
+	// Explicitly bind both prefixed and non-prefixed environment variables
+	// for backward compatibility
+	viper.BindEnv("APP_ID", "FM_APP_ID", "APP_ID")
 
-	viper.BindEnv("S3_ENDPOINT")
-	viper.BindEnv("S3_REGION")
-	viper.BindEnv("S3_BUCKET")
-	viper.BindEnv("S3_ACCESS_KEY")
-	viper.BindEnv("S3_SECRET_KEY")
+	viper.BindEnv("SERVER_PORT", "FM_SERVER_PORT", "SERVER_PORT")
+	viper.BindEnv("DATABASE_URL", "FM_DATABASE_URL", "DATABASE_URL")
+	viper.BindEnv("JWT_SECRET", "FM_JWT_SECRET", "JWT_SECRET")
+
+	viper.BindEnv("MAILGUN_API_KEY", "FM_MAILGUN_API_KEY", "MAILGUN_API_KEY")
+	viper.BindEnv("MAILGUN_DOMAIN", "FM_MAILGUN_DOMAIN", "MAILGUN_DOMAIN")
+	viper.BindEnv("MAILGUN_API_BASE", "FM_MAILGUN_API_BASE", "MAILGUN_API_BASE")
+
+	viper.BindEnv("S3_ENDPOINT", "FM_S3_ENDPOINT", "S3_ENDPOINT")
+	viper.BindEnv("S3_REGION", "FM_S3_REGION", "S3_REGION")
+	viper.BindEnv("S3_BUCKET", "FM_S3_BUCKET", "S3_BUCKET")
+	viper.BindEnv("S3_ACCESS_KEY", "FM_S3_ACCESS_KEY", "S3_ACCESS_KEY")
+	viper.BindEnv("S3_SECRET_KEY", "FM_S3_SECRET_KEY", "S3_SECRET_KEY")
 
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
