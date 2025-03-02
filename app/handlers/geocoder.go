@@ -15,7 +15,7 @@ func GetGeocoder(c *fiber.Ctx) error {
 
 	geocoderService := geocoder.NewService(db)
 
-	geocoderID := c.Params("geocoder_id") // TODO: Validate the geocoder identifier
+	geocoderID := c.Params("geocoder_id")
 
 	building, err := geocoderService.GetBuildingByGeocoderID(geocoderID)
 	if err != nil {
