@@ -10,7 +10,7 @@ import (
 
 	"fundermaps/app/config"
 	"fundermaps/app/platform/geocoder"
-	"fundermaps/pkg/utils"
+	"fundermaps/app/platform/storage"
 )
 
 // TODO: Move into a models package
@@ -166,20 +166,10 @@ func CreateIncident(c *fiber.Ctx) error {
 	return c.JSON(incident)
 }
 
-// TODO: Move into a utils package
-func isFileExtensionAllowed(filename string) bool {
-	allowedExtensions := []string{"jpg", "jpeg", "png", "pdf", "doc", "docx", "xls", "xlsx", "csv", "txt", "zip", "ppt", "pptx"}
-	for _, ext := range allowedExtensions {
-		if strings.HasSuffix(filename, ext) {
-			return true
-		}
-	}
-	return false
-}
-
-// TODO: Move parts into a separate StorageService
 func UploadFiles(c *fiber.Ctx) error {
 	cfg := c.Locals("config").(*config.Config)
+
+	storageService := storage.NewStorageService(cfg.Storage())
 
 	form, err := c.MultipartForm()
 	if err != nil {
@@ -191,11 +181,11 @@ func UploadFiles(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "No files uploaded"})
 	}
 
-	keyName := strings.ToLower(utils.GenerateRandomString(16))
+	keyName := storageService.GenerateKeyName()
 
 	for _, file := range files {
-		if isFileExtensionAllowed(file.Filename) {
-			if err := c.SaveFileToStorage(file, fmt.Sprintf("user-data/%s/%s", keyName, file.Filename), cfg.Storage()); err != nil {
+		if storageService.IsFileExtensionAllowed(file.Filename) {
+			if err := storageService.SaveFile(file, fmt.Sprintf("user-data/%s/%s", keyName, file.Filename), c); err != nil {
 				return err
 			}
 		}
