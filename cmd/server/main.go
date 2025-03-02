@@ -133,8 +133,7 @@ func main() {
 
 	// TODO: Add tracker middleware
 	product := api.Group("/v4/product/:building_id", middleware.AuthMiddleware, requestid.New())
-	product.Get("/analysis", handlers.GetAnalysis)
-	// product.Get("/analysis", handlers.GetAnalysis, middleware.TrackerMiddleware)
+	product.Get("/analysis", middleware.TrackerMiddleware, handlers.GetAnalysis)
 	// product.Get("/statistics", handlers.GetAnalysis)
 	// product.Get("/subsidence", handlers.GetDataSubsidence)
 	product.Get("/subsidence/historic", handlers.GetDataSubsidenceHistoric)

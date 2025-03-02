@@ -19,14 +19,16 @@ type ProductTracker struct {
 func TrackerMiddleware(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 	user := c.Locals("user").(database.User)
-	// requestID := c.Locals("request_id").(string)
-	tracker := c.Locals("tracker").(ProductTracker)
 
 	if len(user.Organizations) == 0 {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"message": "Forbidden"})
 	}
 
 	firstOrganization := user.Organizations[0]
+
+	n := c.Next()
+
+	tracker := c.Locals("tracker").(ProductTracker)
 
 	// FUTURE:
 	// - drop building_id
@@ -54,5 +56,5 @@ func TrackerMiddleware(c *fiber.Ctx) error {
 
 	c.Set("X-Product-Registered", fmt.Sprintf("%t", isRegistered))
 
-	return c.Next()
+	return n
 }
