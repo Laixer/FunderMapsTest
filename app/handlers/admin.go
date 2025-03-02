@@ -15,7 +15,9 @@ func GetAllOrganizations(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
 	var orgs []database.Organization
-	result := db.Find(&orgs)
+	limit := c.QueryInt("limit", 100)
+	offset := c.QueryInt("offset", 0)
+	result := db.Limit(limit).Offset(offset).Order("name ASC").Find(&orgs)
 	if result.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
@@ -248,4 +250,3 @@ func RemoveMapsetFromOrganization(c *fiber.Ctx) error {
 
 	return c.SendStatus(fiber.StatusNoContent)
 }
-
