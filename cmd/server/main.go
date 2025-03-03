@@ -79,6 +79,7 @@ func main() {
 	app.Post("/auth/login", handlers.LoginWithForm)
 	app.Get("/auth/logout", handlers.Logout)
 
+	// General API
 	api := app.Group("/api")
 	api.Get("/app/:application_id?", handlers.GetApplication)
 	api.Get("/data/contractor", middleware.AuthMiddleware, handlers.GetAllContractors) // TODO: Why not add the contractors to the application data?
