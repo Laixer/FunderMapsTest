@@ -6,8 +6,6 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/gofiber/storage/s3/v2"
 	"github.com/spf13/viper"
-
-	"fundermaps/pkg/utils"
 )
 
 // TODO: Move into a separate package
@@ -17,7 +15,6 @@ type Config struct {
 	ServerPort     int    `mapstructure:"SERVER_PORT"`
 	DatabaseURL    string `mapstructure:"DATABASE_URL"`
 	ApplicationID  string `mapstructure:"APP_ID"`
-	JWTSecret      string `mapstructure:"JWT_SECRET"`
 	AuthExpiration int    `mapstructure:"AUTH_EXPIRATION"`
 	AuthDomain     string `mapstructure:"AUTH_DOMAIN"`
 	AuthSecure     bool   `mapstructure:"AUTH_SECURE"`
@@ -38,7 +35,6 @@ func Load() (*Config, error) {
 	// Default values
 	viper.SetDefault("SERVER_PORT", 3_000)
 	viper.SetDefault("DATABASE_URL", "postgres://postgres:password@localhost:5432/fundermaps")
-	viper.SetDefault("JWT_SECRET", utils.GenerateRandomString(32))
 	viper.SetDefault("AUTH_EXPIRATION", 24)
 	viper.SetDefault("AUTH_DOMAIN", "localhost")
 	viper.SetDefault("AUTH_SECURE", false)
