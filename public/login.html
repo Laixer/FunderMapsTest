@@ -82,7 +82,7 @@
 
 <body>
     <div class="login-container">
-        <h1>Login</h1>
+        <h1>FunderMaps</h1>
         <form action="/auth/login" method="post" id="loginForm">
             <div class="form-group">
                 <label for="email">Email</label>
@@ -101,14 +101,10 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Parse URL parameters
             const urlParams = new URLSearchParams(window.location.search);
             const form = document.getElementById('loginForm');
-
-            // OAuth2 parameters to check for
             const oauthParams = ['client_id', 'redirect_uri', 'response_type', 'state', 'scope'];
 
-            // Add hidden fields for any OAuth2 parameters present in URL
             oauthParams.forEach(param => {
                 if (urlParams.has(param)) {
                     const hiddenField = document.createElement('input');

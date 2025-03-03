@@ -43,9 +43,9 @@ func main() {
 
 	// TODO: All of this proxy stuff should be configurable
 	app := fiber.New(fiber.Config{
-		EnableTrustedProxyCheck: true,
-		TrustedProxies:          []string{"10.0.0.0/8", "fc00::/7"},
-		ProxyHeader:             "Do-Connecting-Ip",
+		EnableTrustedProxyCheck: cfg.ProxyEnabled,
+		TrustedProxies:          cfg.ProxyNetworks,
+		ProxyHeader:             cfg.ProxyHeader,
 	})
 
 	app.Use(compress.New())

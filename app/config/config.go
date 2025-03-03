@@ -12,20 +12,23 @@ import (
 var Validate *validator.Validate
 
 type Config struct {
-	ServerPort     int    `mapstructure:"SERVER_PORT"`
-	DatabaseURL    string `mapstructure:"DATABASE_URL"`
-	ApplicationID  string `mapstructure:"APP_ID"`
-	AuthExpiration int    `mapstructure:"AUTH_EXPIRATION"`
-	AuthDomain     string `mapstructure:"AUTH_DOMAIN"`
-	AuthSecure     bool   `mapstructure:"AUTH_SECURE"`
-	MailgunAPIKey  string `mapstructure:"MAILGUN_API_KEY"`
-	MailgunDomain  string `mapstructure:"MAILGUN_DOMAIN"`
-	MailgunAPIBase string `mapstructure:"MAILGUN_API_BASE"`
-	S3Endpoint     string `mapstructure:"S3_ENDPOINT"`
-	S3Region       string `mapstructure:"S3_REGION"`
-	S3Bucket       string `mapstructure:"S3_BUCKET"`
-	S3AccessKey    string `mapstructure:"S3_ACCESS_KEY"`
-	S3SecretKey    string `mapstructure:"S3_SECRET_KEY"`
+	ServerPort     int      `mapstructure:"SERVER_PORT"`
+	DatabaseURL    string   `mapstructure:"DATABASE_URL"`
+	ApplicationID  string   `mapstructure:"APP_ID"`
+	AuthExpiration int      `mapstructure:"AUTH_EXPIRATION"`
+	AuthDomain     string   `mapstructure:"AUTH_DOMAIN"`
+	AuthSecure     bool     `mapstructure:"AUTH_SECURE"`
+	MailgunAPIKey  string   `mapstructure:"MAILGUN_API_KEY"`
+	MailgunDomain  string   `mapstructure:"MAILGUN_DOMAIN"`
+	MailgunAPIBase string   `mapstructure:"MAILGUN_API_BASE"`
+	S3Endpoint     string   `mapstructure:"S3_ENDPOINT"`
+	S3Region       string   `mapstructure:"S3_REGION"`
+	S3Bucket       string   `mapstructure:"S3_BUCKET"`
+	S3AccessKey    string   `mapstructure:"S3_ACCESS_KEY"`
+	S3SecretKey    string   `mapstructure:"S3_SECRET_KEY"`
+	ProxyEnabled   bool     `mapstructure:"PROXY_ENABLED"`
+	ProxyNetworks  []string `mapstructure:"PROXY_NETWORKS"`
+	ProxyHeader    string   `mapstructure:"PROXY_HEADER"`
 }
 
 func Load() (*Config, error) {
@@ -48,19 +51,28 @@ func Load() (*Config, error) {
 
 	viper.BindEnv("SERVER_PORT", "FM_SERVER_PORT", "SERVER_PORT")
 	viper.BindEnv("DATABASE_URL", "FM_DATABASE_URL", "DATABASE_URL")
+
+	// Bind authentication environment variables
 	viper.BindEnv("AUTH_EXPIRATION", "FM_AUTH_EXPIRATION", "AUTH_EXPIRATION")
 	viper.BindEnv("AUTH_DOMAIN", "FM_AUTH_DOMAIN", "AUTH_DOMAIN")
 	viper.BindEnv("AUTH_SECURE", "FM_AUTH_SECURE", "AUTH_SECURE")
 
+	// Bind Mailgun environment variables
 	viper.BindEnv("MAILGUN_API_KEY", "FM_MAILGUN_API_KEY", "MAILGUN_API_KEY")
 	viper.BindEnv("MAILGUN_DOMAIN", "FM_MAILGUN_DOMAIN", "MAILGUN_DOMAIN")
 	viper.BindEnv("MAILGUN_API_BASE", "FM_MAILGUN_API_BASE", "MAILGUN_API_BASE")
 
+	// Bind S3 storage environment variables
 	viper.BindEnv("S3_ENDPOINT", "FM_S3_ENDPOINT", "S3_ENDPOINT")
 	viper.BindEnv("S3_REGION", "FM_S3_REGION", "S3_REGION")
 	viper.BindEnv("S3_BUCKET", "FM_S3_BUCKET", "S3_BUCKET")
 	viper.BindEnv("S3_ACCESS_KEY", "FM_S3_ACCESS_KEY", "S3_ACCESS_KEY")
 	viper.BindEnv("S3_SECRET_KEY", "FM_S3_SECRET_KEY", "S3_SECRET_KEY")
+
+	// Bind proxy config environment variables
+	viper.BindEnv("PROXY_ENABLED", "FM_PROXY_ENABLED", "PROXY_ENABLED")
+	viper.BindEnv("PROXY_NETWORKS", "FM_PROXY_NETWORKS", "PROXY_NETWORKS")
+	viper.BindEnv("PROXY_HEADER", "FM_PROXY_HEADER", "PROXY_HEADER")
 
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
