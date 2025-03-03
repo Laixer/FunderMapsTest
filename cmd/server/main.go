@@ -77,7 +77,7 @@ func main() {
 	app.Get("/auth/login", func(c *fiber.Ctx) error {
 		return c.SendFile("./public/login.html")
 	})
-	app.Post("/auth/login", handlers.LoginWithForm)
+	app.Post("/auth/login", limiter.New(limiter.Config{Max: 50}), handlers.LoginWithForm)
 	app.Get("/auth/logout", handlers.Logout)
 
 	// General API
@@ -106,14 +106,19 @@ func main() {
 	user.Get("/metadata", handlers.GetCurrentUserMetadata)
 	user.Put("/metadata", handlers.UpdateCurrentUserMetadata)
 
-	// Mapset application
+	// Mapset API
 	mapset := api.Group("/mapset", limiter.New(limiter.Config{Max: 50}))
 	mapset.Get("/:mapset_id?", middleware.AuthMiddleware, handlers.GetMapset) // TODO: Does not work for public mapsets
 
-	// Incident application
-	incident := api.Group("/incident")
+	// Incident API
+	incident := api.Group("/incident", limiter.New(limiter.Config{Max: 50}))
 	incident.Post("/", handlers.CreateIncident)
 	incident.Post("/upload", handlers.UploadFiles)
+
+	// Geocoder API
+	geocoder := api.Group("/geocoder/:geocoder_id", limiter.New(limiter.Config{Max: 50}))
+	geocoder.Get("/", handlers.GetGeocoder)
+	geocoder.Get("/address", handlers.GetAllAddresses)
 
 	// Management API
 	management := api.Group("/v1/management", middleware.AuthMiddleware, middleware.AdminMiddleware)
@@ -143,10 +148,6 @@ func main() {
 	management_org_user.Get("/", handlers.GetAllOrganizationUsers)
 	management_org_user.Post("/", handlers.AddUserToOrganization)
 	management_org_user.Delete("/", handlers.RemoveUserFromOrganization)
-
-	geocoder := api.Group("/geocoder/:geocoder_id", limiter.New(limiter.Config{Max: 50}))
-	geocoder.Get("/", handlers.GetGeocoder)
-	geocoder.Get("/address", handlers.GetAllAddresses)
 
 	product := api.Group("/v4/product/:building_id", middleware.AuthMiddleware, requestid.New())
 	product.Get("/analysis", middleware.TrackerMiddleware, handlers.GetAnalysis)
