@@ -35,9 +35,10 @@ func main() {
 	}
 
 	store := session.New(session.Config{
-		CookieSecure:   false,
+		CookieSecure:   cfg.AuthSecure,
+		CookieDomain:   cfg.AuthDomain,
 		CookieHTTPOnly: true,
-		Expiration:     time.Hour * 24,
+		Expiration:     time.Duration(cfg.AuthExpiration) * time.Hour,
 	})
 
 	// TODO: All of this proxy stuff should be configurable

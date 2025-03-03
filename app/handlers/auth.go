@@ -194,6 +194,9 @@ func LoginWithForm(c *fiber.Ctx) error {
 		}
 	}
 
+	if redirectURI != "" {
+		return c.Redirect(redirectURI)
+	}
 	return c.Redirect("/")
 }
 

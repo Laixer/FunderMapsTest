@@ -18,6 +18,9 @@ type Config struct {
 	DatabaseURL    string `mapstructure:"DATABASE_URL"`
 	ApplicationID  string `mapstructure:"APP_ID"`
 	JWTSecret      string `mapstructure:"JWT_SECRET"`
+	AuthExpiration int    `mapstructure:"AUTH_EXPIRATION"`
+	AuthDomain     string `mapstructure:"AUTH_DOMAIN"`
+	AuthSecure     bool   `mapstructure:"AUTH_SECURE"`
 	MailgunAPIKey  string `mapstructure:"MAILGUN_API_KEY"`
 	MailgunDomain  string `mapstructure:"MAILGUN_DOMAIN"`
 	MailgunAPIBase string `mapstructure:"MAILGUN_API_BASE"`
@@ -36,6 +39,9 @@ func Load() (*Config, error) {
 	viper.SetDefault("SERVER_PORT", 3_000)
 	viper.SetDefault("DATABASE_URL", "postgres://postgres:password@localhost:5432/fundermaps")
 	viper.SetDefault("JWT_SECRET", utils.GenerateRandomString(32))
+	viper.SetDefault("AUTH_EXPIRATION", 24)
+	viper.SetDefault("AUTH_DOMAIN", "localhost")
+	viper.SetDefault("AUTH_SECURE", false)
 
 	// Enable automatic environment variable binding with the FM_ prefix
 	viper.AutomaticEnv()
