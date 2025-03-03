@@ -108,18 +108,18 @@ func GetUserInfo(c *fiber.Ctx) error {
 }
 
 func AuthorizationRequest(c *fiber.Ctx) error {
-	db := c.Locals("db").(*gorm.DB)
+	// db := c.Locals("db").(*gorm.DB)
 
-	clientID := c.Query("client_id")
+	// clientID := c.Query("client_id")
 	// redirectURI := c.Query("redirect_uri")
 	responseType := c.Query("response_type")
 	// scope := c.Query("scope")
 	// state := c.Query("state")
 
-	_, err := getClient(db, clientID)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).SendString("Invalid client ID")
-	}
+	// _, err := getClient(db, clientID)
+	// if err != nil {
+	// 	return c.Status(fiber.StatusBadRequest).SendString("Invalid client ID")
+	// }
 	// if !isValidRedirectURI(client, redirectURI) {
 	// 	return c.Status(fiber.StatusBadRequest).SendString("Invalid redirect URI")
 	// }
