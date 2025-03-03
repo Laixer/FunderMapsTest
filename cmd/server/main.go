@@ -57,11 +57,7 @@ func main() {
 		File: "./static/favicon.ico",
 	}))
 
-	// TODO: Maybe move into middleware
-	app.Get("/robots.txt", func(c *fiber.Ctx) error {
-		c.Set(fiber.HeaderCacheControl, "public, max-age=86400")
-		return c.SendFile("./static/robots.txt")
-	})
+	app.Use(middleware.RobotsMiddleware("./static/robots.txt"))
 
 	app.Use(func(c *fiber.Ctx) error {
 		c.Locals("config", cfg)
