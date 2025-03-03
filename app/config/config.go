@@ -12,23 +12,23 @@ import (
 var Validate *validator.Validate
 
 type Config struct {
-	ServerPort     int      `mapstructure:"SERVER_PORT"`
-	DatabaseURL    string   `mapstructure:"DATABASE_URL"`
-	ApplicationID  string   `mapstructure:"APP_ID"`
-	AuthExpiration int      `mapstructure:"AUTH_EXPIRATION"`
-	AuthDomain     string   `mapstructure:"AUTH_DOMAIN"`
+	ServerPort     int      `mapstructure:"SERVER_PORT" validate:"required,min=1,max=65535"`
+	DatabaseURL    string   `mapstructure:"DATABASE_URL" validate:"required,url"`
+	ApplicationID  string   `mapstructure:"APP_ID" validate:"required"`
+	AuthExpiration int      `mapstructure:"AUTH_EXPIRATION" validate:"required,min=1"`
+	AuthDomain     string   `mapstructure:"AUTH_DOMAIN" validate:"required"`
 	AuthSecure     bool     `mapstructure:"AUTH_SECURE"`
-	MailgunAPIKey  string   `mapstructure:"MAILGUN_API_KEY"`
-	MailgunDomain  string   `mapstructure:"MAILGUN_DOMAIN"`
+	MailgunAPIKey  string   `mapstructure:"MAILGUN_API_KEY" validate:"required_with=MailgunDomain"`
+	MailgunDomain  string   `mapstructure:"MAILGUN_DOMAIN" validate:"required_with=MailgunAPIKey"`
 	MailgunAPIBase string   `mapstructure:"MAILGUN_API_BASE"`
-	S3Endpoint     string   `mapstructure:"S3_ENDPOINT"`
-	S3Region       string   `mapstructure:"S3_REGION"`
+	S3Endpoint     string   `mapstructure:"S3_ENDPOINT" validate:"required_with=S3Bucket"`
+	S3Region       string   `mapstructure:"S3_REGION" validate:"required_with=S3Bucket"`
 	S3Bucket       string   `mapstructure:"S3_BUCKET"`
-	S3AccessKey    string   `mapstructure:"S3_ACCESS_KEY"`
-	S3SecretKey    string   `mapstructure:"S3_SECRET_KEY"`
+	S3AccessKey    string   `mapstructure:"S3_ACCESS_KEY" validate:"required_with=S3Bucket"`
+	S3SecretKey    string   `mapstructure:"S3_SECRET_KEY" validate:"required_with=S3Bucket,min=8"`
 	ProxyEnabled   bool     `mapstructure:"PROXY_ENABLED"`
-	ProxyNetworks  []string `mapstructure:"PROXY_NETWORKS"`
-	ProxyHeader    string   `mapstructure:"PROXY_HEADER"`
+	ProxyNetworks  []string `mapstructure:"PROXY_NETWORKS"` // validate:"dive,cidr,required_if=ProxyEnabled true"`
+	ProxyHeader    string   `mapstructure:"PROXY_HEADER"`   // validate:"required_if=ProxyEnabled true"`
 }
 
 func Load() (*Config, error) {
@@ -37,7 +37,7 @@ func Load() (*Config, error) {
 
 	// Default values
 	viper.SetDefault("SERVER_PORT", 3_000)
-	viper.SetDefault("DATABASE_URL", "postgres://postgres:password@localhost:5432/fundermaps")
+	viper.SetDefault("DATABASE_URL", "postgres://postgres@localhost:5432/fundermaps")
 	viper.SetDefault("AUTH_EXPIRATION", 24)
 	viper.SetDefault("AUTH_DOMAIN", "localhost")
 	viper.SetDefault("AUTH_SECURE", false)
@@ -90,12 +90,13 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
-	if cfg.ApplicationID == "" {
-		return nil, fmt.Errorf("missing application ID")
-	}
-
-	// TODO: Move this to somewhere else
+	// Initialize validator
 	Validate = validator.New()
+
+	// Validate the config
+	if err := Validate.Struct(cfg); err != nil {
+		return nil, fmt.Errorf("invalid configuration: %w", err)
+	}
 
 	return &cfg, nil
 }
