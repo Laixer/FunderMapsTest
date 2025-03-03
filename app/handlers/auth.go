@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
@@ -85,6 +86,79 @@ func (ctx *AuthContext) revokeAuthCode(authCode database.AuthCode) error {
 
 func (ctx *AuthContext) revokeRefreshToken(refreshToken database.AuthRefreshToken) error {
 	return ctx.db.Delete(&database.AuthRefreshToken{}, "token = ?", refreshToken.Token).Error
+}
+
+func Logout(c *fiber.Ctx) error {
+	store := c.Locals("store").(*session.Store)
+
+	sess, err := store.Get(c)
+	if err != nil {
+		return err
+	}
+
+	sess.Destroy()
+
+	return c.Redirect("/")
+}
+
+func LoginWithForm(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+	store := c.Locals("store").(*session.Store)
+
+	sess, err := store.Get(c)
+	if err != nil {
+		return err
+	}
+
+	if sess.Get("authenticated") != nil {
+		return c.Redirect("/")
+	}
+
+	userService := puser.NewService(db)
+
+	email := c.FormValue("email")
+	password := c.FormValue("password")
+
+	// TODO: From this point on, move into a platform service
+
+	var user database.User
+	result := db.First(&user, "email = ?", strings.ToLower(email))
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return c.SendStatus(fiber.StatusUnauthorized)
+		}
+		return c.SendStatus(fiber.StatusInternalServerError)
+	}
+
+	if userService.IsLocked(&user) {
+		return c.SendStatus(fiber.StatusUnauthorized)
+	}
+
+	if user.PasswordHash == "" {
+		return c.SendStatus(fiber.StatusUnauthorized)
+	} else if strings.HasPrefix(user.PasswordHash, "$argon2id$") {
+		if !utils.VerifyPassword(password, user.PasswordHash) {
+			userService.IncrementAccessFailedCount(&user)
+			return c.SendStatus(fiber.StatusUnauthorized)
+		}
+	} else {
+		if !utils.VerifyLegacyPassword(password, user.PasswordHash) {
+			userService.IncrementAccessFailedCount(&user)
+			return c.SendStatus(fiber.StatusUnauthorized)
+		}
+	}
+
+	db.Exec("UPDATE application.user SET access_failed_count = 0, login_count = login_count + 1, last_login = CURRENT_TIMESTAMP WHERE id = ?", user.ID)
+
+	// End platform service
+
+	sess.Set("authenticated", true)
+	sess.Set("user_id", user.ID.String())
+	if err := sess.Save(); err != nil {
+		return err
+	}
+
+	return c.Redirect("/")
 }
 
 func SigninWithPassword(c *fiber.Ctx) error {

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
@@ -13,6 +14,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
+	"github.com/gofiber/fiber/v2/middleware/session"
 
 	"fundermaps/app/config"
 	"fundermaps/app/database"
@@ -31,6 +33,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	store := session.New(session.Config{
+		CookieSecure:   false,
+		CookieHTTPOnly: true,
+		Expiration:     time.Hour * 24,
+	})
 
 	// TODO: All of this proxy stuff should be configurable
 	app := fiber.New(fiber.Config{
@@ -57,12 +65,19 @@ func main() {
 	app.Use(func(c *fiber.Ctx) error {
 		c.Locals("config", cfg)
 		c.Locals("db", db)
+		c.Locals("store", store)
 		return c.Next()
 	})
 
 	app.Use(logger.New(logger.Config{
 		Format: "${method} | ${status} | ${latency} | ${ip} | ${path}\n",
 	}))
+
+	app.Get("/auth/login", func(c *fiber.Ctx) error {
+		return c.SendFile("./public/login.html")
+	})
+	app.Post("/auth/login", handlers.LoginWithForm)
+	app.Get("/auth/logout", handlers.Logout)
 
 	api := app.Group("/api")
 	api.Get("/app/:application_id?", handlers.GetApplication)
