@@ -41,7 +41,6 @@ func main() {
 		Expiration:     time.Duration(cfg.AuthExpiration) * time.Hour,
 	})
 
-	// TODO: All of this proxy stuff should be configurable
 	app := fiber.New(fiber.Config{
 		EnableTrustedProxyCheck: cfg.ProxyEnabled,
 		TrustedProxies:          cfg.ProxyNetworks,
@@ -116,6 +115,13 @@ func main() {
 	geocoder.Get("/", handlers.GetGeocoder)
 	geocoder.Get("/address", handlers.GetAllAddresses)
 
+	// Product API
+	product := api.Group("/v4/product/:building_id", middleware.AuthMiddleware, requestid.New())
+	product.Get("/analysis", middleware.TrackerMiddleware, handlers.GetAnalysis)
+	// product.Get("/statistics", handlers.GetAnalysis)
+	// product.Get("/subsidence", handlers.GetDataSubsidence)
+	product.Get("/subsidence/historic", handlers.GetDataSubsidenceHistoric)
+
 	// Management API
 	management := api.Group("/v1/management", middleware.AuthMiddleware, middleware.AdminMiddleware)
 	management.Get("/app", mngmt.GetAllApplications)
@@ -144,12 +150,6 @@ func main() {
 	management_org_user.Get("/", handlers.GetAllOrganizationUsers)
 	management_org_user.Post("/", handlers.AddUserToOrganization)
 	management_org_user.Delete("/", handlers.RemoveUserFromOrganization)
-
-	product := api.Group("/v4/product/:building_id", middleware.AuthMiddleware, requestid.New())
-	product.Get("/analysis", middleware.TrackerMiddleware, handlers.GetAnalysis)
-	// product.Get("/statistics", handlers.GetAnalysis)
-	// product.Get("/subsidence", handlers.GetDataSubsidence)
-	product.Get("/subsidence/historic", handlers.GetDataSubsidenceHistoric)
 
 	diag := api.Group("/diag")
 	diag.Get("/ip", handlers.GetIP)
