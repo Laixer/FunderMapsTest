@@ -139,20 +139,15 @@ func SigninWithPassword(c *fiber.Ctx) error {
 
 	db.Exec("UPDATE application.user SET access_failed_count = 0, login_count = login_count + 1, last_login = CURRENT_TIMESTAMP WHERE id = ?", user.ID)
 
-	// TODO: Move into database stored procedure
-	// db.Transaction(func(tx *gorm.DB) error {
-	// 	tx.Exec("UPDATE application.user SET access_failed_count = 0, login_count = login_count + 1, last_login = CURRENT_TIMESTAMP WHERE id = ?", user.ID)
-
-	// 	return nil
-	// })
+	// End platform service
 
 	ctx := AuthContext{db: db, ipAddress: c.IP()}
 	authToken, err := ctx.generateTokensFromUser(cfg.ApplicationID, user)
 	if err != nil {
-		return c.SendStatus(fiber.StatusInternalServerError)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 	if err := revokeAPIKey(db, user); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	return c.JSON(authToken)
