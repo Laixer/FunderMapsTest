@@ -111,10 +111,10 @@ func AuthorizationRequest(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
 	clientID := c.Query("client_id")
-	redirectURI := c.Query("redirect_uri")
+	// redirectURI := c.Query("redirect_uri")
 	responseType := c.Query("response_type")
 	// scope := c.Query("scope")
-	state := c.Query("state")
+	// state := c.Query("state")
 
 	_, err := getClient(db, clientID)
 	if err != nil {
@@ -128,17 +128,29 @@ func AuthorizationRequest(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnsupportedMediaType).SendString("Unsupported response type")
 	}
 
-	userID, err := uuid.Parse("7a015c0a-55ce-4b8e-84b5-784bd3363d5b")
-	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).SendString("User authentication failed")
+	// Build the login URL with all current query parameters
+	loginURL := "/auth/login"
+
+	// Get all query parameters
+	queryParams := c.Request().URI().QueryString()
+	if len(queryParams) > 0 {
+		loginURL += "?" + string(queryParams)
 	}
 
-	authCode, err := generateAuthCode(db, clientID, userID)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("Failed to generate authorization code")
-	}
+	// Redirect the user to the login page
+	return c.Redirect(loginURL, fiber.StatusFound)
 
-	return c.Redirect(redirectURI + "?code=" + authCode + "&state=" + state)
+	// userID, err := uuid.Parse("7a015c0a-55ce-4b8e-84b5-784bd3363d5b")
+	// if err != nil {
+	// 	return c.Status(fiber.StatusUnauthorized).SendString("User authentication failed")
+	// }
+
+	// authCode, err := generateAuthCode(db, clientID, userID)
+	// if err != nil {
+	// 	return c.Status(fiber.StatusInternalServerError).SendString("Failed to generate authorization code")
+	// }
+
+	// return c.Redirect(redirectURI + "?code=" + authCode + "&state=" + state)
 }
 
 func TokenRequest(c *fiber.Ctx) error {

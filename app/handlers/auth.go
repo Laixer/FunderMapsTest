@@ -105,14 +105,24 @@ func LoginWithForm(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 	store := c.Locals("store").(*session.Store)
 
+	clientID := c.Query("client_id")
+	redirectURI := c.Query("redirect_uri")
+	responseType := c.Query("response_type")
+	// scope := c.Query("scope")
+	state := c.Query("state")
+
 	sess, err := store.Get(c)
 	if err != nil {
 		return err
 	}
 
-	if sess.Get("authenticated") != nil {
-		return c.Redirect("/")
-	}
+	// if sess.Get("authenticated") != nil {
+	// 	if redirectURI != "" && responseType == "code" {
+	// 		return c.Redirect(fmt.Sprintf("%s?code=%s&state=%s", redirectURI, sess.Get("user_id"), state))
+	// 		return c.Redirect(redirectURI + "?code=" + authCode + "&state=" + state)
+	// 	}
+	// 	return c.Redirect("/")
+	// }
 
 	userService := puser.NewService(db)
 
@@ -158,6 +168,14 @@ func LoginWithForm(c *fiber.Ctx) error {
 		return err
 	}
 
+	authCode, err := generateAuthCode(db, clientID, user.ID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Failed to generate authorization code")
+	}
+
+	if redirectURI != "" && responseType == "code" {
+		return c.Redirect(fmt.Sprintf("%s?code=%s&state=%s", redirectURI, authCode, state))
+	}
 	return c.Redirect("/")
 }
 
