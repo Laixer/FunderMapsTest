@@ -173,7 +173,6 @@ func LoginWithForm(c *fiber.Ctx) error {
 	clientID := c.FormValue("client_id")
 	redirectURI := c.FormValue("redirect_uri")
 	responseType := c.FormValue("response_type")
-	// scope := c.Query("scope")
 	state := c.FormValue("state")
 
 	// Check if we are dealing with an OAuth2 request
@@ -188,9 +187,10 @@ func LoginWithForm(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to generate authorization code")
 		}
 
-		// TODO: State is optional
 		if redirectURI != "" && state != "" {
 			return c.Redirect(fmt.Sprintf("%s?code=%s&state=%s", redirectURI, authCode, state))
+		} else if redirectURI != "" {
+			return c.Redirect(fmt.Sprintf("%s?code=%s", redirectURI, authCode))
 		}
 	}
 

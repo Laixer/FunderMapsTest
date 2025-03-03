@@ -107,50 +107,32 @@ func GetUserInfo(c *fiber.Ctx) error {
 	return c.JSON(userInfo)
 }
 
+// TODO: Move to separate file
+const (
+	LoginRedirectURL = "/auth/login"
+)
+
 func AuthorizationRequest(c *fiber.Ctx) error {
-	// db := c.Locals("db").(*gorm.DB)
+	db := c.Locals("db").(*gorm.DB)
 
-	// clientID := c.Query("client_id")
-	// redirectURI := c.Query("redirect_uri")
+	clientID := c.FormValue("client_id")
 	responseType := c.Query("response_type")
-	// scope := c.Query("scope")
-	// state := c.Query("state")
 
-	// _, err := getClient(db, clientID)
-	// if err != nil {
-	// 	return c.Status(fiber.StatusBadRequest).SendString("Invalid client ID")
-	// }
-	// if !isValidRedirectURI(client, redirectURI) {
-	// 	return c.Status(fiber.StatusBadRequest).SendString("Invalid redirect URI")
-	// }
+	_, err := getClient(db, clientID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).SendString("Invalid client ID")
+	}
 
 	if responseType != "code" {
 		return c.Status(fiber.StatusUnsupportedMediaType).SendString("Unsupported response type")
 	}
 
-	// Build the login URL with all current query parameters
-	loginURL := "/auth/login"
-
-	// Get all query parameters
 	queryParams := c.Request().URI().QueryString()
 	if len(queryParams) > 0 {
-		loginURL += "?" + string(queryParams)
+		return c.Redirect(LoginRedirectURL+"?"+string(queryParams), fiber.StatusFound)
 	}
 
-	// Redirect the user to the login page
-	return c.Redirect(loginURL, fiber.StatusFound)
-
-	// userID, err := uuid.Parse("7a015c0a-55ce-4b8e-84b5-784bd3363d5b")
-	// if err != nil {
-	// 	return c.Status(fiber.StatusUnauthorized).SendString("User authentication failed")
-	// }
-
-	// authCode, err := generateAuthCode(db, clientID, userID)
-	// if err != nil {
-	// 	return c.Status(fiber.StatusInternalServerError).SendString("Failed to generate authorization code")
-	// }
-
-	// return c.Redirect(redirectURI + "?code=" + authCode + "&state=" + state)
+	return c.Redirect(LoginRedirectURL, fiber.StatusFound)
 }
 
 func TokenRequest(c *fiber.Ctx) error {
