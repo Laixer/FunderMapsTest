@@ -142,19 +142,19 @@ func UpdateUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
-	if input.GivenName != nil {
+	if input.GivenName != nil && *input.GivenName != "" {
 		user.GivenName = input.GivenName
 	}
-	if input.LastName != nil {
+	if input.LastName != nil && *input.LastName != "" {
 		user.LastName = input.LastName
 	}
-	if input.Avatar != nil {
+	if input.Avatar != nil && *input.Avatar != "" {
 		user.Avatar = input.Avatar
 	}
-	if input.JobTitle != nil {
+	if input.JobTitle != nil && *input.JobTitle != "" {
 		user.JobTitle = input.JobTitle
 	}
-	if input.PhoneNumber != nil {
+	if input.PhoneNumber != nil && *input.PhoneNumber != "" {
 		user.PhoneNumber = input.PhoneNumber
 	}
 
