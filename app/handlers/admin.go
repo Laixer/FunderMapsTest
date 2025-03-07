@@ -99,7 +99,7 @@ func AddUserToOrganization(c *fiber.Ctx) error {
 
 	type AddUserToOrganizationInput struct {
 		UserID string  `json:"user_id" validate:"required"`
-		Role   *string `json:"role"` // TODO: Validate role
+		Role   *string `json:"role" validate:"omitempty,oneof=reader writer verifier superuser"`
 	}
 
 	var input AddUserToOrganizationInput
@@ -124,9 +124,8 @@ func AddUserToOrganization(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
 	}
 
-	// TODO: Maybe use as default value in validation
 	if input.Role == nil {
-		role := "user"
+		role := "reader"
 		input.Role = &role
 	}
 
