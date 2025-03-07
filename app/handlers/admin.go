@@ -124,7 +124,7 @@ func AddUserToOrganization(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
 	}
 
-	if input.Role == nil {
+	if input.Role == nil || *input.Role == "" {
 		role := "reader"
 		input.Role = &role
 	}
@@ -209,6 +209,7 @@ func AddMapsetToOrganization(c *fiber.Ctx) error {
 	}
 
 	result = db.Exec("INSERT INTO maplayer.map_organization (map_id, organization_id) VALUES (?, ?)", input.MapsetID, org.ID)
+	// TODO: This SQL statement can cause a unique constraint violation, handle this error
 	if result.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
 	}
