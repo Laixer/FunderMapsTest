@@ -8,7 +8,6 @@ require (
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/gofiber/storage/s3/v2 v2.2.1
-	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/mailgun/mailgun-go/v4 v4.22.1
 	github.com/spf13/viper v1.19.0
