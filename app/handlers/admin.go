@@ -124,6 +124,15 @@ func AddUserToOrganization(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
 	}
 
+	var count int64
+	result = db.Table("application.organization_user").Where("user_id = ? AND organization_id = ?", user.ID, org.ID).Count(&count)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
+	}
+	if count > 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User is already a member of this organization"})
+	}
+
 	if input.Role == nil || *input.Role == "" {
 		role := "reader"
 		input.Role = &role
@@ -211,6 +220,9 @@ func AddMapsetToOrganization(c *fiber.Ctx) error {
 	result = db.Exec("INSERT INTO maplayer.map_organization (map_id, organization_id) VALUES (?, ?)", input.MapsetID, org.ID)
 	// TODO: This SQL statement can cause a unique constraint violation, handle this error
 	if result.Error != nil {
+		// if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		// 	return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Subsidence history not found"})
+		// }
 		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
 	}
 
