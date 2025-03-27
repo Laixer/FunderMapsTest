@@ -1,1 +1,1 @@
-web: ./fundermaps
+web: bin/server
