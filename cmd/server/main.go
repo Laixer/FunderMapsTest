@@ -155,7 +155,7 @@ func main() {
 	diag.Get("/ip", handlers.GetIP)
 	diag.Get("/req", handlers.GetHeaders)
 
-	app.Use(func(c *fiber.Ctx) error {
+	app.Use(limiter.New(limiter.Config{}), func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Not found"})
 	})
 
