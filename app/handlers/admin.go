@@ -25,7 +25,6 @@ func GetAllOrganizations(c *fiber.Ctx) error {
 	return c.JSON(orgs)
 }
 
-// TODO: Check if organization name already exists
 func CreateOrganization(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
@@ -41,6 +40,11 @@ func CreateOrganization(c *fiber.Ctx) error {
 	err := config.Validate.Struct(input)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
+	}
+
+	var existingOrg database.Organization
+	if result := db.Where("name = ?", input.Name).First(&existingOrg); result.Error == nil {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"message": "Organization with this name already exists"})
 	}
 
 	org := database.Organization{
