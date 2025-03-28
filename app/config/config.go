@@ -74,7 +74,7 @@ func Load() (*Config, error) {
 	viper.BindEnv("PROXY_NETWORKS", "FM_PROXY_NETWORKS", "PROXY_NETWORKS")
 	viper.BindEnv("PROXY_HEADER", "FM_PROXY_HEADER", "PROXY_HEADER")
 
-	viper.SetConfigName("config")
+	viper.SetConfigName("settings")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("/etc/fundermaps/")
