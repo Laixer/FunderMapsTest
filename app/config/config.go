@@ -85,6 +85,23 @@ func Load() (*Config, error) {
 		}
 	}
 
+	// Try to load development settings if they exist
+	devViper := viper.New()
+	devViper.SetConfigName("settings.dev")
+	devViper.SetConfigType("yaml")
+	devViper.AddConfigPath(".")
+	devViper.AddConfigPath("/etc/fundermaps/")
+
+	if err := devViper.ReadInConfig(); err == nil {
+		// Dev settings file exists, merge with previous settings
+		if err := viper.MergeConfigMap(devViper.AllSettings()); err != nil {
+			return nil, fmt.Errorf("failed to merge development settings: %w", err)
+		}
+	} else if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+		// Return error only if it's not a "file not found" error
+		return nil, fmt.Errorf("failed to read development config file: %w", err)
+	}
+
 	var cfg Config
 	if err := viper.Unmarshal(&cfg); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
