@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 
 	"fundermaps/app/config"
+	"fundermaps/app/database"
 	"fundermaps/app/platform/geocoder"
 	"fundermaps/app/platform/storage"
 )
@@ -166,6 +167,7 @@ func CreateIncident(c *fiber.Ctx) error {
 
 func UploadFiles(c *fiber.Ctx) error {
 	cfg := c.Locals("config").(*config.Config)
+	db := c.Locals("db").(*gorm.DB)
 
 	storageService := storage.NewStorageService(cfg.Storage())
 
@@ -192,6 +194,22 @@ func UploadFiles(c *fiber.Ctx) error {
 	uploadedFiles := []string{}
 	for _, file := range files {
 		uploadedFiles = append(uploadedFiles, file.Filename)
+	}
+
+	// TODO: Wrap into a transaction
+	// TODO: Move to service
+	resourceFiles := []database.FileResource{}
+	for _, file := range files {
+		fileResource := database.FileResource{
+			Key:              keyName,
+			OriginalFilename: file.Filename,
+			SizeBytes:        file.Size,
+			MimeType:         file.Header.Get("Content-Type"),
+		}
+		resourceFiles = append(resourceFiles, fileResource)
+	}
+	if err := db.Create(&resourceFiles).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to save file metadata"})
 	}
 
 	return c.JSON(fiber.Map{"files": uploadedFiles, "key": keyName})

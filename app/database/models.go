@@ -216,3 +216,19 @@ type Mapset struct {
 func (u *Mapset) TableName() string {
 	return "maplayer.mapset_collection"
 }
+
+type FileResource struct {
+	ID               uuid.UUID  `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+	Key              string     `json:"key" gorm:"unique;not null"`
+	OriginalFilename string     `json:"original_filename" gorm:"not null"`
+	Status           string     `json:"status" gorm:"default:'uploaded'"`
+	SizeBytes        int64      `json:"size_bytes"`
+	MimeType         string     `json:"mime_type"`
+	Metadata         JSONObject `json:"metadata" gorm:"type:jsonb"`
+	CreatedAt        time.Time  `json:"created_at" gorm:"default:now()"`
+	UpdatedAt        time.Time  `json:"updated_at" gorm:"default:now()"`
+}
+
+func (fr *FileResource) TableName() string {
+	return "application.file_resources"
+}
