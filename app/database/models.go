@@ -143,13 +143,15 @@ func (a *ApplicationUser) TableName() string {
 }
 
 type AuthCode struct {
-	Code          string      `json:"code" gorm:"primaryKey"`
-	Application   Application `json:"application" gorm:"foreignKey:ApplicationID;references:ApplicationID"`
-	ApplicationID string      `json:"-" gorm:"type:uuid"`
-	User          User        `json:"user" gorm:"foreignKey:UserID;references:ID"`
-	UserID        uuid.UUID   `json:"-" gorm:"type:uuid"`
-	CreatedAt     time.Time   `json:"created_at" gorm:"default:now()"`
-	ExpiredAt     time.Time   `json:"expired_at"`
+	Code                string      `json:"code" gorm:"primaryKey"`
+	Application         Application `json:"application" gorm:"foreignKey:ApplicationID;references:ApplicationID"`
+	ApplicationID       string      `json:"-" gorm:"type:uuid;index"`
+	User                User        `json:"user" gorm:"foreignKey:UserID;references:ID"`
+	UserID              uuid.UUID   `json:"-" gorm:"type:uuid;index"`
+	CreatedAt           time.Time   `json:"created_at" gorm:"default:now()"`
+	ExpiredAt           time.Time   `json:"expired_at"`
+	CodeChallenge       string      `json:"code_challenge"`
+	CodeChallengeMethod string      `json:"code_challenge_method"`
 }
 
 func (ac *AuthCode) TableName() string {

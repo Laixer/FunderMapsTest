@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"errors"
 	"fundermaps/app/database"
 	"fundermaps/app/platform/user"
@@ -49,6 +51,42 @@ func generateAuthCode(db *gorm.DB, clientID string, userID uuid.UUID) (string, e
 		return "", err
 	}
 	return authToken.Code, nil
+}
+
+func generateAuthCodeWithPKCE(db *gorm.DB, clientID string, userID uuid.UUID, codeChallenge string, codeChallengeMethod string) (string, error) {
+	authToken := database.AuthCode{
+		Code:                utils.GenerateRandomString(32),
+		ApplicationID:       clientID,
+		UserID:              userID,
+		CodeChallenge:       codeChallenge,
+		CodeChallengeMethod: codeChallengeMethod,
+		ExpiredAt:           time.Now().Add(time.Minute * 5),
+	}
+	if err := db.Create(&authToken).Error; err != nil {
+		return "", err
+	}
+	return authToken.Code, nil
+}
+
+func verifyPKCE(codeVerifier string, authCode database.AuthCode) bool {
+	if authCode.CodeChallenge == "" {
+		return true
+	}
+
+	if codeVerifier == "" {
+		return false
+	}
+
+	switch authCode.CodeChallengeMethod {
+	case "S256":
+		hash := sha256.Sum256([]byte(codeVerifier))
+		challenge := base64.RawURLEncoding.EncodeToString(hash[:])
+		return challenge == authCode.CodeChallenge
+	case "plain":
+		return codeVerifier == authCode.CodeChallenge
+	default:
+		return false
+	}
 }
 
 func getRefreshToken(db *gorm.DB, clientID string, refreshToken string) (database.AuthRefreshToken, error) {
@@ -117,6 +155,16 @@ func AuthorizationRequest(c *fiber.Ctx) error {
 
 	clientID := c.FormValue("client_id")
 	responseType := c.Query("response_type")
+	codeChallenge := c.Query("code_challenge")
+	codeChallengeMethod := c.Query("code_challenge_method")
+
+	if codeChallenge != "" && codeChallengeMethod == "" {
+		codeChallengeMethod = "plain"
+	}
+
+	if codeChallengeMethod != "" && codeChallengeMethod != "plain" && codeChallengeMethod != "S256" {
+		return c.Status(fiber.StatusBadRequest).SendString("Invalid code_challenge_method")
+	}
 
 	_, err := getClient(db, clientID)
 	if err != nil {
@@ -164,6 +212,11 @@ func TokenRequest(c *fiber.Ctx) error {
 		authCode, err := getAuthCode(db, clientID, code)
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_grant"})
+		}
+
+		codeVerifier := c.FormValue("code_verifier")
+		if !verifyPKCE(codeVerifier, authCode) {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_grant", "error_description": "PKCE verification failed"})
 		}
 
 		user, err := userService.GetUserByID(authCode.UserID)
