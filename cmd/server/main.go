@@ -122,6 +122,10 @@ func main() {
 	// product.Get("/subsidence", handlers.GetDataSubsidence)
 	product.Get("/subsidence/historic", handlers.GetDataSubsidenceHistoric)
 
+	// Report API
+	// report := api.Group("/report/:building_id", middleware.AuthMiddleware)
+	// report.Get("/", handlers.GetReport)
+
 	// Management API
 	management := api.Group("/v1/management", middleware.AuthMiddleware, middleware.AdminMiddleware)
 	management.Get("/app", mngmt.GetAllApplications)
@@ -151,6 +155,7 @@ func main() {
 	management_org_user.Post("/", handlers.AddUserToOrganization)
 	management_org_user.Delete("/", handlers.RemoveUserFromOrganization)
 
+	// Diagnostic API
 	diag := api.Group("/diag")
 	diag.Get("/ip", handlers.GetIP)
 	diag.Get("/req", handlers.GetHeaders)
