@@ -103,7 +103,7 @@ func main() {
 
 	// Mapset API
 	mapset := api.Group("/mapset", limiter.New(limiter.Config{Max: 50}))
-	mapset.Get("/:mapset_id?", middleware.AuthMiddleware, handlers.GetMapset) // TODO: Does not work for public mapsets
+	mapset.Get("/:mapset_id?", handlers.GetMapset)
 
 	// Incident API
 	incident := api.Group("/incident", limiter.New(limiter.Config{Max: 50}))

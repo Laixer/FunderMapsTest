@@ -196,7 +196,6 @@ func UploadFiles(c *fiber.Ctx) error {
 		uploadedFiles = append(uploadedFiles, file.Filename)
 	}
 
-	// TODO: Wrap into a transaction
 	// TODO: Move to service
 	resourceFiles := []database.FileResource{}
 	for _, file := range files {
