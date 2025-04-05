@@ -182,6 +182,7 @@ func LoginWithForm(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusBadRequest).SendString("Invalid client ID")
 		}
 
+		// TODO: Generate auth code + PKCE if reqested
 		authCode, err := generateAuthCode(db, clientID, user.ID)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to generate authorization code")

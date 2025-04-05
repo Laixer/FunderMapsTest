@@ -26,12 +26,12 @@ import (
 func main() {
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
 	db, err := database.Open(cfg)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
 	store := session.New(session.Config{
@@ -39,6 +39,8 @@ func main() {
 		CookieDomain:   cfg.AuthDomain,
 		CookieHTTPOnly: true,
 		Expiration:     time.Duration(cfg.AuthExpiration) * time.Hour,
+		KeyLookup:      "cookie:session_id",
+		CookieSameSite: "Lax",
 	})
 
 	app := fiber.New(fiber.Config{
