@@ -97,6 +97,10 @@ func CreateIncident(c *fiber.Ctx) error {
 	// TODO: Check email is valid (regex)
 	// TODO: Replace empty strings with db null
 
+	if input.ClientID == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Client ID is required"})
+	}
+
 	if input.Building == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Building is required"})
 	}
@@ -123,11 +127,6 @@ func CreateIncident(c *fiber.Ctx) error {
 	}
 
 	input.Building = legacyBuildingID
-
-	// TODO: Validate client_id, not all clients can create incidents
-	if input.ClientID == 0 {
-		input.ClientID = 10
-	}
 
 	incident := Incident{
 		ClientID:                         input.ClientID,
