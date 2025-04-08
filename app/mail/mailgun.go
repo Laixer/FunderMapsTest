@@ -2,7 +2,6 @@ package mail
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -43,10 +42,8 @@ func (m *Mailgun) SendMail(e *Email) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	resp, id, err := mg.Send(ctx, message)
+	_, _, err := mg.Send(ctx, message)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Printf("ID: %s Resp: %s\n", id, resp)
 }
