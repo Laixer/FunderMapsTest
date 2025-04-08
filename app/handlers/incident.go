@@ -10,6 +10,7 @@ import (
 
 	"fundermaps/app/config"
 	"fundermaps/app/database"
+	"fundermaps/app/mail"
 	"fundermaps/app/platform/geocoder"
 	"fundermaps/app/platform/storage"
 )
@@ -83,7 +84,7 @@ func (i *Incident) TableName() string {
 }
 
 func CreateIncident(c *fiber.Ctx) error {
-	// cfg := c.Locals("config").(*config.Config)
+	cfg := c.Locals("config").(*config.Config)
 	db := c.Locals("db").(*gorm.DB)
 
 	geocoderService := geocoder.NewService(db)
@@ -151,15 +152,15 @@ func CreateIncident(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
-	// message := mail.Email{
-	// 	Subject: input.Subject,
-	// 	Body:    input.Body,
-	// 	From:    input.From,
-	// 	To:      []string{input.To},
-	// }
+	message := mail.Email{
+		Subject: "New Incident Report",
+		Body:    fmt.Sprintf("A new incident report has been created:\n\nID: %s\nClient ID: %d\nBuilding: %s\nContact: %s\nContact Name: %s\nContact Phone Number: %s\nNote: %s", incident.ID, incident.ClientID, incident.Building, incident.Contact, *incident.ContactName, *incident.ContactPhoneNumber, *incident.Note),
+		From:    fmt.Sprintf("Fundermaps <no-reply@%s>", cfg.MailgunDomain),
+		To:      []string{fmt.Sprintf("Fundermaps <info@%s>", cfg.MailgunDomain)},
+	}
 
-	// mailer := mail.NewMailer(cfg.MailgunDomain, cfg.MailgunAPIKey, cfg.MailgunAPIBase)
-	// mailer.SendMail(&message)
+	mailer := mail.NewMailer(cfg.MailgunDomain, cfg.MailgunAPIKey, cfg.MailgunAPIBase)
+	mailer.SendMail(&message)
 
 	return c.JSON(incident)
 }
