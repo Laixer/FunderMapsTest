@@ -68,7 +68,8 @@ func main() {
 	})
 
 	app.Use(logger.New(logger.Config{
-		Format: "${method} | ${status} | ${latency} | ${ip} | ${path}\n",
+		// Format: "${method} | ${status} | ${latency} | ${ip} | ${path}\n",
+		Format: "${status} | ${latency} | ${ip} | ${method} | ${path} | ${error}\n",
 	}))
 
 	app.Get("/auth/login", func(c *fiber.Ctx) error {
