@@ -12,7 +12,7 @@ require (
 	github.com/mailgun/mailgun-go/v4 v4.23.0
 	github.com/spf13/viper v1.20.1
 	golang.org/x/crypto v0.37.0
-	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
+	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.25.12
 )
