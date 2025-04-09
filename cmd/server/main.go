@@ -15,7 +15,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/fiber/v2/middleware/session"
-	"github.com/mattn/go-colorable"
 
 	"fundermaps/app/config"
 	"fundermaps/app/database"
@@ -49,6 +48,9 @@ func main() {
 		TrustedProxies:          cfg.ProxyNetworks,
 		ProxyHeader:             cfg.ProxyHeader,
 	})
+
+	colors := app.Config().ColorScheme
+	fmt.Printf("Color test: %sSuccess%s %sError%s\n", colors.Green, colors.Reset, colors.Red, colors.Reset)
 
 	app.Use(compress.New())
 	app.Use(helmet.New())
