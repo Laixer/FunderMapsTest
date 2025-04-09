@@ -15,6 +15,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/fiber/v2/middleware/session"
+	"github.com/mattn/go-colorable"
 
 	"fundermaps/app/config"
 	"fundermaps/app/database"
@@ -69,6 +70,7 @@ func main() {
 
 	app.Use(logger.New(logger.Config{
 		Format: "${status} | ${latency} | ${ip} | ${method} | ${path}\n",
+		Output: colorable.NewColorableStdout(),
 	}))
 
 	app.Get("/auth/login", func(c *fiber.Ctx) error {
