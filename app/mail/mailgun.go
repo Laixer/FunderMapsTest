@@ -2,7 +2,6 @@ package mail
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/mailgun/mailgun-go/v4"
@@ -33,7 +32,7 @@ func NewMailer(domain, apiKey, apiBase string) *Mailgun {
 	}
 }
 
-func (m *Mailgun) SendMail(e *Email) {
+func (m *Mailgun) SendMail(e *Email) error {
 	mg := mailgun.NewMailgun(m.domain, m.apiKey)
 	mg.SetAPIBase(m.apiBase)
 
@@ -44,6 +43,8 @@ func (m *Mailgun) SendMail(e *Email) {
 
 	_, _, err := mg.Send(ctx, message)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }

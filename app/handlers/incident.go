@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql/driver"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -160,7 +161,9 @@ func CreateIncident(c *fiber.Ctx) error {
 	}
 
 	mailer := mail.NewMailer(cfg.MailgunDomain, cfg.MailgunAPIKey, cfg.MailgunAPIBase)
-	mailer.SendMail(&message)
+	if err := mailer.SendMail(&message); err != nil {
+		log.Printf("Failed to send email notification: %v\n", err)
+	}
 
 	return c.JSON(incident)
 }
