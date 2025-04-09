@@ -72,7 +72,7 @@ func main() {
 
 	app.Use(logger.New(logger.Config{
 		Format: "${status} | ${latency} | ${ip} | ${method} | ${path}\n",
-		Output: colorable.NewColorableStdout(),
+		// Output: colorable.NewColorableStdout(),
 	}))
 
 	app.Get("/auth/login", func(c *fiber.Ctx) error {
