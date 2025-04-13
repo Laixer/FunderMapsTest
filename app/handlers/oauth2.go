@@ -208,8 +208,10 @@ func TokenRequest(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_client"})
 	}
 
-	if !utils.VerifyPassword(clientSecret, client.Secret) {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_client"})
+	if !client.Public {
+		if !utils.VerifyPassword(clientSecret, client.Secret) {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_client"})
+		}
 	}
 
 	grantType := c.FormValue("grant_type")

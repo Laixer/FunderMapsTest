@@ -125,6 +125,8 @@ type Application struct {
 	Data          JSONObject `json:"data" gorm:"type:jsonb"`
 	Secret        string     `json:"-"` // TODO Rename to SecretHash
 	RedirectURL   string     `json:"-"`
+	Public        bool       `json:"public"`
+	UserID        uuid.UUID  `json:"user_id" gorm:"type:uuid"`
 }
 
 func (a *Application) TableName() string {
