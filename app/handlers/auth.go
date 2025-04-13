@@ -174,6 +174,8 @@ func LoginWithForm(c *fiber.Ctx) error {
 	redirectURI := c.FormValue("redirect_uri")
 	responseType := c.FormValue("response_type")
 	state := c.FormValue("state")
+	codeChallenge := c.FormValue("code_challenge")
+	codeChallengeMethod := c.FormValue("code_challenge_method")
 
 	// Check if we are dealing with an OAuth2 request
 	if clientID != "" && responseType == "code" {
@@ -182,8 +184,12 @@ func LoginWithForm(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusBadRequest).SendString("Invalid client ID")
 		}
 
-		// TODO: Generate auth code + PKCE if reqested
-		authCode, err := generateAuthCode(db, clientID, user.ID)
+		var authCode string
+		if codeChallengeMethod != "" && codeChallenge != "" {
+			authCode, err = generateAuthCodeWithPKCE(db, clientID, user.ID, codeChallenge, codeChallengeMethod)
+		} else {
+			authCode, err = generateAuthCode(db, clientID, user.ID)
+		}
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to generate authorization code")
 		}

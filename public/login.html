@@ -103,7 +103,7 @@
         document.addEventListener('DOMContentLoaded', function () {
             const urlParams = new URLSearchParams(window.location.search);
             const form = document.getElementById('loginForm');
-            const oauthParams = ['client_id', 'redirect_uri', 'response_type', 'state', 'scope'];
+            const oauthParams = ['client_id', 'redirect_uri', 'response_type', 'state', 'scope', 'code_challenge', 'code_challenge_method'];
 
             oauthParams.forEach(param => {
                 if (urlParams.has(param)) {
