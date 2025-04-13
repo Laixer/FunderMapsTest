@@ -14,6 +14,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// TODO: Move to platform
 func getClient(db *gorm.DB, clientID string) (database.Application, error) {
 	if clientID == "" {
 		return database.Application{}, errors.New("client_id is required")
@@ -27,6 +28,7 @@ func getClient(db *gorm.DB, clientID string) (database.Application, error) {
 	return client, nil
 }
 
+// TODO: Move to platform
 func getAuthCode(db *gorm.DB, clientID string, code string) (database.AuthCode, error) {
 	if code == "" {
 		return database.AuthCode{}, errors.New("code is required")
@@ -40,6 +42,7 @@ func getAuthCode(db *gorm.DB, clientID string, code string) (database.AuthCode, 
 	return authToken, nil
 }
 
+// TODO: Move to platform
 func generateAuthCode(db *gorm.DB, clientID string, userID uuid.UUID) (string, error) {
 	authToken := database.AuthCode{
 		Code:          utils.GenerateRandomString(32),
@@ -53,6 +56,7 @@ func generateAuthCode(db *gorm.DB, clientID string, userID uuid.UUID) (string, e
 	return authToken.Code, nil
 }
 
+// TODO: Move to platform
 func generateAuthCodeWithPKCE(db *gorm.DB, clientID string, userID uuid.UUID, codeChallenge string, codeChallengeMethod string) (string, error) {
 	authToken := database.AuthCode{
 		Code:                utils.GenerateRandomString(32),
@@ -68,6 +72,7 @@ func generateAuthCodeWithPKCE(db *gorm.DB, clientID string, userID uuid.UUID, co
 	return authToken.Code, nil
 }
 
+// TODO: Move to platform
 func verifyPKCE(codeVerifier string, authCode database.AuthCode) bool {
 	if authCode.CodeChallenge == "" {
 		return true
@@ -89,6 +94,7 @@ func verifyPKCE(codeVerifier string, authCode database.AuthCode) bool {
 	}
 }
 
+// TODO: Move to platform
 func getRefreshToken(db *gorm.DB, clientID string, refreshToken string) (database.AuthRefreshToken, error) {
 	if refreshToken == "" {
 		return database.AuthRefreshToken{}, errors.New("refresh_token is required")
@@ -102,6 +108,7 @@ func getRefreshToken(db *gorm.DB, clientID string, refreshToken string) (databas
 	return token, nil
 }
 
+// TODO: Move to platform
 func revokeAPIKey(db *gorm.DB, user database.User) error {
 	db.Exec("DELETE FROM application.reset_key WHERE user_id = ?", user.ID)
 	return nil
@@ -243,7 +250,7 @@ func TokenRequest(c *fiber.Ctx) error {
 		return c.JSON(authToken)
 
 	case "client_credentials":
-		userID := uuid.MustParse("7a015c0a-55ce-4b8e-84b5-784bd3363d5b")
+		userID := uuid.MustParse("7a015c0a-55ce-4b8e-84b5-784bd3363d5b") // TODO: get from client
 
 		user, err := userService.GetUserByID(userID)
 		if err != nil {

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -16,7 +15,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/fiber/v2/middleware/session"
-	"github.com/mattn/go-isatty"
 
 	"fundermaps/app/config"
 	"fundermaps/app/database"
@@ -50,9 +48,6 @@ func main() {
 		TrustedProxies:          cfg.ProxyNetworks,
 		ProxyHeader:             cfg.ProxyHeader,
 	})
-
-	fmt.Printf("Connected unix console %v\n", isatty.IsTerminal(os.Stdout.Fd()))
-	fmt.Printf("Connected win console %v\n", isatty.IsCygwinTerminal(os.Stdout.Fd()))
 
 	app.Use(compress.New())
 	app.Use(helmet.New())
