@@ -97,7 +97,6 @@ func CreateIncident(c *fiber.Ctx) error {
 
 	// TODO: Add data validation
 	// TODO: Check email is valid (regex)
-	// TODO: Replace empty strings with db null
 
 	if input.ClientID == 0 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Client ID is required"})
@@ -113,6 +112,11 @@ func CreateIncident(c *fiber.Ctx) error {
 
 	if input.ContactName == nil || *input.ContactName == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Contact name is required"})
+	}
+
+	// If ContactPhoneNumber is provided but is an empty string, treat it as NULL
+	if input.ContactPhoneNumber != nil && *input.ContactPhoneNumber == "" {
+		input.ContactPhoneNumber = nil
 	}
 
 	building, err := geocoderService.GetBuildingByGeocoderID(input.Building)
@@ -154,10 +158,22 @@ func CreateIncident(c *fiber.Ctx) error {
 	}
 
 	// TODO: Update table file_resources and set the status to 'active'
+	// var fileResources []database.FileResource
+	// db.Model(&database.FileResource{}).Where("key = ?", incident.ID).Updates(map[string]interface{}{
+
+	// Use a nil check before dereferencing ContactPhoneNumber for the email body
+	contactPhoneStr := "N/A"
+	if incident.ContactPhoneNumber != nil {
+		contactPhoneStr = *incident.ContactPhoneNumber
+	}
+	noteStr := "N/A"
+	if incident.Note != nil {
+		noteStr = *incident.Note
+	}
 
 	message := mail.Email{
 		Subject: "New Incident Report",
-		Body:    fmt.Sprintf("A new incident report has been created:\n\nID: %s\nClient ID: %d\nBuilding: %s\nContact: %s\nContact Name: %s\nContact Phone Number: %s\nNote: %s", incident.ID, incident.ClientID, incident.Building, incident.Contact, *incident.ContactName, *incident.ContactPhoneNumber, *incident.Note),
+		Body:    fmt.Sprintf("A new incident report has been created:\n\nID: %s\nClient ID: %d\nBuilding: %s\nContact: %s\nContact Name: %s\nContact Phone Number: %s\nNote: %s", incident.ID, incident.ClientID, incident.Building, incident.Contact, *incident.ContactName, contactPhoneStr, noteStr),
 		From:    fmt.Sprintf("Fundermaps <no-reply@%s>", cfg.MailgunDomain),
 		To:      []string{fmt.Sprintf("Fundermaps <info@%s>", cfg.MailgunDomain)},
 	}
