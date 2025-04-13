@@ -12,7 +12,7 @@ func GetAllApplications(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
 	var apps []database.Application
-	limit := c.QueryInt("limit", 100)
+	limit := min(c.QueryInt("limit", 100), 100)
 	offset := c.QueryInt("offset", 0)
 	result := db.Limit(limit).Offset(offset).Order("name ASC").Find(&apps)
 	if result.Error != nil {

@@ -49,7 +49,7 @@ func CreateOrganization(c *fiber.Ctx) error {
 
 	org := database.Organization{
 		Name:  input.Name,
-		Email: fmt.Sprintf("info@%s.com", utils.GenerateRandomString(10)),
+		Email: fmt.Sprintf("info@%s.com", utils.GenerateRandomString(10)), // TODO: Will be removed in the future
 	}
 
 	result := db.Create(&org)

@@ -153,6 +153,8 @@ func CreateIncident(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
+	// TODO: Update table file_resources and set the status to 'active'
+
 	message := mail.Email{
 		Subject: "New Incident Report",
 		Body:    fmt.Sprintf("A new incident report has been created:\n\nID: %s\nClient ID: %d\nBuilding: %s\nContact: %s\nContact Name: %s\nContact Phone Number: %s\nNote: %s", incident.ID, incident.ClientID, incident.Building, incident.Contact, *incident.ContactName, *incident.ContactPhoneNumber, *incident.Note),
