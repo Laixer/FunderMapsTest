@@ -6,13 +6,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
+	"fundermaps/app/config"
 	"fundermaps/app/database"
 )
 
-// TODO: Fetch from ENV
-const ApplicationID = "app-0blu4s39"
-
-// TODO: Return User + Organization + Organization Role
 func GetCurrentUser(c *fiber.Ctx) error {
 	user := c.Locals("user").(database.User)
 
@@ -53,11 +50,12 @@ func UpdateCurrentUser(c *fiber.Ctx) error {
 }
 
 func GetCurrentUserMetadata(c *fiber.Ctx) error {
+	cfg := c.Locals("config").(*config.Config)
 	db := c.Locals("db").(*gorm.DB)
 	user := c.Locals("user").(database.User)
 
 	var applicationUser database.ApplicationUser
-	result := db.First(&applicationUser, "user_id = ? AND application_id = ?", user.ID, ApplicationID)
+	result := db.First(&applicationUser, "user_id = ? AND application_id = ?", user.ID, cfg.ApplicationID)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return c.JSON(database.ApplicationUser{})
@@ -69,11 +67,12 @@ func GetCurrentUserMetadata(c *fiber.Ctx) error {
 }
 
 func UpdateCurrentUserMetadata(c *fiber.Ctx) error {
+	cfg := c.Locals("config").(*config.Config)
 	db := c.Locals("db").(*gorm.DB)
 	user := c.Locals("user").(database.User)
 
 	var input struct {
-		Metadata map[string]interface{} `json:"metadata"`
+		Metadata map[string]any `json:"metadata"`
 	}
 
 	if err := c.BodyParser(&input); err != nil {
@@ -81,9 +80,9 @@ func UpdateCurrentUserMetadata(c *fiber.Ctx) error {
 	}
 
 	var applicationUser database.ApplicationUser
-	result := db.Where("user_id = ? AND application_id = ?", user.ID.String(), ApplicationID).FirstOrCreate(&applicationUser, database.ApplicationUser{
+	result := db.Where("user_id = ? AND application_id = ?", user.ID.String(), cfg.ApplicationID).FirstOrCreate(&applicationUser, database.ApplicationUser{
 		UserID:        user.ID.String(),
-		ApplicationID: ApplicationID,
+		ApplicationID: cfg.ApplicationID,
 	})
 
 	if result.Error != nil {
