@@ -252,9 +252,7 @@ func TokenRequest(c *fiber.Ctx) error {
 		return c.JSON(authToken)
 
 	case "client_credentials":
-		userID := uuid.MustParse("7a015c0a-55ce-4b8e-84b5-784bd3363d5b") // TODO: get from client
-
-		user, err := userService.GetUserByID(userID)
+		user, err := userService.GetUserByID(client.UserID)
 		if err != nil {
 			if errors.Is(err, errors.New("user not found")) {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid_grant"})
