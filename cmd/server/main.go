@@ -118,7 +118,7 @@ func main() {
 	geocoder.Get("/address", handlers.GetAllAddresses)
 
 	// Product API
-	product := api.Group("/v4/product/:building_id", middleware.AuthMiddleware, requestid.New())
+	product := api.Group("/product/:building_id", middleware.AuthMiddleware, requestid.New())
 	product.Get("/analysis", middleware.TrackerMiddleware, handlers.GetAnalysis)
 	// product.Get("/statistics", handlers.GetAnalysis)
 	// product.Get("/subsidence", handlers.GetDataSubsidence)
