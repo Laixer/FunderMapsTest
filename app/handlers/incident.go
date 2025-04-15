@@ -175,7 +175,7 @@ func CreateIncident(c *fiber.Ctx) error {
 		Subject: "New Incident Report",
 		Body:    fmt.Sprintf("A new incident report has been created:\n\nID: %s\nClient ID: %d\nBuilding: %s\nContact: %s\nContact Name: %s\nContact Phone Number: %s\nNote: %s", incident.ID, incident.ClientID, incident.Building, incident.Contact, *incident.ContactName, contactPhoneStr, noteStr),
 		From:    fmt.Sprintf("Fundermaps <no-reply@%s>", cfg.MailgunDomain),
-		To:      []string{fmt.Sprintf("Fundermaps <info@%s>", cfg.MailgunDomain)},
+		To:      cfg.EmailReceivers,
 	}
 
 	mailer := mail.NewMailer(cfg.MailgunDomain, cfg.MailgunAPIKey, cfg.MailgunAPIBase)

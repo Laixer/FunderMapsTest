@@ -21,6 +21,7 @@ type Config struct {
 	MailgunAPIKey  string   `mapstructure:"MAILGUN_API_KEY" validate:"required_with=MailgunDomain"`
 	MailgunDomain  string   `mapstructure:"MAILGUN_DOMAIN" validate:"required_with=MailgunAPIKey"`
 	MailgunAPIBase string   `mapstructure:"MAILGUN_API_BASE"`
+	EmailReceivers []string `mapstructure:"EMAIL_RECEIVERS" validate:"required_with=MailgunDomain"`
 	S3Endpoint     string   `mapstructure:"S3_ENDPOINT" validate:"required_with=S3Bucket"`
 	S3Region       string   `mapstructure:"S3_REGION" validate:"required_with=S3Bucket"`
 	S3Bucket       string   `mapstructure:"S3_BUCKET"`
@@ -61,6 +62,7 @@ func Load() (*Config, error) {
 	viper.BindEnv("MAILGUN_API_KEY", "FM_MAILGUN_API_KEY", "MAILGUN_API_KEY")
 	viper.BindEnv("MAILGUN_DOMAIN", "FM_MAILGUN_DOMAIN", "MAILGUN_DOMAIN")
 	viper.BindEnv("MAILGUN_API_BASE", "FM_MAILGUN_API_BASE", "MAILGUN_API_BASE")
+	viper.BindEnv("EMAIL_RECEIVERS", "FM_EMAIL_RECEIVERS", "EMAIL_RECEIVERS")
 
 	// Bind S3 storage environment variables
 	viper.BindEnv("S3_ENDPOINT", "FM_S3_ENDPOINT", "S3_ENDPOINT")
@@ -105,6 +107,11 @@ func Load() (*Config, error) {
 	var cfg Config
 	if err := viper.Unmarshal(&cfg); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+
+	// Default email receiver if none specified
+	if len(cfg.EmailReceivers) == 0 && cfg.MailgunDomain != "" {
+		cfg.EmailReceivers = []string{fmt.Sprintf("Fundermaps <info@%s>", cfg.MailgunDomain)}
 	}
 
 	// Initialize validator
