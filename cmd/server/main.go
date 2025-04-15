@@ -104,7 +104,7 @@ func main() {
 	user.Put("/metadata", handlers.UpdateCurrentUserMetadata)
 
 	// Mapset API
-	mapset := api.Group("/mapset", limiter.New(limiter.Config{Max: 50}))
+	mapset := api.Group("/mapset", middleware.AuthMiddleware)
 	mapset.Get("/:mapset_id?", handlers.GetMapset)
 
 	// Incident API
@@ -118,7 +118,7 @@ func main() {
 	geocoder.Get("/address", handlers.GetAllAddresses)
 
 	// Product API
-	product := api.Group("/product/:building_id", middleware.AuthMiddleware, requestid.New())
+	product := api.Group("/product/:building_id", middleware.AuthMiddleware, requestid.New()) // TODO: requestid.New() use when serving the public API
 	product.Get("/analysis", middleware.TrackerMiddleware, handlers.GetAnalysis)
 	// product.Get("/statistics", handlers.GetAnalysis)
 	// product.Get("/subsidence", handlers.GetDataSubsidence)
