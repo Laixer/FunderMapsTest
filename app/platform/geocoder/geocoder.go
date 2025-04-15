@@ -39,52 +39,48 @@ func NewService(db *gorm.DB) *GeocoderService {
 	return &GeocoderService{db: db}
 }
 
+// GetBuildingByGeocoderID retrieves building information based on the provided geocoder identifier.
+// It supports multiple identifier formats including NlBagBuilding, NlBagLegacyBuilding, NlBagAddress, and NlBagLegacyAddress.
 func (s *GeocoderService) GetBuildingByGeocoderID(geocoderID string) (*BuildingGeocoder, error) {
-	// TODO: Move into a platform service
 	getBuilding := func(geocoderID string) (BuildingGeocoder, error) {
-		// TODO: Normalize the geocoder identifier
+		idType := utils.FromIdentifier(geocoderID)
 
-		switch utils.FromIdentifier(geocoderID) {
+		var buildingGeocoder BuildingGeocoder
+		var result *gorm.DB
+
+		switch idType {
 		case utils.NlBagBuilding:
-			var buildingGeocoder BuildingGeocoder
-
-			result := s.db.First(&buildingGeocoder, "building_id = ?", geocoderID)
-			return buildingGeocoder, result.Error
+			result = s.db.First(&buildingGeocoder, "building_id = ?", geocoderID)
 
 		case utils.NlBagLegacyBuilding:
-			var buildingGeocoder BuildingGeocoder
+			result = s.db.First(&buildingGeocoder, "building_id = 'NL.IMBAG.PAND.' || ?", geocoderID)
 
-			result := s.db.First(&buildingGeocoder, "building_id = 'NL.IMBAG.PAND.' || ?", geocoderID)
-			return buildingGeocoder, result.Error
+		case utils.NlBagAddress, utils.NlBagLegacyAddress:
+			query := "JOIN geocoder.building ON geocoder.building.external_id = geocoder.building_geocoder.building_id " +
+				"JOIN geocoder.address ON geocoder.address.building_id = geocoder.building.id"
 
-		case utils.NlBagAddress:
-			var buildingGeocoder BuildingGeocoder
+			whereClause := "geocoder.address.external_id = ?"
+			params := []any{geocoderID}
 
-			result := s.db.Joins("join geocoder.building on geocoder.building.external_id = geocoder.building_geocoder.building_id").
-				Joins("JOIN geocoder.address ON geocoder.address.building_id = geocoder.building.id").
-				Where("geocoder.address.external_id = ?", geocoderID).
-				First(&buildingGeocoder)
-			return buildingGeocoder, result.Error
+			if idType == utils.NlBagLegacyAddress {
+				whereClause = "geocoder.address.external_id = 'NL.IMBAG.NUMMERAANDUIDING.' || ?"
+			}
 
-		case utils.NlBagLegacyAddress:
-			var buildingGeocoder BuildingGeocoder
+			result = s.db.Joins(query).Where(whereClause, params...).First(&buildingGeocoder)
 
-			result := s.db.Joins("join geocoder.building on geocoder.building.external_id = geocoder.building_geocoder.building_id").
-				Joins("JOIN geocoder.address ON geocoder.address.building_id = geocoder.building.id").
-				Where("geocoder.address.external_id = 'NL.IMBAG.NUMMERAANDUIDING.' || ?", geocoderID).
-				First(&buildingGeocoder)
-			return buildingGeocoder, result.Error
+		default:
+			return BuildingGeocoder{}, errors.New("unknown geocoder identifier")
 		}
 
-		return BuildingGeocoder{}, errors.New("unknown geocoder identifier")
+		return buildingGeocoder, result.Error
 	}
 
 	building, err := getBuilding(geocoderID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("building not found")
-		} else if err.Error() == "unknown geocoder identifier" { // TODO: This is ugly
-			return nil, errors.New("unknown geocoder identifier")
+		} else if err.Error() == "unknown geocoder identifier" {
+			return nil, err
 		}
 		return nil, err
 	}
