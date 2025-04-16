@@ -40,13 +40,15 @@ func (s *storageService) SaveFile(file *multipart.FileHeader, path string, c *fi
 
 // IsFileExtensionAllowed checks if file extension is allowed
 func (s *storageService) IsFileExtensionAllowed(filename string) bool {
-	allowedExtensions := []string{"jpg", "jpeg", "png", "pdf", "doc", "docx", "xls", "xlsx", "csv", "txt", "zip", "ppt", "pptx"}
-	for _, ext := range allowedExtensions {
-		if strings.HasSuffix(strings.ToLower(filename), ext) {
-			return true
-		}
+	ext := strings.ToLower(filepath.Ext(filename))
+	if ext == "" {
+		return false
 	}
-	return false
+
+	// Remove the dot from extension
+	ext = ext[1:]
+
+	return slices.Contains(AllowedExtensions, ext)
 }
 
 // GenerateKeyName generates a random key name for file storage
