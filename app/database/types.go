@@ -10,7 +10,7 @@ import (
 
 type StringArray []string
 
-func (a *StringArray) Scan(value interface{}) error {
+func (a *StringArray) Scan(value any) error {
 	if value == nil {
 		*a = []string{}
 		return nil
@@ -52,9 +52,9 @@ func (a StringArray) Value() (driver.Value, error) {
 	return fmt.Sprintf("{%s}", strings.Join(cleanedArray, ",")), nil
 }
 
-type JSONObject map[string]interface{}
+type JSONObject map[string]any
 
-func (j *JSONObject) Scan(value interface{}) error {
+func (j *JSONObject) Scan(value any) error {
 	if value == nil {
 		*j = JSONObject{}
 		return nil
@@ -65,7 +65,7 @@ func (j *JSONObject) Scan(value interface{}) error {
 		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
 	}
 
-	var result map[string]interface{}
+	var result map[string]any
 	err := json.Unmarshal(bytes, &result)
 	*j = JSONObject(result)
 	return err
@@ -76,11 +76,11 @@ func (j JSONObject) Value() (driver.Value, error) {
 	return string(valueString), err
 }
 
-type JSONArray []interface{}
+type JSONArray []any
 
-func (a *JSONArray) Scan(value interface{}) error {
+func (a *JSONArray) Scan(value any) error {
 	if value == nil {
-		*a = []interface{}{}
+		*a = []any{}
 		return nil
 	}
 
