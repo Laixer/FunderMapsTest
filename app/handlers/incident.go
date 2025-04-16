@@ -11,7 +11,6 @@ import (
 	"gorm.io/gorm"
 
 	"fundermaps/app/config"
-	"fundermaps/app/database"
 	"fundermaps/app/mail"
 	"fundermaps/app/platform/geocoder"
 	"fundermaps/app/platform/storage"
@@ -150,9 +149,13 @@ func CreateIncident(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
-	// TODO: Update table file_resources and set the status to 'active'
-	// var fileResources []database.FileResource
-	// db.Model(&database.FileResource{}).Where("key = ?", incident.ID).Updates(map[string]interface{}{
+	// Update file resources if document files are provided
+	// if len(incident.DocumentFile) > 0 {
+	// 	storageService := storage.NewStorageService(cfg.Storage())
+	// 	if err := storageService.UpdateFileStatus(db, strings.Join(incident.DocumentFile, ","), storage.StatusActive); err != nil {
+	// 		log.Printf("Failed to update file status: %v", err)
+	// 	}
+	// }
 
 	// Use a nil check before dereferencing ContactPhoneNumber for the email body
 	contactPhoneStr := "N/A"
@@ -200,45 +203,12 @@ func UploadFiles(c *fiber.Ctx) error {
 
 	storageService := storage.NewStorageService(cfg.Storage())
 
-	form, err := c.MultipartForm()
+	formField := c.Query("field")
+
+	result, err := storageService.ProcessFileUpload(c, db, formField)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Failed to parse form"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
 	}
 
-	files := form.File["files"]
-	if len(files) == 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "No files uploaded"})
-	}
-
-	keyName := storageService.GenerateKeyName()
-
-	for _, file := range files {
-		if storageService.IsFileExtensionAllowed(file.Filename) {
-			if err := storageService.SaveFile(file, fmt.Sprintf("user-data/%s/%s", keyName, file.Filename), c); err != nil {
-				return err
-			}
-		}
-	}
-
-	uploadedFiles := make([]string, len(files))
-	for i, file := range files {
-		uploadedFiles[i] = file.Filename
-	}
-
-	// TODO: Move to service
-	resourceFiles := []database.FileResource{}
-	for _, file := range files {
-		fileResource := database.FileResource{
-			Key:              keyName,
-			OriginalFilename: file.Filename,
-			SizeBytes:        file.Size,
-			MimeType:         file.Header.Get("Content-Type"),
-		}
-		resourceFiles = append(resourceFiles, fileResource)
-	}
-	if err := db.Create(&resourceFiles).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to save file metadata"})
-	}
-
-	return c.JSON(fiber.Map{"files": uploadedFiles, "key": keyName})
+	return c.JSON(result)
 }
