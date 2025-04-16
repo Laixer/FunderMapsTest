@@ -165,14 +165,29 @@ func CreateIncident(c *fiber.Ctx) error {
 	}
 
 	message := mail.Email{
-		Subject: "New Incident Report",
-		Body:    fmt.Sprintf("A new incident report has been created:\n\nID: %s\nClient ID: %d\nBuilding: %s\nContact: %s\nContact Name: %s\nContact Phone Number: %s\nNote: %s", incident.ID, incident.ClientID, incident.Building, incident.Contact, *incident.ContactName, contactPhoneStr, noteStr),
-		From:    fmt.Sprintf("Fundermaps <no-reply@%s>", cfg.MailgunDomain),
-		To:      cfg.EmailReceivers,
+		Subject:  "New Incident Report",
+		From:     fmt.Sprintf("Fundermaps <no-reply@%s>", cfg.MailgunDomain),
+		To:       cfg.EmailReceivers,
+		Template: "incident-customer",
+		TemplateVars: map[string]any{
+			"id":                               incident.ID,
+			"address":                          incident.Building,
+			"name":                             incident.ContactName,
+			"phone":                            contactPhoneStr,
+			"email":                            incident.Contact,
+			"foundationType":                   incident.FoundationType,
+			"chainedBuilding":                  incident.ChainedBuilding,
+			"owner":                            incident.Owner,
+			"neighborRecovery":                 incident.NeightborRecovery,
+			"foundationDamageCause":            incident.FoundationDamageCause,
+			"foundationDamageCharacteristics":  incident.FoundationDamageCharacteristics,
+			"environmentDamageCharacteristics": incident.EnvironmentDamageCharacteristics,
+			"note":                             noteStr,
+		},
 	}
 
 	mailer := mail.NewMailer(cfg.MailgunDomain, cfg.MailgunAPIKey, cfg.MailgunAPIBase)
-	if err := mailer.SendMail(&message); err != nil {
+	if err := mailer.SendTemplatedMail(&message); err != nil {
 		log.Printf("Failed to send email notification: %v\n", err)
 	}
 
