@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"fundermaps/app/database"
 	"fundermaps/pkg/utils"
-	"mime/multipart"
 	"path/filepath"
 	"strings"
 
@@ -46,17 +45,11 @@ type FileUploadResult struct {
 
 // StorageService defines methods for file storage operations
 type StorageService interface {
-	// SaveFile saves a file to the storage
-	SaveFile(file *multipart.FileHeader, path string, c *fiber.Ctx) error
-
 	// IsFileExtensionAllowed checks if file extension is allowed
 	IsFileExtensionAllowed(filename string) bool
 
-	// GenerateKeyName generates a random key name for file storage
-	GenerateKeyName() string
-
-	// ProcessFileUpload handles the complete file upload process
-	ProcessFileUpload(c *fiber.Ctx, db *gorm.DB, formFieldName string) (*FileUploadResult, error)
+	// UploadFile handles the complete file upload process
+	UploadFile(c *fiber.Ctx, db *gorm.DB, formFieldName string) (*FileUploadResult, error)
 
 	// UpdateFileStatus updates the status of files associated with a key
 	UpdateFileStatus(db *gorm.DB, key string, status string) error
@@ -74,11 +67,6 @@ func NewStorageService(storage *s3.Storage) StorageService {
 	}
 }
 
-// SaveFile saves a file to the storage
-func (s *storageService) SaveFile(file *multipart.FileHeader, path string, c *fiber.Ctx) error {
-	return c.SaveFileToStorage(file, path, s.storage)
-}
-
 // IsFileExtensionAllowed checks if file extension is allowed
 func (s *storageService) IsFileExtensionAllowed(filename string) bool {
 	ext := strings.ToLower(filepath.Ext(filename))
@@ -93,12 +81,12 @@ func (s *storageService) IsFileExtensionAllowed(filename string) bool {
 }
 
 // GenerateKeyName generates a random key name for file storage
-func (s *storageService) GenerateKeyName() string {
+func (s *storageService) generateKeyName() string {
 	return strings.ToLower(utils.GenerateRandomString(KeyLength))
 }
 
-// ProcessFileUpload handles the complete file upload process
-func (s *storageService) ProcessFileUpload(c *fiber.Ctx, db *gorm.DB, formFieldName string) (*FileUploadResult, error) {
+// UploadFile handles the complete file upload process
+func (s *storageService) UploadFile(c *fiber.Ctx, db *gorm.DB, formFieldName string) (*FileUploadResult, error) {
 	form, err := c.MultipartForm()
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse form: %w", err)
@@ -114,7 +102,7 @@ func (s *storageService) ProcessFileUpload(c *fiber.Ctx, db *gorm.DB, formFieldN
 		return nil, fmt.Errorf("no files uploaded")
 	}
 
-	keyName := s.GenerateKeyName()
+	keyName := s.generateKeyName()
 
 	uploadedFiles := make([]string, 0)
 	resourceFiles := []database.FileResource{}
@@ -126,7 +114,7 @@ func (s *storageService) ProcessFileUpload(c *fiber.Ctx, db *gorm.DB, formFieldN
 		}
 
 		filePath := fmt.Sprintf("%s/%s/%s", DefaultUploadPath, keyName, file.Filename)
-		if err := s.SaveFile(file, filePath, c); err != nil {
+		if err := c.SaveFileToStorage(file, filePath, s.storage); err != nil {
 			return nil, fmt.Errorf("failed to save file: %w", err)
 		}
 

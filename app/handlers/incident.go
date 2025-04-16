@@ -205,7 +205,7 @@ func UploadFiles(c *fiber.Ctx) error {
 
 	formField := c.Query("field")
 
-	result, err := storageService.ProcessFileUpload(c, db, formField)
+	result, err := storageService.UploadFile(c, db, formField)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
 	}
