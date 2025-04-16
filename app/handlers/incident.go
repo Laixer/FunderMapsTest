@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/go-playground/validator"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
@@ -57,7 +58,7 @@ func (a StringArray) Value() (driver.Value, error) {
 
 type Incident struct {
 	ID                               string      `json:"id" gorm:"primaryKey;<-:create"`
-	ClientID                         int         `json:"client_id" gorm:"-:all"`
+	ClientID                         int         `json:"client_id" gorm:"-:all" validate:"required"`
 	FoundationType                   *string     `json:"foundation_type"`
 	ChainedBuilding                  bool        `json:"chained_building"`
 	Owner                            bool        `json:"owner"`
@@ -66,12 +67,12 @@ type Incident struct {
 	FoundationDamageCause            *string     `json:"foundation_damage_cause"`
 	DocumentFile                     StringArray `json:"document_file" gorm:"type:text[]"`
 	Note                             *string     `json:"note"`
-	Contact                          string      `json:"contact"`
-	ContactName                      *string     `json:"contact_name"`
+	Contact                          string      `json:"contact" validate:"required,email"`
+	ContactName                      *string     `json:"contact_name" validate:"required"`
 	ContactPhoneNumber               *string     `json:"contact_phone_number"`
 	EnvironmentDamageCharacteristics StringArray `json:"environment_damage_characteristics" gorm:"type:text[]"`
 	FoundationDamageCharacteristics  StringArray `json:"foundation_damage_characteristics" gorm:"type:text[]"`
-	Building                         string      `json:"building"` // TODO: Rename to BuildingID
+	Building                         string      `json:"building" validate:"required"` // TODO: Rename to BuildingID
 	// Meta							 *string  `json:"meta"`
 }
 
@@ -95,23 +96,15 @@ func CreateIncident(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusBadRequest)
 	}
 
-	// TODO: Add data validation
-	// TODO: Check email is valid (regex)
-
-	if input.ClientID == 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Client ID is required"})
-	}
-
-	if input.Building == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Building is required"})
-	}
-
-	if input.Contact == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Contact is required"})
-	}
-
-	if input.ContactName == nil || *input.ContactName == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Contact name is required"})
+	if err := config.Validate.Struct(&input); err != nil {
+		var errorMessages []string
+		for _, err := range err.(validator.ValidationErrors) {
+			errorMessages = append(errorMessages, fmt.Sprintf("%s is %s", err.Field(), err.Tag()))
+		}
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Validation failed",
+			"errors":  errorMessages,
+		})
 	}
 
 	// If ContactPhoneNumber is provided but is an empty string, treat it as NULL
@@ -212,9 +205,9 @@ func UploadFiles(c *fiber.Ctx) error {
 		}
 	}
 
-	uploadedFiles := []string{}
-	for _, file := range files {
-		uploadedFiles = append(uploadedFiles, file.Filename)
+	uploadedFiles := make([]string, len(files))
+	for i, file := range files {
+		uploadedFiles[i] = file.Filename
 	}
 
 	// TODO: Move to service
