@@ -128,10 +128,14 @@ func main() {
 	// report := api.Group("/report/:building_id", middleware.AuthMiddleware)
 	// report.Get("/", handlers.GetReport)
 
+	// TODO: Drop the 'v1' from the URL
 	// Management API
 	management := api.Group("/v1/management", middleware.AuthMiddleware, middleware.AdminMiddleware)
 	management.Get("/app", mngmt.GetAllApplications)
 	management.Post("/app", mngmt.CreateApplication)
+	management_app := management.Group("/app/:app_id")
+	management_app.Get("/", mngmt.GetApplication)
+	management_app.Put("/", mngmt.UpdateApplication)
 	management.Get("/mapset", mngmt.GetAllMapsets)
 	management_mapset := management.Group("/mapset/:mapset_id")
 	management_mapset.Get("/", mngmt.GetMapsetByID)

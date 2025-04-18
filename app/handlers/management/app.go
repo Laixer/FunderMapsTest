@@ -101,3 +101,23 @@ func UpdateApplication(c *fiber.Ctx) error {
 
 	return c.JSON(app)
 }
+
+func GetApplication(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	appID := c.Params("app_id")
+	if appID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Application ID is required"})
+	}
+
+	var app database.Application
+	result := db.First(&app, "id = ?", appID)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Application not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	return c.JSON(app)
+}
