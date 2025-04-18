@@ -74,6 +74,62 @@ func GetOrganization(c *fiber.Ctx) error {
 	return c.JSON(org)
 }
 
+func UpdateOrganization(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	organizationID := c.Params("org_id")
+
+	var org database.Organization
+	result := db.First(&org, "id = ?", organizationID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Organization not found"})
+	}
+
+	type OrganizationUpdateInput struct {
+		Name              *string               `json:"name"`
+		FenceMunicipality *database.StringArray `json:"fence_municipality"`
+		FenceDistrict     *database.StringArray `json:"fence_district"`
+		FenceNeighborhood *database.StringArray `json:"fence_neighborhood"`
+	}
+
+	var input OrganizationUpdateInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
+	}
+
+	// Update name if provided
+	if input.Name != nil {
+		// Check name uniqueness if it's being changed
+		if *input.Name != org.Name {
+			var existingOrg database.Organization
+			if result := db.Where("name = ? AND id != ?", *input.Name, org.ID).First(&existingOrg); result.Error == nil {
+				return c.Status(fiber.StatusConflict).JSON(fiber.Map{"message": "Organization with this name already exists"})
+			}
+			org.Name = *input.Name
+		}
+	}
+
+	// Update fence fields if provided
+	if input.FenceMunicipality != nil {
+		org.FenceMunicipality = *input.FenceMunicipality
+	}
+
+	if input.FenceDistrict != nil {
+		org.FenceDistrict = *input.FenceDistrict
+	}
+
+	if input.FenceNeighborhood != nil {
+		org.FenceNeighborhood = *input.FenceNeighborhood
+	}
+
+	result = db.Save(&org)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	return c.JSON(org)
+}
+
 func GetAllOrganizationUsers(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 

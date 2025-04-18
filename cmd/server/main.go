@@ -148,6 +148,7 @@ func main() {
 	// management.Get("/org/:name", handlers.GetOrganizationByName) # TODO: Implement
 	management_org := management.Group("/org/:org_id")
 	management_org.Get("/", handlers.GetOrganization)
+	management_org.Put("/", handlers.UpdateOrganization)
 	management_org_mapset := management_org.Group("/mapset")
 	// management_org_mapset.Get("/", handlers.GetAllOrganizationMapsets)
 	management_org_mapset.Post("/", handlers.AddMapsetToOrganization)
