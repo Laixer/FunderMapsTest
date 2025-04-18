@@ -1,4 +1,4 @@
-package handlers
+package mngmt
 
 import (
 	"fmt"
@@ -264,13 +264,6 @@ func AddMapsetToOrganization(c *fiber.Ctx) error {
 	}
 
 	// TODO: Just do an insert into the database, the foreign key constraints will handle the rest
-	// var mapset database.Mapset
-	// result := db.First(&mapset, "id = ?", input.MapsetID)
-	// if result.Error != nil {
-	// 	return c.Status(fiber.StatusBadRequest).SendString("Mapset not found")
-	// }
-
-	// TODO: Just do an insert into the database, the foreign key constraints will handle the rest
 	var org database.Organization
 	result := db.First(&org, "id = ?", c.Params("org_id"))
 	if result.Error != nil {
@@ -280,9 +273,6 @@ func AddMapsetToOrganization(c *fiber.Ctx) error {
 	result = db.Exec("INSERT INTO maplayer.map_organization (map_id, organization_id) VALUES (?, ?)", input.MapsetID, org.ID)
 	// TODO: This SQL statement can cause a unique constraint violation, handle this error
 	if result.Error != nil {
-		// if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		// 	return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Subsidence history not found"})
-		// }
 		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
 	}
 
