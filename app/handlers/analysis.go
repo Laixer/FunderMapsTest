@@ -7,7 +7,6 @@ import (
 	"gorm.io/gorm"
 
 	"fundermaps/app/database"
-	"fundermaps/app/middleware"
 )
 
 func GetAnalysis(c *fiber.Ctx) error {
@@ -24,7 +23,7 @@ func GetAnalysis(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
-	c.Locals("tracker", middleware.ProductTracker{
+	c.Locals("tracker", database.ProductTracker{
 		Name:       "analysis3",
 		BuildingID: analysis.BuildingID,
 		Identifier: buildingID,

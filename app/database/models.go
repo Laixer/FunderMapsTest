@@ -233,3 +233,13 @@ type FileResource struct {
 func (fr *FileResource) TableName() string {
 	return "application.file_resources"
 }
+
+type ProductTracker struct {
+	Name       string `json:"product"`
+	BuildingID string `json:"building_id"`
+	Identifier string `json:"identifier"`
+}
+
+func (pt *ProductTracker) TableName() string {
+	return "application.product_tracker"
+}

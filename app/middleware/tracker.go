@@ -9,12 +9,6 @@ import (
 	"fundermaps/app/database"
 )
 
-type ProductTracker struct {
-	Name       string `json:"product"`
-	BuildingID string `json:"building_id"`
-	Identifier string `json:"identifier"`
-}
-
 func TrackerMiddleware(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 	user := c.Locals("user").(database.User)
@@ -27,7 +21,7 @@ func TrackerMiddleware(c *fiber.Ctx) error {
 
 	n := c.Next()
 
-	tracker := c.Locals("tracker").(ProductTracker)
+	tracker := c.Locals("tracker").(database.ProductTracker)
 
 	// FUTURE:
 	// - drop building_id
