@@ -96,13 +96,12 @@ func (u *User) TableName() string {
 }
 
 type Organization struct {
-	ID    uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-	Name  string    `json:"name"`
-	Email string    `json:"-"` // TODO: Remove from db
-	// FenceMunicipality string `json:"fence_municipality"`
-	// FenceDistrict     string `json:"fence_district"`
-	// FenceNeighborhood string `json:"fence_neighborhood"`
-	// Users []User `gorm:"many2many:application.organization_user;foreignKey:ID;joinForeignKey:OrganizationID;References:ID;joinReferences:UserID"`
+	ID                uuid.UUID   `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+	Name              string      `json:"name"`
+	Email             string      `json:"-"`                                     // TODO: Remove from db
+	FenceMunicipality StringArray `json:"fence_municipality" gorm:"type:text[]"` // TODO: Move this out of the organization table
+	FenceDistrict     StringArray `json:"fence_district" gorm:"type:text[]"`     // TODO: Move this out of the organization table
+	FenceNeighborhood StringArray `json:"fence_neighborhood" gorm:"type:text[]"` // TODO: Move this out of the organization table
 }
 
 func (o *Organization) TableName() string {
