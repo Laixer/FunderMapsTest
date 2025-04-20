@@ -139,6 +139,8 @@ func main() {
 	management.Get("/mapset", mngmt.GetAllMapsets)
 	management_mapset := management.Group("/mapset/:mapset_id")
 	management_mapset.Get("/", mngmt.GetMapsetByID)
+	management_incident := management.Group("/incident/:incident_id")
+	management_incident.Delete("/", mngmt.DeleteIncident)
 	management.Get("/user", mngmt.GetAllUsers)
 	management.Post("/user", mngmt.CreateUser)
 	// management.Get("/user/:email", handlers.GetUserByEmail)
