@@ -33,6 +33,7 @@ type AuthContext struct {
 	ipAddress string
 }
 
+// TODO: Move this to a service
 func (ctx *AuthContext) generateTokens(clientID string, userID uuid.UUID) (AuthToken, error) {
 	const tokenType = "Bearer"
 
@@ -68,22 +69,27 @@ func (ctx *AuthContext) generateTokens(clientID string, userID uuid.UUID) (AuthT
 	return authToken, nil
 }
 
+// TODO: Move this to a service
 func (ctx *AuthContext) generateTokensFromUser(clientID string, user database.User) (AuthToken, error) {
 	return ctx.generateTokens(clientID, user.ID)
 }
 
+// TODO: Move this to a service
 func (ctx *AuthContext) generateTokensFromAuthCode(authCode database.AuthCode) (AuthToken, error) {
 	return ctx.generateTokens(authCode.ApplicationID, authCode.UserID)
 }
 
+// TODO: Move this to a service
 func (ctx *AuthContext) generateTokensFromRefreshToken(refreshToken database.AuthRefreshToken) (AuthToken, error) {
 	return ctx.generateTokens(refreshToken.ApplicationID, refreshToken.UserID)
 }
 
+// TODO: Move this to a service
 func (ctx *AuthContext) revokeAuthCode(authCode database.AuthCode) error {
 	return ctx.db.Delete(&database.AuthCode{}, "code = ?", authCode.Code).Error
 }
 
+// TODO: Move this to a service
 func (ctx *AuthContext) revokeRefreshToken(refreshToken database.AuthRefreshToken) error {
 	return ctx.db.Delete(&database.AuthRefreshToken{}, "token = ?", refreshToken.Token).Error
 }
