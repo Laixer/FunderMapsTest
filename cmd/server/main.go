@@ -125,8 +125,8 @@ func main() {
 	product.Get("/subsidence/historic", handlers.GetDataSubsidenceHistoric)
 
 	// Report API
-	// report := api.Group("/report/:building_id", middleware.AuthMiddleware)
-	// report.Get("/", handlers.GetReport)
+	report := api.Group("/report/:building_id", middleware.AuthMiddleware)
+	report.Get("/", handlers.GetReport)
 
 	// TODO: Drop the 'v1' from the URL
 	// Management API
