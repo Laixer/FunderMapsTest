@@ -368,14 +368,26 @@ func ChangePassword(c *fiber.Ctx) error {
 
 	hash := utils.HashLegacyPassword(input.NewPassword)
 
-	// TODO: Move into database stored procedure
-	db.Transaction(func(tx *gorm.DB) error {
-		tx.Exec("UPDATE application.user SET password_hash = ?, access_failed_count = 0, login_count = login_count + 1, last_login = CURRENT_TIMESTAMP WHERE id = ?", hash, user.ID)
-		// tx.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'jwt', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, c.IP(), cfg.ApplicationID)
-		tx.Exec("DELETE FROM application.reset_key WHERE user_id = ?", user.ID)
+	err = db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&user).Updates(map[string]any{
+			"password_hash":       hash,
+			"access_failed_count": 0,
+			"login_count":         gorm.Expr("login_count + ?", 1),
+			"last_login":          time.Now(),
+		}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Where("user_id = ?", user.ID).Delete(&database.ResetKey{}).Error; err != nil {
+			return err
+		}
 
 		return nil
 	})
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
+	}
 
 	return c.SendStatus(fiber.StatusNoContent)
 }
@@ -420,7 +432,7 @@ func ForgotPassword(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 	}
 
-	// Send reset email (implementation depends on your email service)
+	// TODO: Send reset email (implementation depends on your email service)
 	// if err := userService.SendResetEmail(user, resetKey.Token); err != nil {
 	// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 	// }
@@ -471,14 +483,26 @@ func ResetPassword(c *fiber.Ctx) error {
 
 	hash := utils.HashLegacyPassword(input.NewPassword)
 
-	// TODO: Move into database stored procedure
-	db.Transaction(func(tx *gorm.DB) error {
-		tx.Exec("UPDATE application.user SET password_hash = ?, access_failed_count = 0, login_count = login_count + 1, last_login = CURRENT_TIMESTAMP WHERE id = ?", hash, user.ID)
-		// tx.Exec("INSERT INTO application.auth_session (user_id, ip_address, application_id, provider, updated_at) VALUES (?, ?, ?, 'jwt', now()) ON CONFLICT ON constraint auth_session_pkey DO UPDATE SET updated_at = excluded.updated_at, ip_address = excluded.ip_address;", user.ID, c.IP(), cfg.ApplicationID)
-		tx.Exec("DELETE FROM application.reset_key WHERE user_id = ?", user.ID)
+	err = db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&user).Updates(map[string]any{
+			"password_hash":       hash,
+			"access_failed_count": 0,
+			"login_count":         gorm.Expr("login_count + ?", 1),
+			"last_login":          time.Now(),
+		}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Where("user_id = ?", user.ID).Delete(&database.ResetKey{}).Error; err != nil {
+			return err
+		}
 
 		return nil
 	})
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
+	}
 
 	return c.SendStatus(fiber.StatusNoContent)
 }
