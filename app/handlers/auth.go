@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 
 	"fundermaps/app/config"
 	"fundermaps/app/database"
+	"fundermaps/app/mail"
 	puser "fundermaps/app/platform/user"
 	"fundermaps/pkg/utils"
 )
@@ -399,6 +401,7 @@ func ChangePassword(c *fiber.Ctx) error {
 }
 
 func ForgotPassword(c *fiber.Ctx) error {
+	cfg := c.Locals("config").(*config.Config)
 	db := c.Locals("db").(*gorm.DB)
 
 	userService := puser.NewService(db)
@@ -438,10 +441,21 @@ func ForgotPassword(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
 	}
 
-	// TODO: Send reset email (implementation depends on your email service)
-	// if err := userService.SendResetEmail(user, resetKey.Token); err != nil {
-	// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "server_error"})
-	// }
+	message := mail.Email{
+		Subject:  "FunderMaps - Wachtwoord reset",
+		From:     fmt.Sprintf("Fundermaps <no-reply@%s>", cfg.MailgunDomain),
+		To:       []string{user.Email},
+		Template: "reset-password",
+		TemplateVars: map[string]any{
+			"creatorName": user.Email, // TODO: Get the user's name
+			"resetToken":  resetKey.Key,
+		},
+	}
+
+	mailer := mail.NewMailer(cfg.MailgunDomain, cfg.MailgunAPIKey, cfg.MailgunAPIBase)
+	if err := mailer.SendTemplatedMail(&message); err != nil {
+		log.Printf("Failed to send email notification: %v\n", err)
+	}
 
 	return c.SendStatus(fiber.StatusNoContent)
 }
