@@ -20,6 +20,7 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	xAPIKey := c.Get(HeaderXAPIKey)
 	if xAPIKey != "" {
 		var user database.User
+		// TODO: Turn into a database view
 		result := db.Joins("JOIN application.auth_key ON application.auth_key.user_id = application.user.id").
 			Where("application.auth_key.key = ?", xAPIKey).
 			Preload("Organizations").
@@ -31,7 +32,7 @@ func AuthMiddleware(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 		}
 
-		// TODO: Fetch organization and organization role
+		// TODO: Fetch organization role
 		c.Locals("user", user)
 
 		return c.Next()
@@ -49,6 +50,7 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	token := strings.TrimPrefix(authHeader, "Bearer ")
 
 	var user database.User
+	// TODO: Turn into a database view
 	result := db.Joins("JOIN application.auth_access_token ON application.auth_access_token.user_id = application.user.id").
 		Where("application.auth_access_token.access_token = ? AND application.auth_access_token.expired_at > now()", token).
 		Preload("Organizations").
@@ -60,7 +62,7 @@ func AuthMiddleware(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
-	// TODO: Fetch organization and organization role
+	// TODO: Fetch organization role
 	c.Locals("user", user)
 
 	return c.Next()
