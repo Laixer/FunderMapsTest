@@ -64,6 +64,7 @@ func CreateIncident(c *fiber.Ctx) error {
 		FoundationRecovery:               input.FoundationRecovery,
 		NeightborRecovery:                input.NeightborRecovery,
 		FoundationDamageCause:            input.FoundationDamageCause,
+		FileResourceKey:                  input.FileResourceKey,
 		DocumentFile:                     input.DocumentFile,
 		Note:                             input.Note,
 		Contact:                          input.Contact,
