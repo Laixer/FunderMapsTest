@@ -20,9 +20,10 @@ const (
 	DefaultFormField  = "files"
 
 	// File statuses
-	StatusUploaded = "uploaded"
-	// StatusActive  = "active"
-	// StatusDeleted = "deleted"
+	StatusUploaded   = "uploaded"
+	StatusProcessing = "processing"
+	StatusActive     = "active"
+	StatusArchived   = "archived"
 
 	// Random key length
 	KeyLength = 16

@@ -81,12 +81,12 @@ func CreateIncident(c *fiber.Ctx) error {
 	}
 
 	// Update file resources if document files are provided
-	// if len(incident.DocumentFile) > 0 {
-	// 	storageService := storage.NewStorageService(cfg.Storage())
-	// 	if err := storageService.UpdateFileStatus(db, strings.Join(incident.DocumentFile, ","), storage.StatusActive); err != nil {
-	// 		log.Printf("Failed to update file status: %v", err)
-	// 	}
-	// }
+	if input.FileResourceKey != nil && len(incident.DocumentFile) > 0 {
+		storageService := storage.NewStorageService(cfg.Storage())
+		if err := storageService.UpdateFileStatus(db, *input.FileResourceKey, storage.StatusActive); err != nil {
+			log.Printf("Failed to update file status: %v", err)
+		}
+	}
 
 	// Use a nil check before dereferencing ContactPhoneNumber for the email body
 	contactPhoneStr := "N/A"
