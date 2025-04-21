@@ -1,88 +1,19 @@
 package handlers
 
 import (
-	"database/sql/driver"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/go-playground/validator"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
 	"fundermaps/app/config"
+	"fundermaps/app/database"
 	"fundermaps/app/mail"
 	"fundermaps/app/platform/geocoder"
 	"fundermaps/app/platform/storage"
 )
-
-// TODO: Move into a models package
-type StringArray []string
-
-// Implement the sql.Scanner interface
-func (a *StringArray) Scan(value interface{}) error {
-	if value == nil {
-		*a = []string{}
-		return nil
-	}
-
-	switch v := value.(type) {
-	case []byte:
-		str := string(v)
-		str = strings.Trim(str, "{}")
-		if str == "" {
-			*a = []string{}
-		} else {
-			*a = strings.Split(str, ",")
-		}
-		return nil
-	default:
-		return fmt.Errorf("unsupported Scan, storing driver.Value type %T into type StringArray", value)
-	}
-}
-
-// Convert the StringArray to a valid string for the database
-func (a StringArray) Value() (driver.Value, error) {
-	var cleanedArray []string
-	for _, str := range a {
-		if strings.TrimSpace(str) != "" {
-			cleanedArray = append(cleanedArray, str)
-		}
-	}
-	if len(cleanedArray) == 0 {
-		return nil, nil
-	}
-	return fmt.Sprintf("{%s}", strings.Join(cleanedArray, ",")), nil
-}
-
-type Incident struct {
-	ID                               string      `json:"id" gorm:"primaryKey;<-:create"`
-	ClientID                         int         `json:"client_id" gorm:"-:all" validate:"required"`
-	FoundationType                   *string     `json:"foundation_type"`
-	ChainedBuilding                  bool        `json:"chained_building"`
-	Owner                            bool        `json:"owner"`
-	FoundationRecovery               bool        `json:"foundation_recovery"`
-	NeightborRecovery                bool        `json:"neightbor_recovery"` // TODO: Fix typo
-	FoundationDamageCause            *string     `json:"foundation_damage_cause"`
-	DocumentFile                     StringArray `json:"document_file" gorm:"type:text[]"`
-	Note                             *string     `json:"note"`
-	Contact                          string      `json:"contact" validate:"required,email"`
-	ContactName                      *string     `json:"contact_name" validate:"required"`
-	ContactPhoneNumber               *string     `json:"contact_phone_number"`
-	EnvironmentDamageCharacteristics StringArray `json:"environment_damage_characteristics" gorm:"type:text[]"`
-	FoundationDamageCharacteristics  StringArray `json:"foundation_damage_characteristics" gorm:"type:text[]"`
-	Building                         string      `json:"building" validate:"required"` // TODO: Rename to BuildingID
-	// Meta							 *string  `json:"meta"`
-}
-
-func (i *Incident) BeforeCreate(tx *gorm.DB) (err error) {
-	tx.Raw("SELECT report.fir_generate_id(?)", i.ClientID).Scan(&i.ID)
-	return nil
-}
-
-func (i *Incident) TableName() string {
-	return "report.incident"
-}
 
 func CreateIncident(c *fiber.Ctx) error {
 	cfg := c.Locals("config").(*config.Config)
@@ -90,7 +21,7 @@ func CreateIncident(c *fiber.Ctx) error {
 
 	geocoderService := geocoder.NewService(db)
 
-	var input Incident
+	var input database.Incident
 	if err := c.BodyParser(&input); err != nil {
 		return c.SendStatus(fiber.StatusBadRequest)
 	}
@@ -106,7 +37,6 @@ func CreateIncident(c *fiber.Ctx) error {
 		})
 	}
 
-	// If ContactPhoneNumber is provided but is an empty string, treat it as NULL
 	if input.ContactPhoneNumber != nil && *input.ContactPhoneNumber == "" {
 		input.ContactPhoneNumber = nil
 	}
@@ -126,7 +56,7 @@ func CreateIncident(c *fiber.Ctx) error {
 
 	input.Building = legacyBuildingID
 
-	incident := Incident{
+	incident := database.Incident{
 		ClientID:                         input.ClientID,
 		FoundationType:                   input.FoundationType,
 		ChainedBuilding:                  input.ChainedBuilding,

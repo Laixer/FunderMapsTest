@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type Contractor struct {
@@ -242,4 +243,34 @@ type ProductTracker struct {
 
 func (pt *ProductTracker) TableName() string {
 	return "application.product_tracker"
+}
+
+type Incident struct {
+	ID                               string      `json:"id" gorm:"primaryKey;<-:create"`
+	ClientID                         int         `json:"client_id" gorm:"-:all" validate:"required"`
+	FoundationType                   *string     `json:"foundation_type"`
+	ChainedBuilding                  bool        `json:"chained_building"`
+	Owner                            bool        `json:"owner"`
+	FoundationRecovery               bool        `json:"foundation_recovery"`
+	NeightborRecovery                bool        `json:"neightbor_recovery"` // TODO: Fix typo
+	FoundationDamageCause            *string     `json:"foundation_damage_cause"`
+	FileResourceKey                  *string     `json:"file_resource_key"`
+	DocumentFile                     StringArray `json:"document_file" gorm:"type:text[]"`
+	Note                             *string     `json:"note"`
+	Contact                          string      `json:"contact" validate:"required,email"`
+	ContactName                      *string     `json:"contact_name" validate:"required"`
+	ContactPhoneNumber               *string     `json:"contact_phone_number"`
+	EnvironmentDamageCharacteristics StringArray `json:"environment_damage_characteristics" gorm:"type:text[]"`
+	FoundationDamageCharacteristics  StringArray `json:"foundation_damage_characteristics" gorm:"type:text[]"`
+	Building                         string      `json:"building" validate:"required"` // TODO: Rename to BuildingID
+	Meta                             JSONObject  `json:"meta" gorm:"type:jsonb"`
+}
+
+func (i *Incident) BeforeCreate(tx *gorm.DB) (err error) {
+	tx.Raw("SELECT report.fir_generate_id(?)", i.ClientID).Scan(&i.ID)
+	return nil
+}
+
+func (i *Incident) TableName() string {
+	return "report.incident"
 }
