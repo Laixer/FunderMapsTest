@@ -75,6 +75,7 @@ func (ak *AuthKey) TableName() string {
 	return "application.auth_key"
 }
 
+// User represents a user account in the system
 type User struct {
 	// NormalizedEmail   string    `json:"normalized_email"` // TODO: Drop from database
 	ID                uuid.UUID      `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
@@ -92,6 +93,7 @@ type User struct {
 	Organizations     []Organization `json:"organizations" gorm:"many2many:application.organization_user;foreignKey:ID;joinForeignKey:user_id;References:ID;joinReferences:organization_id;jointable_columns:role"`
 }
 
+// TableName specifies the database table name for the User model
 func (u *User) TableName() string {
 	return "application.user"
 }
@@ -119,16 +121,18 @@ func (o *Organization) TableName() string {
 // 	return "application.organization_user"
 // }
 
+// Application represents an OAuth application that can access the API
 type Application struct {
 	ApplicationID string     `json:"id" gorm:"primaryKey"`
-	Name          string     `json:"name"`
+	Name          string     `json:"name" validate:"required"`
 	Data          JSONObject `json:"data" gorm:"type:jsonb"`
 	Secret        string     `json:"-"` // TODO Rename to SecretHash
-	RedirectURL   string     `json:"-"`
+	RedirectURL   string     `json:"-" validate:"url"`
 	Public        bool       `json:"-"`
 	UserID        uuid.UUID  `json:"-" gorm:"type:uuid"`
 }
 
+// TableName specifies the database table name for the Application model
 func (a *Application) TableName() string {
 	return "application.application"
 }
@@ -221,8 +225,8 @@ func (u *Mapset) TableName() string {
 
 type FileResource struct {
 	ID               uuid.UUID  `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-	Key              string     `json:"key" gorm:"unique;not null"`
-	OriginalFilename string     `json:"original_filename" gorm:"not null"`
+	Key              string     `json:"key" gorm:"unique;not null" validate:"required"`
+	OriginalFilename string     `json:"original_filename" gorm:"not null" validate:"required"`
 	Status           string     `json:"status" gorm:"default:'uploaded'"`
 	SizeBytes        int64      `json:"size_bytes"`
 	MimeType         string     `json:"mime_type"`
@@ -231,6 +235,7 @@ type FileResource struct {
 	UpdatedAt        time.Time  `json:"updated_at" gorm:"default:now()"`
 }
 
+// TableName specifies the database table name for the FileResource model
 func (fr *FileResource) TableName() string {
 	return "application.file_resources"
 }
@@ -245,6 +250,7 @@ func (pt *ProductTracker) TableName() string {
 	return "application.product_tracker"
 }
 
+// Incident represents a foundation-related incident report
 type Incident struct {
 	ID                               string      `json:"id" gorm:"primaryKey;<-:create"`
 	ClientID                         int         `json:"client_id" gorm:"-:all" validate:"required"`
@@ -266,11 +272,13 @@ type Incident struct {
 	Meta                             JSONObject  `json:"meta" gorm:"type:jsonb"`
 }
 
+// BeforeCreate generates an ID for the incident before creation
 func (i *Incident) BeforeCreate(tx *gorm.DB) (err error) {
 	tx.Raw("SELECT report.fir_generate_id(?)", i.ClientID).Scan(&i.ID)
 	return nil
 }
 
+// TableName specifies the database table name for the Incident model
 func (i *Incident) TableName() string {
 	return "report.incident"
 }
