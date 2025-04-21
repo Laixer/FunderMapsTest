@@ -54,8 +54,14 @@ func GetCurrentUserMetadata(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 	user := c.Locals("user").(database.User)
 
+	// Get application ID from query string if available, otherwise use config value
+	applicationID := cfg.ApplicationID
+	if queryAppID := c.Query("app_id"); queryAppID != "" {
+		applicationID = queryAppID
+	}
+
 	var applicationUser database.ApplicationUser
-	result := db.First(&applicationUser, "user_id = ? AND application_id = ?", user.ID, cfg.ApplicationID)
+	result := db.First(&applicationUser, "user_id = ? AND application_id = ?", user.ID, applicationID)
 	if result.Error != nil {
 		if result.Error.Error() == "record not found" {
 			return c.JSON(database.ApplicationUser{})
@@ -71,6 +77,12 @@ func UpdateCurrentUserMetadata(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 	user := c.Locals("user").(database.User)
 
+	// Get application ID from query string if available, otherwise use config value
+	applicationID := cfg.ApplicationID
+	if queryAppID := c.Query("app_id"); queryAppID != "" {
+		applicationID = queryAppID
+	}
+
 	var input struct {
 		Metadata map[string]any `json:"metadata"`
 	}
@@ -80,9 +92,9 @@ func UpdateCurrentUserMetadata(c *fiber.Ctx) error {
 	}
 
 	var applicationUser database.ApplicationUser
-	result := db.Where("user_id = ? AND application_id = ?", user.ID.String(), cfg.ApplicationID).FirstOrCreate(&applicationUser, database.ApplicationUser{
+	result := db.Where("user_id = ? AND application_id = ?", user.ID.String(), applicationID).FirstOrCreate(&applicationUser, database.ApplicationUser{
 		UserID:        user.ID.String(),
-		ApplicationID: cfg.ApplicationID,
+		ApplicationID: applicationID,
 	})
 
 	if result.Error != nil {
