@@ -272,3 +272,102 @@ func (i *Incident) BeforeCreate(tx *gorm.DB) (err error) {
 func (i *Incident) TableName() string {
 	return "report.incident"
 }
+
+type InquirySample struct {
+	ID      int `json:"id" gorm:"primaryKey"`
+	Inquiry int `json:"inquiry" gorm:"index"`
+	// Address                         string      `json:"address"`
+	CreateDate                      time.Time   `json:"create_date" gorm:"default:now()"`
+	UpdateDate                      time.Time   `json:"update_date"`
+	DeleteDate                      *time.Time  `json:"delete_date"`
+	Note                            *string     `json:"note"`
+	BuiltYear                       *time.Time  `json:"built_year"`
+	Substructure                    *string     `json:"substructure"`
+	OverallQuality                  *string     `json:"overall_quality"`
+	WoodQuality                     *string     `json:"wood_quality"`
+	ConstructionQuality             *string     `json:"construction_quality"`
+	WoodCapacityHorizontalQuality   *string     `json:"wood_capacity_horizontal_quality"`
+	PileWoodCapacityVerticalQuality *string     `json:"pile_wood_capacity_vertical_quality"`
+	CarryingCapacityQuality         *string     `json:"carrying_capacity_quality"`
+	MasonQuality                    *string     `json:"mason_quality"`
+	WoodQualityNecessity            *bool       `json:"wood_quality_necessity"`
+	ConstructionLevel               *float64    `json:"construction_level"`
+	WoodLevel                       *float64    `json:"wood_level"`
+	PileDiameterTop                 *float64    `json:"pile_diameter_top"`
+	PileDiameterBottom              *float64    `json:"pile_diameter_bottom"`
+	PileHeadLevel                   *float64    `json:"pile_head_level"`
+	PileTipLevel                    *float64    `json:"pile_tip_level"`
+	FoundationDepth                 *float64    `json:"foundation_depth"`
+	MasonLevel                      *float64    `json:"mason_level"`
+	ConcreteChargerLength           *float64    `json:"concrete_charger_length"`
+	PileDistanceLength              *float64    `json:"pile_distance_length"`
+	WoodPenetrationDepth            *float64    `json:"wood_penetration_depth"`
+	CPT                             *string     `json:"cpt"`
+	MonitoringWell                  *string     `json:"monitoring_well"`
+	GroundwaterLevelTemp            *float64    `json:"groundwater_level_temp"`
+	GroundLevel                     *float64    `json:"ground_level" gorm:"column:groundlevel"` // TODO: Fix coulumn name in database
+	GroundwaterLevelNet             *float64    `json:"groundwater_level_net"`
+	FoundationType                  *string     `json:"foundation_type"`
+	EnforcementTerm                 *string     `json:"enforcement_term"`
+	RecoveryAdvised                 *bool       `json:"recovery_advised"`
+	DamageCause                     *string     `json:"damage_cause"`
+	DamageCharacteristics           StringArray `json:"damage_characteristics" gorm:"type:text[]"`
+	ConstructionPile                *string     `json:"construction_pile"`
+	WoodType                        *string     `json:"wood_type"`
+	WoodEncroachment                *string     `json:"wood_encroachment" gorm:"column:wood_encroachement"` // TODO: Fix typo in database
+	CrackIndoorRestored             *bool       `json:"crack_indoor_restored"`
+	CrackIndoorType                 *string     `json:"crack_indoor_type"`
+	CrackIndoorSize                 *string     `json:"crack_indoor_size"`
+	CrackFacadeFrontRestored        *bool       `json:"crack_facade_front_restored"`
+	CrackFacadeFrontType            *string     `json:"crack_facade_front_type"`
+	CrackFacadeFrontSize            *string     `json:"crack_facade_front_size"`
+	CrackFacadeBackRestored         *bool       `json:"crack_facade_back_restored"`
+	CrackFacadeBackType             *string     `json:"crack_facade_back_type"`
+	CrackFacadeBackSize             *string     `json:"crack_facade_back_size"`
+	CrackFacadeLeftRestored         *bool       `json:"crack_facade_left_restored"`
+	CrackFacadeLeftType             *string     `json:"crack_facade_left_type"`
+	CrackFacadeLeftSize             *string     `json:"crack_facade_left_size"`
+	CrackFacadeRightRestored        *bool       `json:"crack_facade_right_restored"`
+	CrackFacadeRightType            *string     `json:"crack_facade_right_type"`
+	CrackFacadeRightSize            *string     `json:"crack_facade_right_size"`
+	DeformedFacade                  *bool       `json:"deformed_facade"`
+	ThresholdUpdownSkewed           *bool       `json:"threshold_updown_skewed"`
+	ThresholdFrontLevel             *float64    `json:"threshold_front_level"`
+	ThresholdBackLevel              *float64    `json:"threshold_back_level"`
+	SkewedParallel                  *float64    `json:"skewed_parallel"`
+	SkewedPerpendicular             *float64    `json:"skewed_perpendicular"`
+	SkewedParallelFacade            *string     `json:"skewed_parallel_facade"`
+	SettlementSpeed                 *float64    `json:"settlement_speed"`
+	SkewedWindowFrame               *bool       `json:"skewed_window_frame"`
+	SkewedPerpendicularFacade       *string     `json:"skewed_perpendicular_facade"`
+	Building                        string      `json:"building" gorm:"index"`
+	FacadeScanRisk                  *string     `json:"facade_scan_risk"`
+}
+
+// TableName specifies the database table name for the Incident model
+func (is *InquirySample) TableName() string {
+	return "report.inquiry_sample"
+}
+
+type RecoverySample struct {
+	ID           int         `json:"id" gorm:"primaryKey"`
+	Recovery     int         `json:"recovery" gorm:"index"`
+	CreateDate   time.Time   `json:"create_date" gorm:"default:now()"`
+	UpdateDate   time.Time   `json:"update_date"`
+	DeleteDate   *time.Time  `json:"delete_date"`
+	Note         *string     `json:"note"`
+	Status       *string     `json:"status"`
+	Type         *string     `json:"type"`
+	PileType     *string     `json:"pile_type"`
+	Facade       StringArray `json:"facade" gorm:"type:text[]"`
+	Permit       *string     `json:"permit"`
+	PermitDate   *time.Time  `json:"permit_date"`
+	RecoveryDate *time.Time  `json:"recovery_date"`
+	Contractor   *int        `json:"contractor"`
+	BuildingID   string      `json:"building_id" gorm:"index"`
+}
+
+// TableName specifies the database table name for the RecoverySample model
+func (rs *RecoverySample) TableName() string {
+	return "report.recovery_sample"
+}
