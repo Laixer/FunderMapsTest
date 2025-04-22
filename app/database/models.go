@@ -194,6 +194,20 @@ func (art *AuthRefreshToken) TableName() string {
 	return "application.auth_refresh_token"
 }
 
+type AuthLog struct {
+	LogID      int        `json:"log_id" gorm:"primaryKey"`
+	UserID     uuid.UUID  `json:"user_id" gorm:"type:uuid"`
+	ActionType string     `json:"action_type"`
+	IPAddress  string     `json:"ip_address"`
+	UserAgent  string     `json:"user_agent"`
+	Timestamp  time.Time  `json:"timestamp" gorm:"default:now()"`
+	Metadata   JSONObject `json:"metadata" gorm:"type:jsonb"`
+}
+
+func (al *AuthLog) TableName() string {
+	return "application.auth_logs"
+}
+
 type Mapset struct {
 	ID       string      `json:"id" gorm:"primaryKey"`
 	Name     string      `json:"name"`
@@ -274,9 +288,8 @@ func (i *Incident) TableName() string {
 }
 
 type InquirySample struct {
-	ID      int `json:"id" gorm:"primaryKey"`
-	Inquiry int `json:"inquiry" gorm:"index"`
-	// Address                         string      `json:"address"`
+	ID                              int         `json:"id" gorm:"primaryKey"`
+	Inquiry                         int         `json:"inquiry" gorm:"index"`
 	CreateDate                      time.Time   `json:"create_date" gorm:"default:now()"`
 	UpdateDate                      time.Time   `json:"update_date"`
 	DeleteDate                      *time.Time  `json:"delete_date"`
