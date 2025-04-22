@@ -2,18 +2,51 @@ package handlers
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
+
+	"fundermaps/app/database"
 )
 
 func GetReport(c *fiber.Ctx) error {
-	buildingID := c.Params("building_id")
-	if buildingID == "" {
+	db := c.Locals("db").(*gorm.DB)
+
+	buildingExternalID := c.Params("building_id")
+	if buildingExternalID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Building ID is required",
 		})
 	}
 
+	var incidents []database.Incident
+	result := db.Joins("JOIN geocoder.building ON geocoder.building.id = report.incident.building").
+		Where("geocoder.building.external_id = ?", buildingExternalID).
+		Find(&incidents)
+	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Internal server error",
+		})
+	}
+
+	var inquirySamples []database.InquirySample
+	result = db.Joins("JOIN geocoder.building ON geocoder.building.id = report.inquiry_sample.building").
+		Where("geocoder.building.external_id = ?", buildingExternalID).
+		Find(&inquirySamples)
+	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Internal server error",
+		})
+	}
+
+	var recoverySamples []database.RecoverySample
+	result = db.Find(&recoverySamples, "building_id = ?", buildingExternalID)
+	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Internal server error",
+		})
+	}
+
 	return c.JSON(fiber.Map{
-		"incidents": []any{},
+		"incidents": incidents,
 		"inquiries": []fiber.Map{
 			{
 				"id":               145339,
@@ -53,79 +86,8 @@ func GetReport(c *fiber.Ctx) error {
 				},
 			},
 		},
-		"inquirySamples": []fiber.Map{
-			{
-				"id":                              885984,
-				"inquiry":                         145339,
-				"address":                         "gfm-cadf91ef0bfe4b509ba57d6293317140",
-				"building":                        nil,
-				"note":                            nil,
-				"builtYear":                       "1966-01-31T00:00:00",
-				"substructure":                    nil,
-				"cpt":                             nil,
-				"monitoringWell":                  nil,
-				"groundwaterLevelTemp":            nil,
-				"groundLevel":                     nil,
-				"groundwaterLevelNet":             nil,
-				"foundationType":                  10,
-				"enforcementTerm":                 nil,
-				"recoveryAdvised":                 nil,
-				"damageCause":                     nil,
-				"damageCharacteristics":           nil,
-				"constructionPile":                nil,
-				"woodType":                        nil,
-				"woodEncroachement":               nil,
-				"constructionLevel":               nil,
-				"woodLevel":                       nil,
-				"pileDiameterTop":                 nil,
-				"pileDiameterBottom":              nil,
-				"pileHeadLevel":                   nil,
-				"pileTipLevel":                    nil,
-				"foundationDepth":                 nil,
-				"masonLevel":                      nil,
-				"concreteChargerLength":           nil,
-				"pileDistanceLength":              nil,
-				"woodPenetrationDepth":            nil,
-				"overallQuality":                  nil,
-				"woodQuality":                     nil,
-				"constructionQuality":             nil,
-				"woodCapacityHorizontalQuality":   nil,
-				"pileWoodCapacityVerticalQuality": nil,
-				"carryingCapacityQuality":         nil,
-				"masonQuality":                    nil,
-				"woodQualityNecessity":            nil,
-				"crackIndoorRestored":             nil,
-				"crackIndoorType":                 nil,
-				"crackIndoorSize":                 nil,
-				"crackFacadeFrontRestored":        nil,
-				"crackFacadeFrontType":            nil,
-				"crackFacadeFrontSize":            nil,
-				"crackFacadeBackRestored":         nil,
-				"crackFacadeBackType":             nil,
-				"crackFacadeBackSize":             nil,
-				"crackFacadeLeftRestored":         nil,
-				"crackFacadeLeftType":             nil,
-				"crackFacadeLeftSize":             nil,
-				"crackFacadeRightRestored":        nil,
-				"crackFacadeRightType":            nil,
-				"crackFacadeRightSize":            nil,
-				"deformedFacade":                  nil,
-				"thresholdUpdownSkewed":           nil,
-				"thresholdFrontLevel":             nil,
-				"thresholdBackLevel":              nil,
-				"skewedParallel":                  nil,
-				"skewedParallelFacade":            nil,
-				"skewedPerpendicular":             nil,
-				"skewedPerpendicularFacade":       nil,
-				"settlementSpeed":                 nil,
-				"skewedWindowFrame":               nil,
-				"facadeScanRisk":                  nil,
-				"createDate":                      "2025-02-10T10:44:46.087386Z",
-				"updateDate":                      nil,
-				"deleteDate":                      nil,
-			},
-		},
-		"recoveries":      []any{},
-		"recoverySamples": []any{},
+		"inquiry_samples":  inquirySamples,
+		"recoveries":       []any{},
+		"recovery_samples": recoverySamples,
 	})
 }
