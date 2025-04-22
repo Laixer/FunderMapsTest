@@ -73,6 +73,7 @@ func CreateIncident(c *fiber.Ctx) error {
 		EnvironmentDamageCharacteristics: input.EnvironmentDamageCharacteristics,
 		FoundationDamageCharacteristics:  input.FoundationDamageCharacteristics,
 		Building:                         input.Building,
+		Metadata:                         input.Metadata,
 	}
 
 	result := db.Create(&incident)
@@ -98,6 +99,13 @@ func CreateIncident(c *fiber.Ctx) error {
 		noteStr = *incident.Note
 	}
 
+	addressStr := incident.Building
+	if incident.Metadata != nil {
+		if addressName, ok := incident.Metadata["address_name"].(string); ok && addressName != "" {
+			addressStr = addressName
+		}
+	}
+
 	message := mail.Email{
 		Subject:  "New Incident Report",
 		From:     fmt.Sprintf("Fundermaps <no-reply@%s>", cfg.MailgunDomain),
@@ -105,7 +113,7 @@ func CreateIncident(c *fiber.Ctx) error {
 		Template: "incident-customer",
 		TemplateVars: map[string]any{
 			"id":                               incident.ID,
-			"address":                          incident.Building,
+			"address":                          addressStr,
 			"name":                             incident.ContactName,
 			"phone":                            contactPhoneStr,
 			"email":                            incident.Contact,
