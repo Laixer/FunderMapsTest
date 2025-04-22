@@ -259,7 +259,7 @@ type Incident struct {
 	EnvironmentDamageCharacteristics StringArray `json:"environment_damage_characteristics" gorm:"type:text[]"`
 	FoundationDamageCharacteristics  StringArray `json:"foundation_damage_characteristics" gorm:"type:text[]"`
 	Building                         string      `json:"building" validate:"required"` // TODO: Rename to BuildingID
-	Metadata                         JSONObject  `json:"meta" gorm:"type:jsonb"`
+	Metadata                         JSONObject  `json:"metadata" gorm:"type:jsonb"`
 }
 
 // BeforeCreate generates an ID for the incident before creation
