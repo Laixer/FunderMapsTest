@@ -342,6 +342,7 @@ type InquirySample struct {
 	SkewedPerpendicularFacade       *string     `json:"skewed_perpendicular_facade"`
 	Building                        string      `json:"building" gorm:"index"`
 	FacadeScanRisk                  *string     `json:"facade_scan_risk"`
+	Metadata                        JSONObject  `json:"metadata" gorm:"type:jsonb"`
 }
 
 // TableName specifies the database table name for the Incident model
@@ -365,6 +366,7 @@ type RecoverySample struct {
 	RecoveryDate *time.Time  `json:"recovery_date"`
 	Contractor   *int        `json:"contractor"`
 	BuildingID   string      `json:"building_id" gorm:"index"`
+	Metadata     JSONObject  `json:"metadata" gorm:"type:jsonb"`
 }
 
 // TableName specifies the database table name for the RecoverySample model
