@@ -128,6 +128,10 @@ func main() {
 	report := api.Group("/report/:building_id", middleware.AuthMiddleware)
 	report.Get("/", handlers.GetReport)
 
+	// PDF API
+	pdf := api.Group("/pdf", middleware.AuthMiddleware)
+	pdf.Get("/:id", handlers.GetPDF)
+
 	// TODO: Drop the 'v1' from the URL
 	// Management API
 	management := api.Group("/v1/management", middleware.AuthMiddleware, middleware.AdminMiddleware)

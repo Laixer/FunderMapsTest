@@ -27,6 +27,7 @@ type Config struct {
 	S3Bucket       string   `mapstructure:"S3_BUCKET"`
 	S3AccessKey    string   `mapstructure:"S3_ACCESS_KEY" validate:"required_with=S3Bucket"`
 	S3SecretKey    string   `mapstructure:"S3_SECRET_KEY" validate:"required_with=S3Bucket,min=8"`
+	PdfCoAPIKey    string   `mapstructure:"PDFCO_API_KEY"`
 	ProxyEnabled   bool     `mapstructure:"PROXY_ENABLED"`
 	ProxyNetworks  []string `mapstructure:"PROXY_NETWORKS"` // validate:"dive,cidr,required_if=ProxyEnabled true"`
 	ProxyHeader    string   `mapstructure:"PROXY_HEADER"`   // validate:"required_if=ProxyEnabled true"`
@@ -75,6 +76,9 @@ func Load() (*Config, error) {
 	viper.BindEnv("PROXY_ENABLED", "FM_PROXY_ENABLED", "PROXY_ENABLED")
 	viper.BindEnv("PROXY_NETWORKS", "FM_PROXY_NETWORKS", "PROXY_NETWORKS")
 	viper.BindEnv("PROXY_HEADER", "FM_PROXY_HEADER", "PROXY_HEADER")
+
+	// Bind PDF.co environment variables
+	viper.BindEnv("PDFCO_API_KEY", "FM_PDFCO_API_KEY", "PDFCO_API_KEY")
 
 	viper.SetConfigName("settings")
 	viper.SetConfigType("yaml")
