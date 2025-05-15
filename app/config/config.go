@@ -1,11 +1,15 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/go-playground/validator"
 	"github.com/gofiber/storage/s3/v2"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/spf13/viper"
+	"golang.org/x/text/language"
 )
 
 // TODO: Move into a separate package
@@ -140,4 +144,17 @@ func (cfg *Config) Storage() *s3.Storage {
 			SecretAccessKey: cfg.S3SecretKey,
 		},
 	})
+}
+
+var Bundle *i18n.Bundle
+
+// TODO: Move into a separate package
+func init() {
+	Bundle = i18n.NewBundle(language.English)
+	Bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
+
+	_, errNl := Bundle.LoadMessageFile("locales/nl.json")
+	if errNl != nil {
+		log.Printf("Warning: Could not load Dutch translations: %v", errNl)
+	}
 }

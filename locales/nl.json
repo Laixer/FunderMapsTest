@@ -1,0 +1,241 @@
+[
+  {
+    "id": "welcome_subject",
+    "translation": "Welkom bij FunderMaps!"
+  },
+  {
+    "id": "welcome_body_text",
+    "translation": "Hallo {{.Name}},\n\nBedankt voor het registreren bij FunderMaps.\n\nGroeten,\nHet FunderMaps Team"
+  },
+  {
+    "id": "welcome_body_html",
+    "translation": "<html><body><p>Hallo {{.Name}},</p><p>Bedankt voor het registreren bij <strong>FunderMaps</strong>.</p><p>Groeten,<br/>Het FunderMaps Team</p></body></html>"
+  },
+  {
+    "id": "items_left",
+    "translation": {
+      "one": "Er is nog {{.Count}} item over.",
+      "other": "Er zijn nog {{.Count}} items over."
+    }
+  },
+  {
+    "id": "bio_fungus_infection",
+    "translation": "Schimmel/bacterieen"
+  },
+  {
+    "id": "bio_infection",
+    "translation": "Bacteriele aantasting"
+  },
+  {
+    "id": "combined",
+    "translation": "Gecombineerd"
+  },
+  {
+    "id": "concrete",
+    "translation": "Beton"
+  },
+  {
+    "id": "construction_flaw",
+    "translation": "Verkeerd gefundeerd"
+  },
+  {
+    "id": "construction_heave",
+    "translation": "Woning omhooggedrukt"
+  },
+  {
+    "id": "construction_nearby",
+    "translation": "Werkzaamheden in wijk"
+  },
+  {
+    "id": "crack",
+    "translation": "Scheuren"
+  },
+  {
+    "id": "crawlspace_flooding",
+    "translation": "Water in kruipruimte"
+  },
+  {
+    "id": "crooked_floor_wall",
+    "translation": "Scheve vloer"
+  },
+  {
+    "id": "drainage",
+    "translation": "Ontwateringsdiepte onvoldoende"
+  },
+  {
+    "id": "drystand",
+    "translation": "Droogstand"
+  },
+  {
+    "id": "elevation",
+    "translation": "Recent opgehoogd"
+  },
+  {
+    "id": "flooding",
+    "translation": "Wateroverlast"
+  },
+  {
+    "id": "foundation_damage_nearby",
+    "translation": "Funderingschade in wijk"
+  },
+  {
+    "id": "foundation_flaw",
+    "translation": "Verkeerd gefundeerd"
+  },
+  {
+    "id": "fungus_infection",
+    "translation": "Schimmelaantasting"
+  },
+  {
+    "id": "gas",
+    "translation": "Gaswinning/mijnbouw"
+  },
+  {
+    "id": "groundwater_level_reduction",
+    "translation": "Grondwaterstandverlaging"
+  },
+  {
+    "id": "increasing_traffic",
+    "translation": "Verkeerstoename"
+  },
+  {
+    "id": "jamming_door_window",
+    "translation": "Klemmende ramen/deuren"
+  },
+  {
+    "id": "japanse_knotweed",
+    "translation": "Japanse duizendknoop"
+  },
+  {
+    "id": "low_ground_water",
+    "translation": "Wateronderlast"
+  },
+  {
+    "id": "negative_cling",
+    "translation": "Negatievekleef"
+  },
+  {
+    "id": "no",
+    "translation": "Nee"
+  },
+  {
+    "id": "no_pile",
+    "translation": "Niet onderheid"
+  },
+  {
+    "id": "no_pile_bearing_floor",
+    "translation": "Niet onderheid"
+  },
+  {
+    "id": "no_pile_concrete_floor",
+    "translation": "Niet onderheid"
+  },
+  {
+    "id": "no_pile_masonry",
+    "translation": "Niet onderheid"
+  },
+  {
+    "id": "no_pile_slit",
+    "translation": "Niet onderheid"
+  },
+  {
+    "id": "no_pile_strips",
+    "translation": "Niet onderheid"
+  },
+  {
+    "id": "other",
+    "translation": "Overig"
+  },
+  {
+    "id": "overcharge",
+    "translation": "Overbelasting"
+  },
+  {
+    "id": "overcharge_negative_cling",
+    "translation": "Overbelasting/Negatievekleef"
+  },
+  {
+    "id": "partial_foundation_recovery",
+    "translation": "Naastgelegen funderingsherstel"
+  },
+  {
+    "id": "sagging_cables_pipes",
+    "translation": "Verzakkende kabels/leidingen"
+  },
+  {
+    "id": "sagging_sewer_connection",
+    "translation": "Verzakkend riool"
+  },
+  {
+    "id": "sewage_leakage",
+    "translation": "Lekkend riool"
+  },
+  {
+    "id": "skewed",
+    "translation": "Scheefstand"
+  },
+  {
+    "id": "steel_pile",
+    "translation": "Stalen buispaal"
+  },
+  {
+    "id": "threshold_above_subsurface",
+    "translation": "Maaiveld lager dan dorpel"
+  },
+  {
+    "id": "threshold_below_subsurface",
+    "translation": "Drempel lager dan maaiveld"
+  },
+  {
+    "id": "unknown",
+    "translation": "Onbekend"
+  },
+  {
+    "id": "vegetation",
+    "translation": "Wortels/planten"
+  },
+  {
+    "id": "vegetation_nearby",
+    "translation": "Bomen nabij"
+  },
+  {
+    "id": "vibrations",
+    "translation": "Verkeer"
+  },
+  {
+    "id": "weighted_pile",
+    "translation": "Beton met verzwaardepunt"
+  },
+  {
+    "id": "wood",
+    "translation": "Hout"
+  },
+  {
+    "id": "wood_amsterdam",
+    "translation": "Hout"
+  },
+  {
+    "id": "wood_amsterdam_arch",
+    "translation": "Hout"
+  },
+  {
+    "id": "wood_charger",
+    "translation": "Hout"
+  },
+  {
+    "id": "wood_rotterdam",
+    "translation": "Hout"
+  },
+  {
+    "id": "wood_rotterdam_amsterdam",
+    "translation": "Hout"
+  },
+  {
+    "id": "wood_rotterdam_arch",
+    "translation": "Hout"
+  },
+  {
+    "id": "yes",
+    "translation": "Ja"
+  }
+]
