@@ -6,17 +6,18 @@ toolchain go1.24.0
 
 require (
 	github.com/go-playground/validator v9.31.0+incompatible
-	github.com/gofiber/fiber/v2 v2.52.6
+	github.com/gofiber/fiber/v2 v2.52.7
 	github.com/gofiber/storage/s3/v2 v2.3.0
 	github.com/google/uuid v1.6.0
 	github.com/mailgun/mailgun-go/v4 v4.23.0
-	github.com/mattn/go-isatty v0.0.20
 	github.com/spf13/viper v1.20.1
 	golang.org/x/crypto v0.38.0
 	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.26.1
 )
+
+require github.com/mattn/go-isatty v0.0.20 // indirect
 
 require (
 	github.com/andybalholm/brotli v1.1.1 // indirect
