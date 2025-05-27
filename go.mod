@@ -6,11 +6,7 @@ toolchain go1.24.0
 
 require (
 	github.com/go-playground/validator v9.31.0+incompatible
-<<<<<<< HEAD
 	github.com/gofiber/fiber/v2 v2.52.8
-=======
-	github.com/gofiber/fiber/v2 v2.52.7
->>>>>>> 877b84f8a153810c0cbc825ae1d5d333652cacfa
 	github.com/gofiber/storage/s3/v2 v2.3.0
 	github.com/google/uuid v1.6.0
 	github.com/mailgun/mailgun-go/v4 v4.23.0
