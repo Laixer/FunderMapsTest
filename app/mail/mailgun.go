@@ -16,10 +16,6 @@ type Email struct {
 	TemplateVars map[string]any
 }
 
-type Mailer interface {
-	SendMail(e *Email) error
-}
-
 type Mailgun struct {
 	domain  string
 	apiKey  string
