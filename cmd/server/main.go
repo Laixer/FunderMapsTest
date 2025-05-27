@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/favicon"
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
@@ -59,6 +60,11 @@ func main() {
 	}))
 
 	app.Use(middleware.RobotsMiddleware("./static/robots.txt"))
+
+	app.Use(cors.New(cors.Config{
+		AllowHeaders: "Authorization, Content-Type, Accept, X-Requested-With, X-Session-ID",
+		MaxAge:       300,
+	}))
 
 	app.Use(func(c *fiber.Ctx) error {
 		c.Locals("config", cfg)
