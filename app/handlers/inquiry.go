@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -18,14 +19,14 @@ type CreateInquiryInput struct {
 	Note                  *string   `json:"note"`
 	AttributionReviewer   uuid.UUID `json:"attribution_reviewer" validate:"required"`
 	AttributionContractor int       `json:"attribution_contractor" validate:"required"`
-	Type             string    `json:"type" validate:"required"` // TODO: Add validation for specific values from report.inquiry_type
-	DocumentDate     time.Time `json:"document_date" validate:"required"`
-	DocumentFile     string    `json:"document_file" validate:"required"` // TODO: This should ideally be a key to a file resource
-	DocumentName     string    `json:"document_name" validate:"required"`
-	Inspection       bool      `json:"inspection"`
-	JointMeasurement bool      `json:"joint_measurement"`
-	FloorMeasurement bool      `json:"floor_measurement"`
-	StandardF3O      bool      `json:"standard_f3o"`
+	Type                  string    `json:"type" validate:"required"` // TODO: Add validation for specific values from report.inquiry_type
+	DocumentDate          time.Time `json:"document_date" validate:"required"`
+	DocumentFile          string    `json:"document_file" validate:"required"` // TODO: This should ideally be a key to a file resource
+	DocumentName          string    `json:"document_name" validate:"required"`
+	Inspection            bool      `json:"inspection"`
+	JointMeasurement      bool      `json:"joint_measurement"`
+	FloorMeasurement      bool      `json:"floor_measurement"`
+	StandardF3O           bool      `json:"standard_f3o"`
 }
 
 func CreateInquiry(c *fiber.Ctx) error {
@@ -99,4 +100,42 @@ func CreateInquiry(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"id": createdInquiryID})
+}
+
+func CreateInquirySample(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	inquiryIdStr := c.Params("inquiry_id")
+	inquiryId, err := strconv.Atoi(inquiryIdStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid inquiry_id format", "error": err.Error()})
+	}
+
+	var input database.InquirySample
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Cannot parse JSON", "error": err.Error()})
+	}
+
+	// Set the inquiry ID from the path parameter
+	input.Inquiry = inquiryId
+
+	// Note: If database.RecoverySample struct has 'validate' tags, they will be checked here.
+	// For example, if BuildingID is required, it should have `validate:"required"` tag in models.go.
+	if err := config.Validate.Struct(&input); err != nil {
+		var errorMessages []string
+		for _, err := range err.(validator.ValidationErrors) {
+			errorMessages = append(errorMessages, fmt.Sprintf("%s is %s", err.Field(), err.Tag()))
+		}
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Validation failed",
+			"errors":  errorMessages,
+		})
+	}
+
+	// Create the recovery sample record in the database
+	if err := db.Create(&input).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to create recovery sample record", "error": err.Error()})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"id": input.ID})
 }

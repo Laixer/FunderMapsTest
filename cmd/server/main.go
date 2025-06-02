@@ -137,7 +137,7 @@ func main() {
 	// Inquiry API
 	inquiry := api.Group("/inquiry", middleware.AuthMiddleware)
 	inquiry.Post("/", handlers.CreateInquiry)
-	// inquiry.Post("/:inquiry_id", handlers.CreateInquirySample)
+	inquiry.Post("/:inquiry_id", handlers.CreateInquirySample)
 
 	// Recovery API
 	recovery := api.Group("/recovery", middleware.AuthMiddleware)
