@@ -208,6 +208,21 @@ func (al *AuthLog) TableName() string {
 	return "application.auth_logs"
 }
 
+// Attribution represents an attribution record in the system,
+// linking users, organizations, and contractors to specific items or actions.
+type Attribution struct {
+	ID         int       `json:"id" gorm:"primaryKey"`
+	Reviewer   uuid.UUID `json:"reviewer" gorm:"column:reviewer;not null"`
+	Creator    uuid.UUID `json:"creator" gorm:"column:creator;not null"`
+	Owner      uuid.UUID `json:"owner" gorm:"column:owner;not null"`
+	Contractor int       `json:"contractor" gorm:"column:contractor;not null"`
+}
+
+// TableName specifies the database table name for the Attribution model.
+func (a *Attribution) TableName() string {
+	return "application.attribution"
+}
+
 type Mapset struct {
 	ID       string      `json:"id" gorm:"primaryKey"`
 	Name     string      `json:"name"`
@@ -252,6 +267,26 @@ type ProductTracker struct {
 
 func (pt *ProductTracker) TableName() string {
 	return "application.product_tracker"
+}
+
+type Recovery struct {
+	ID           int        `json:"id" gorm:"primaryKey;autoIncrement"`
+	CreateDate   time.Time  `json:"create_date" gorm:"default:CURRENT_TIMESTAMP"`
+	UpdateDate   *time.Time `json:"update_date"`
+	DeleteDate   *time.Time `json:"delete_date"`
+	Note         *string    `json:"note"`
+	Attribution  int        `json:"attribution" validate:"required"`
+	AccessPolicy string     `json:"access_policy" gorm:"default:'private'"`
+	Type         string     `json:"type" gorm:"default:'unknown'"` // TODO: Define valid types
+	DocumentDate time.Time  `json:"document_date" gorm:"type:date" validate:"required"`
+	DocumentFile string     `json:"document_file" validate:"required"`
+	AuditStatus  string     `json:"audit_status" gorm:"default:'todo'"`
+	DocumentName string     `json:"document_name" validate:"required"`
+}
+
+// TableName specifies the database table name for the Recovery model
+func (r *Recovery) TableName() string {
+	return "report.recovery"
 }
 
 // Incident represents a foundation-related incident report
