@@ -134,6 +134,10 @@ func main() {
 	report := api.Group("/report/:building_id", middleware.AuthMiddleware)
 	report.Get("/", handlers.GetReport)
 
+	// Recovery API
+	recovery := api.Group("/recovery", middleware.AuthMiddleware)
+	recovery.Post("/", handlers.CreateRecovery)
+
 	// PDF API
 	pdf := api.Group("/pdf", middleware.AuthMiddleware)
 	pdf.Get("/:id", handlers.GetPDF)
