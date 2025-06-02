@@ -401,12 +401,12 @@ func (is *InquirySample) TableName() string {
 type RecoverySample struct {
 	ID           int         `json:"id" gorm:"primaryKey"`
 	Recovery     int         `json:"recovery" gorm:"index"`
-	CreateDate   time.Time   `json:"create_date" gorm:"default:now()"`
-	UpdateDate   time.Time   `json:"update_date"`
+	CreateDate   time.Time   `json:"create_date" gorm:"default:CURRENT_TIMESTAMP"`
+	UpdateDate   *time.Time  `json:"update_date"`
 	DeleteDate   *time.Time  `json:"delete_date"`
 	Note         *string     `json:"note"`
 	Status       *string     `json:"status"`
-	Type         *string     `json:"type"`
+	Type         string      `json:"type" gorm:"default:'unknown'"`
 	PileType     *string     `json:"pile_type"`
 	Facade       StringArray `json:"facade" gorm:"type:text[]"`
 	Permit       *string     `json:"permit"`

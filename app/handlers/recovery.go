@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -101,4 +102,43 @@ func CreateRecovery(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"id": createdRecoveryID})
+}
+
+func CreateRecoverySample(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	recoveryIdStr := c.Params("recovery_id")
+	recoveryId, err := strconv.Atoi(recoveryIdStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid recovery_id format", "error": err.Error()})
+	}
+
+	var input database.RecoverySample
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Cannot parse JSON", "error": err.Error()})
+	}
+
+	// Set the recovery ID from the path parameter
+	input.Recovery = recoveryId
+
+	// Note: If database.RecoverySample struct has 'validate' tags, they will be checked here.
+	// For example, if BuildingID is required, it should have `validate:"required"` tag in models.go.
+	if err := config.Validate.Struct(&input); err != nil {
+		var errorMessages []string
+		for _, err := range err.(validator.ValidationErrors) {
+			errorMessages = append(errorMessages, fmt.Sprintf("%s is %s", err.Field(), err.Tag()))
+		}
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Validation failed",
+			"errors":  errorMessages,
+		})
+	}
+
+	// Create the recovery sample record in the database
+	if err := db.Create(&input).Error; err != nil {
+		// log.Printf("Error creating recovery sample record: %v", err) // Consider logging
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to create recovery sample record", "error": err.Error()})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"id": input.ID})
 }

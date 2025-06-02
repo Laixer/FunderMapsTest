@@ -137,7 +137,8 @@ func main() {
 	// Recovery API
 	recovery := api.Group("/recovery", middleware.AuthMiddleware)
 	recovery.Post("/", handlers.CreateRecovery)
-
+	recovery.Post("/:recovery_id", handlers.CreateRecoverySample)
+	
 	// PDF API
 	pdf := api.Group("/pdf", middleware.AuthMiddleware)
 	pdf.Get("/:id", handlers.GetPDF)
