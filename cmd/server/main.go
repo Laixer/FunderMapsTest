@@ -134,6 +134,11 @@ func main() {
 	report := api.Group("/report/:building_id", middleware.AuthMiddleware)
 	report.Get("/", handlers.GetReport)
 
+	// Inquiry API
+	inquiry := api.Group("/inquiry", middleware.AuthMiddleware)
+	inquiry.Post("/", handlers.CreateInquiry)
+	// inquiry.Post("/:inquiry_id", handlers.CreateInquirySample)
+
 	// Recovery API
 	recovery := api.Group("/recovery", middleware.AuthMiddleware)
 	recovery.Post("/", handlers.CreateRecovery)

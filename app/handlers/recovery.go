@@ -15,13 +15,12 @@ import (
 	"fundermaps/app/database"
 )
 
-// CreateRecoveryInput defines the expected request body for creating a recovery record.
 type CreateRecoveryInput struct {
 	// Fields for Recovery
 	Note         *string   `json:"note"`
 	AccessPolicy string    `json:"access_policy" validate:"required,oneof=public private"`
 	Type         string    `json:"type" validate:"required"`
-	DocumentDate time.Time `json:"document_date" validate:"required"`
+	DocumentDate time.Time `json:"document_date" validate:"required"` // TODO: This is a date, not a datetime
 	DocumentFile string    `json:"document_file" validate:"required"`
 	DocumentName string    `json:"document_name" validate:"required"`
 
@@ -32,7 +31,7 @@ type CreateRecoveryInput struct {
 
 func CreateRecovery(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
-	user := c.Locals("user").(database.User)
+	user := c.Locals("user").(database.User) // TODO: Create a function to get the user from the context
 
 	var input CreateRecoveryInput
 	if err := c.BodyParser(&input); err != nil {
@@ -50,6 +49,7 @@ func CreateRecovery(c *fiber.Ctx) error {
 		})
 	}
 
+	// TODO: Maybe turn this into a function
 	// Handle note: NULLIF(trim(@note), '')
 	var finalNote *string
 	if input.Note != nil {
@@ -63,10 +63,6 @@ func CreateRecovery(c *fiber.Ctx) error {
 
 	// Use a transaction to ensure atomicity
 	err := db.Transaction(func(tx *gorm.DB) error {
-		// 1. Create Attribution
-		// Assumes database.Attribution struct exists and matches table structure:
-		// ID (int, pk), Reviewer (uuid), Creator (uuid), Owner (uuid),
-		// Contractor (uuid), Contractor2 (int, nullable)
 		attribution := database.Attribution{
 			Reviewer:   input.AttributionReviewer,
 			Creator:    user.ID,
@@ -96,8 +92,6 @@ func CreateRecovery(c *fiber.Ctx) error {
 	})
 
 	if err != nil {
-		// Log the internal error for debugging
-		// log.Printf("Error creating recovery record: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to create recovery record", "error": err.Error()})
 	}
 
@@ -136,7 +130,6 @@ func CreateRecoverySample(c *fiber.Ctx) error {
 
 	// Create the recovery sample record in the database
 	if err := db.Create(&input).Error; err != nil {
-		// log.Printf("Error creating recovery sample record: %v", err) // Consider logging
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to create recovery sample record", "error": err.Error()})
 	}
 

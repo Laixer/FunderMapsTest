@@ -322,6 +322,31 @@ func (i *Incident) TableName() string {
 	return "report.incident"
 }
 
+// Inquiry represents a foundation inquiry report
+type Inquiry struct {
+	ID               int        `json:"id" gorm:"primaryKey;autoIncrement"`
+	DocumentName     string     `json:"document_name" validate:"required"`
+	Inspection       bool       `json:"inspection" gorm:"default:false"`
+	JointMeasurement bool       `json:"joint_measurement" gorm:"default:false"`
+	FloorMeasurement bool       `json:"floor_measurement" gorm:"default:false"`
+	CreateDate       time.Time  `json:"create_date" gorm:"default:CURRENT_TIMESTAMP"`
+	UpdateDate       *time.Time `json:"update_date"`
+	DeleteDate       *time.Time `json:"delete_date"`
+	Note             *string    `json:"note"`
+	DocumentDate     time.Time  `json:"document_date" gorm:"type:date" validate:"required"`
+	DocumentFile     string     `json:"document_file" validate:"required"`
+	Attribution      int        `json:"attribution" validate:"required"` // Foreign key to application.attribution
+	AccessPolicy     string     `json:"access_policy" gorm:"default:'private'"`
+	Type             string     `json:"type" validate:"required"` // report.inquiry_type
+	StandardF3O      bool       `json:"standard_f3o" gorm:"default:false;column:standard_f3o"`
+	AuditStatus      string     `json:"audit_status" gorm:"default:'todo'"` // report.audit_status
+}
+
+// TableName specifies the database table name for the Inquiry model
+func (i *Inquiry) TableName() string {
+	return "report.inquiry"
+}
+
 type InquirySample struct {
 	ID                              int         `json:"id" gorm:"primaryKey"`
 	Inquiry                         int         `json:"inquiry" gorm:"index"`
