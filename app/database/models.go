@@ -230,7 +230,7 @@ type Mapset struct {
 	Style    string      `json:"style"`
 	Layers   StringArray `json:"layers" gorm:"type:text[]"`
 	Options  JSONObject  `json:"options" gorm:"type:jsonb"`
-	Public   bool        `json:"public"`
+	Public   bool        `json:"-"`
 	Consent  *string     `json:"consent"`
 	Note     string      `json:"note"`
 	Icon     *string     `json:"icon"`
@@ -445,4 +445,35 @@ type RecoverySample struct {
 // TableName specifies the database table name for the RecoverySample model
 func (rs *RecoverySample) TableName() string {
 	return "report.recovery_sample"
+}
+
+// JobStatus represents the status of a worker job
+type JobStatus string
+
+const (
+	JobStatusPending  JobStatus = "pending"
+	JobStatusRunning  JobStatus = "running"
+	JobStatusComplete JobStatus = "complete"
+	JobStatusFailed   JobStatus = "failed"
+	JobStatusRetry    JobStatus = "retry"
+)
+
+// WorkerJob represents a background job in the worker queue
+type WorkerJob struct {
+	ID           int64      `json:"id" gorm:"primaryKey;autoIncrement"`
+	JobType      string     `json:"job_type" gorm:"not null;index"`
+	Payload      JSONObject `json:"payload" gorm:"type:jsonb"`
+	Status       JobStatus  `json:"status" gorm:"type:application.job_status;not null;default:'pending';index"`
+	Priority     int        `json:"priority" gorm:"not null;default:0;index:idx_worker_jobs_priority,sort:desc"`
+	RetryCount   int        `json:"retry_count" gorm:"not null;default:0"`
+	MaxRetries   int        `json:"max_retries" gorm:"not null;default:3"`
+	LastError    *string    `json:"last_error"`
+	ProcessAfter *time.Time `json:"process_after" gorm:"index:idx_worker_jobs_status_process_after"`
+	CreatedAt    time.Time  `json:"created_at" gorm:"not null;default:now();index"`
+	UpdatedAt    time.Time  `json:"updated_at" gorm:"not null;default:now()"`
+}
+
+// TableName specifies the database table name for the WorkerJob model
+func (w *WorkerJob) TableName() string {
+	return "application.worker_jobs"
 }

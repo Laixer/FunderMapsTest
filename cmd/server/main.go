@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
+
 	// "github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/favicon"
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
@@ -143,7 +144,7 @@ func main() {
 	recovery := api.Group("/recovery", middleware.AuthMiddleware)
 	recovery.Post("/", handlers.CreateRecovery)
 	recovery.Post("/:recovery_id", handlers.CreateRecoverySample)
-	
+
 	// PDF API
 	pdf := api.Group("/pdf", middleware.AuthMiddleware)
 	pdf.Get("/:id", handlers.GetPDF)
@@ -169,6 +170,13 @@ func main() {
 	management_user.Put("/", mngmt.UpdateUser)
 	management_user.Get("/api-key", mngmt.CreateApiKey)
 	management_user.Post("/reset-password", mngmt.ResetUserPassword)
+
+	// Job management routes
+	management.Get("/jobs", mngmt.GetAllJobs)
+	management.Post("/jobs", mngmt.CreateJob)
+	management_job := management.Group("/jobs/:id")
+	management_job.Get("/", mngmt.GetJob)
+	management_job.Post("/cancel", mngmt.CancelJob)
 	management.Post("/org", mngmt.CreateOrganization)
 	management.Get("/org", mngmt.GetAllOrganizations)
 	// management.Get("/org/:name", mngmt.GetOrganizationByName) # TODO: Implement
