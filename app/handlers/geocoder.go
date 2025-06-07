@@ -12,10 +12,9 @@ import (
 
 func GetGeocoder(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
+	geocoderID := c.Params("geocoder_id")
 
 	geocoderService := geocoder.NewService(db)
-
-	geocoderID := c.Params("geocoder_id")
 
 	building, err := geocoderService.GetBuildingByGeocoderID(geocoderID)
 	if err != nil {
@@ -33,7 +32,6 @@ func GetGeocoder(c *fiber.Ctx) error {
 
 func GetAllAddresses(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
-
 	geocoderID := c.Params("geocoder_id")
 
 	// TODO: Implement the other geocoder identifiers
