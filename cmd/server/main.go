@@ -15,7 +15,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/fiber/v2/middleware/session"
 
 	"fundermaps/app/config"
@@ -125,7 +124,7 @@ func main() {
 	geocoder.Get("/address", handlers.GetAllAddresses)
 
 	// Product API
-	product := api.Group("/product/:building_id", middleware.AuthMiddleware, requestid.New()) // TODO: requestid.New() use when serving the public API
+	product := api.Group("/product/:building_id", middleware.AuthMiddleware) // TODO: requestid.New() use when serving the public API
 	product.Get("/analysis", middleware.TrackerMiddleware, handlers.GetAnalysis)
 	product.Get("/statistics", handlers.GetStatistics)
 	product.Get("/subsidence", handlers.GetDataSubsidence) // TODO: There may be no need for this endpoint
