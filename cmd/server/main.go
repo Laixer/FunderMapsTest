@@ -128,7 +128,7 @@ func main() {
 	product := api.Group("/product/:building_id", middleware.AuthMiddleware, requestid.New()) // TODO: requestid.New() use when serving the public API
 	product.Get("/analysis", middleware.TrackerMiddleware, handlers.GetAnalysis)
 	product.Get("/statistics", handlers.GetStatistics)
-	// product.Get("/subsidence", handlers.GetDataSubsidence)
+	product.Get("/subsidence", handlers.GetDataSubsidence) // TODO: There may be no need for this endpoint
 	product.Get("/subsidence/historic", handlers.GetDataSubsidenceHistoric)
 
 	// Report API
