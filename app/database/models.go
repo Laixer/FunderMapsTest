@@ -102,9 +102,9 @@ type Organization struct {
 	ID                uuid.UUID   `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
 	Name              string      `json:"name"`
 	Email             string      `json:"-"`                                     // TODO: Remove from db
-	FenceMunicipality StringArray `json:"fence_municipality" gorm:"type:text[]"` // TODO: Move this out of the organization table
-	FenceDistrict     StringArray `json:"fence_district" gorm:"type:text[]"`     // TODO: Move this out of the organization table
-	FenceNeighborhood StringArray `json:"fence_neighborhood" gorm:"type:text[]"` // TODO: Move this out of the organization table
+	// FenceMunicipality StringArray `json:"fence_municipality" gorm:"type:text[]"` // TODO: Move this out of the organization table
+	// FenceDistrict     StringArray `json:"fence_district" gorm:"type:text[]"`     // TODO: Move this out of the organization table
+	// FenceNeighborhood StringArray `json:"fence_neighborhood" gorm:"type:text[]"` // TODO: Move this out of the organization table
 }
 
 func (o *Organization) TableName() string {
