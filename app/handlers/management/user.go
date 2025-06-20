@@ -203,7 +203,7 @@ func ResetUserPassword(c *fiber.Ctx) error {
 		if err.Error() == "user not found" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User not found"})
 		}
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User not found"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	err = userService.UpdatePassword(user, input.Password)
