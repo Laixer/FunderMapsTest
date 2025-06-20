@@ -113,6 +113,7 @@ func UpdateUser(c *fiber.Ctx) error {
 	userService := user.NewService(db)
 
 	type UpdateUserInput struct {
+		Email       *string `json:"email" validate:"omitempty,email"`
 		GivenName   *string `json:"given_name"`
 		LastName    *string `json:"family_name"`
 		Avatar      *string `json:"picture"`
@@ -142,6 +143,14 @@ func UpdateUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
+	if input.Email != nil && *input.Email != "" {
+		email := strings.ToLower(strings.TrimSpace(*input.Email))
+		existingUser, _ := userService.GetUserByEmail(email)
+		if existingUser != nil && existingUser.ID != user.ID {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Email already exists"})
+		}
+		user.Email = email
+	}
 	if input.GivenName != nil && *input.GivenName != "" {
 		user.GivenName = input.GivenName
 	}
