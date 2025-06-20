@@ -161,6 +161,8 @@ func main() {
 	management_mapset.Get("/", mngmt.GetMapsetByID)
 	management_incident := management.Group("/incident/:incident_id")
 	management_incident.Delete("/", mngmt.DeleteIncident)
+
+	// User management routes
 	management.Get("/user", mngmt.GetAllUsers)
 	management.Post("/user", mngmt.CreateUser)
 	// management.Get("/user/:email", handlers.GetUserByEmail)
@@ -176,20 +178,34 @@ func main() {
 	management_job := management.Group("/jobs/:id")
 	management_job.Get("/", mngmt.GetJob)
 	management_job.Post("/cancel", mngmt.CancelJob)
+
+	// Organization management routes
 	management.Post("/org", mngmt.CreateOrganization)
 	management.Get("/org", mngmt.GetAllOrganizations)
-	// management.Get("/org/:name", mngmt.GetOrganizationByName) # TODO: Implement
 	management_org := management.Group("/org/:org_id")
 	management_org.Get("/", mngmt.GetOrganization)
 	management_org.Put("/", mngmt.UpdateOrganization)
 	management_org_mapset := management_org.Group("/mapset")
-	// management_org_mapset.Get("/", mngmt.GetAllOrganizationMapsets)
 	management_org_mapset.Post("/", mngmt.AddMapsetToOrganization)
 	management_org_mapset.Delete("/", mngmt.RemoveMapsetFromOrganization)
 	management_org_user := management_org.Group("/user")
 	management_org_user.Get("/", mngmt.GetAllOrganizationUsers)
 	management_org_user.Post("/", mngmt.AddUserToOrganization)
 	management_org_user.Delete("/", mngmt.RemoveUserFromOrganization)
+
+	// Organization geolock management routes
+	management_org_district := management_org.Group("/district")
+	management_org_district.Get("/", mngmt.GetOrganizationGeolockDistricts)
+	management_org_district.Post("/", mngmt.AddDistrictToOrganization)
+	management_org_district.Delete("/", mngmt.RemoveDistrictFromOrganization)
+	management_org_municipality := management_org.Group("/municipality")
+	management_org_municipality.Get("/", mngmt.GetOrganizationGeolockMunicipalities)
+	management_org_municipality.Post("/", mngmt.AddMunicipalityToOrganization)
+	management_org_municipality.Delete("/", mngmt.RemoveMunicipalityFromOrganization)
+	management_org_neighborhood := management_org.Group("/neighborhood")
+	management_org_neighborhood.Get("/", mngmt.GetOrganizationGeolockNeighborhoods)
+	management_org_neighborhood.Post("/", mngmt.AddNeighborhoodToOrganization)
+	management_org_neighborhood.Delete("/", mngmt.RemoveNeighborhoodFromOrganization)
 
 	// Diagnostic API
 	diag := api.Group("/diag")

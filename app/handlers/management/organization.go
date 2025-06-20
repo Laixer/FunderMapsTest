@@ -312,3 +312,321 @@ func RemoveMapsetFromOrganization(c *fiber.Ctx) error {
 
 	return c.SendStatus(fiber.StatusNoContent)
 }
+
+// Geolock District Handlers
+
+func GetOrganizationGeolockDistricts(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	organizationID := c.Params("org_id")
+
+	var org database.Organization
+	result := db.First(&org, "id = ?", organizationID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Organization not found"})
+	}
+
+	var districts []database.OrganizationGeolockDistrict
+	result = db.Where("organization_id = ?", org.ID).Find(&districts)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	return c.JSON(districts)
+}
+
+func AddDistrictToOrganization(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	organizationID := c.Params("org_id")
+
+	type AddDistrictInput struct {
+		DistrictID string `json:"district_id" validate:"required"`
+	}
+
+	var input AddDistrictInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
+	}
+
+	err := config.Validate.Struct(input)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
+	}
+
+	var org database.Organization
+	result := db.First(&org, "id = ?", organizationID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Organization not found"})
+	}
+
+	// Check if the relationship already exists
+	var existing database.OrganizationGeolockDistrict
+	result = db.Where("organization_id = ? AND district_id = ?", org.ID, input.DistrictID).First(&existing)
+	if result.Error == nil {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"message": "District is already associated with this organization"})
+	}
+
+	// Create the relationship
+	geolockDistrict := database.OrganizationGeolockDistrict{
+		OrganizationID: org.ID,
+		DistrictID:     input.DistrictID,
+	}
+
+	result = db.Create(&geolockDistrict)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(geolockDistrict)
+}
+
+func RemoveDistrictFromOrganization(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	organizationID := c.Params("org_id")
+
+	type RemoveDistrictInput struct {
+		DistrictID string `json:"district_id" validate:"required"`
+	}
+
+	var input RemoveDistrictInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
+	}
+
+	err := config.Validate.Struct(input)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
+	}
+
+	var org database.Organization
+	result := db.First(&org, "id = ?", organizationID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Organization not found"})
+	}
+
+	result = db.Where("organization_id = ? AND district_id = ?", org.ID, input.DistrictID).
+		Delete(&database.OrganizationGeolockDistrict{})
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	if result.RowsAffected == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "District association not found"})
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// Geolock Municipality Handlers
+
+func GetOrganizationGeolockMunicipalities(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	organizationID := c.Params("org_id")
+
+	var org database.Organization
+	result := db.First(&org, "id = ?", organizationID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Organization not found"})
+	}
+
+	var municipalities []database.OrganizationGeolockMunicipality
+	result = db.Where("organization_id = ?", org.ID).Find(&municipalities)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	return c.JSON(municipalities)
+}
+
+func AddMunicipalityToOrganization(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	organizationID := c.Params("org_id")
+
+	type AddMunicipalityInput struct {
+		MunicipalityID string `json:"municipality_id" validate:"required"`
+	}
+
+	var input AddMunicipalityInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
+	}
+
+	err := config.Validate.Struct(input)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
+	}
+
+	var org database.Organization
+	result := db.First(&org, "id = ?", organizationID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Organization not found"})
+	}
+
+	// Check if the relationship already exists
+	var existing database.OrganizationGeolockMunicipality
+	result = db.Where("organization_id = ? AND municipality_id = ?", org.ID, input.MunicipalityID).First(&existing)
+	if result.Error == nil {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"message": "Municipality is already associated with this organization"})
+	}
+
+	// Create the relationship
+	geolockMunicipality := database.OrganizationGeolockMunicipality{
+		OrganizationID: org.ID,
+		MunicipalityID: input.MunicipalityID,
+	}
+
+	result = db.Create(&geolockMunicipality)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(geolockMunicipality)
+}
+
+func RemoveMunicipalityFromOrganization(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	organizationID := c.Params("org_id")
+
+	type RemoveMunicipalityInput struct {
+		MunicipalityID string `json:"municipality_id" validate:"required"`
+	}
+
+	var input RemoveMunicipalityInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
+	}
+
+	err := config.Validate.Struct(input)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
+	}
+
+	var org database.Organization
+	result := db.First(&org, "id = ?", organizationID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Organization not found"})
+	}
+
+	result = db.Where("organization_id = ? AND municipality_id = ?", org.ID, input.MunicipalityID).
+		Delete(&database.OrganizationGeolockMunicipality{})
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	if result.RowsAffected == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Municipality association not found"})
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// Geolock Neighborhood Handlers
+
+func GetOrganizationGeolockNeighborhoods(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	organizationID := c.Params("org_id")
+
+	var org database.Organization
+	result := db.First(&org, "id = ?", organizationID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Organization not found"})
+	}
+
+	var neighborhoods []database.OrganizationGeolockNeighborhood
+	result = db.Where("organization_id = ?", org.ID).Find(&neighborhoods)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	return c.JSON(neighborhoods)
+}
+
+func AddNeighborhoodToOrganization(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	organizationID := c.Params("org_id")
+
+	type AddNeighborhoodInput struct {
+		NeighborhoodID string `json:"neighborhood_id" validate:"required"`
+	}
+
+	var input AddNeighborhoodInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
+	}
+
+	err := config.Validate.Struct(input)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
+	}
+
+	var org database.Organization
+	result := db.First(&org, "id = ?", organizationID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Organization not found"})
+	}
+
+	// Check if the relationship already exists
+	var existing database.OrganizationGeolockNeighborhood
+	result = db.Where("organization_id = ? AND neighborhood_id = ?", org.ID, input.NeighborhoodID).First(&existing)
+	if result.Error == nil {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"message": "Neighborhood is already associated with this organization"})
+	}
+
+	// Create the relationship
+	geolockNeighborhood := database.OrganizationGeolockNeighborhood{
+		OrganizationID: org.ID,
+		NeighborhoodID: input.NeighborhoodID,
+	}
+
+	result = db.Create(&geolockNeighborhood)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(geolockNeighborhood)
+}
+
+func RemoveNeighborhoodFromOrganization(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	organizationID := c.Params("org_id")
+
+	type RemoveNeighborhoodInput struct {
+		NeighborhoodID string `json:"neighborhood_id" validate:"required"`
+	}
+
+	var input RemoveNeighborhoodInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
+	}
+
+	err := config.Validate.Struct(input)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
+	}
+
+	var org database.Organization
+	result := db.First(&org, "id = ?", organizationID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Organization not found"})
+	}
+
+	result = db.Where("organization_id = ? AND neighborhood_id = ?", org.ID, input.NeighborhoodID).
+		Delete(&database.OrganizationGeolockNeighborhood{})
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	if result.RowsAffected == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Neighborhood association not found"})
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
+}
