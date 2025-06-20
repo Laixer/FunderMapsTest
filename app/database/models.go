@@ -444,6 +444,39 @@ func (rs *RecoverySample) TableName() string {
 	return "report.recovery_sample"
 }
 
+// OrganizationGeolockDistrict represents the junction table linking organizations to geographical districts
+type OrganizationGeolockDistrict struct {
+	OrganizationID uuid.UUID `json:"organization_id" gorm:"type:uuid;primaryKey"`
+	DistrictID     string    `json:"district_id" gorm:"primaryKey"`
+}
+
+// TableName specifies the database table name for the OrganizationGeolockDistrict model
+func (ogd *OrganizationGeolockDistrict) TableName() string {
+	return "application.organization_geolock_district"
+}
+
+// OrganizationGeolockMunicipality represents the junction table linking organizations to municipalities
+type OrganizationGeolockMunicipality struct {
+	OrganizationID uuid.UUID `json:"organization_id" gorm:"type:uuid;primaryKey"`
+	MunicipalityID string    `json:"municipality_id" gorm:"primaryKey"`
+}
+
+// TableName specifies the database table name for the OrganizationGeolockMunicipality model
+func (ogm *OrganizationGeolockMunicipality) TableName() string {
+	return "application.organization_geolock_municipality"
+}
+
+// OrganizationGeolockNeighborhood represents the junction table linking organizations to neighborhoods
+type OrganizationGeolockNeighborhood struct {
+	OrganizationID uuid.UUID `json:"organization_id" gorm:"type:uuid;primaryKey"`
+	NeighborhoodID string    `json:"neighborhood_id" gorm:"primaryKey"`
+}
+
+// TableName specifies the database table name for the OrganizationGeolockNeighborhood model
+func (ogn *OrganizationGeolockNeighborhood) TableName() string {
+	return "application.organization_geolock_neighborhood"
+}
+
 // JobStatus represents the status of a worker job
 type JobStatus string
 
