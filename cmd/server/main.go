@@ -165,7 +165,6 @@ func main() {
 	// User management routes
 	management.Get("/user", mngmt.GetAllUsers)
 	management.Post("/user", mngmt.CreateUser)
-	// management.Get("/user/:email", handlers.GetUserByEmail)
 	management_user := management.Group("/user/:user_id")
 	management_user.Get("/", mngmt.GetUser)
 	management_user.Put("/", mngmt.UpdateUser)
