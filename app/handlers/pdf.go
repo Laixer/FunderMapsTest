@@ -4,15 +4,17 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"fundermaps/app/config"
+	"fundermaps/app/platform/job"
 	"io"
 	"net/http"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/spf13/viper"
+	"gorm.io/gorm"
 )
 
-// PDFRequest represents the request structure for the PDF.co API
 type PDFRequest struct {
 	URL       string `json:"url"`
 	Name      string `json:"name"`
@@ -20,16 +22,23 @@ type PDFRequest struct {
 	Async     bool   `json:"async"`
 }
 
-// PDFResponse represents the response from PDF.co API
 type PDFResponse struct {
 	URL string `json:"url"`
 }
 
-// GetPDF handles requests to convert a URL to PDF using PDF.co service
 func GetPDF(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+	cfg := c.Locals("config").(*config.Config)
+
 	id := c.Params("id")
 
-	// TODO: Move this to a service
+	jobService := job.NewService(db, cfg)
+
+	jobService.CreateJob(job.CreateJobInput{
+		JobType: "generate_pdf",
+		Payload: map[string]any{
+			"url": fmt.Sprintf("https://whale-app-nm9uv.ondigitalocean.app/%s", id),
+		}})
 
 	// Create the HTTP client with 5-minute timeout
 	client := &http.Client{
