@@ -5,12 +5,11 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
+	"math/rand/v2"
 	"strings"
-	"time"
 
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/pbkdf2"
-	"golang.org/x/exp/rand"
 )
 
 const (
@@ -18,10 +17,6 @@ const (
 	pbkdf2SubkeyLength    = 256 / 8
 	pbkdf2SaltSize        = 128 / 8
 )
-
-func init() {
-	rand.Seed(uint64(time.Now().UnixNano()))
-}
 
 func HashPassword(password string) string {
 	salt := []byte("somesalt") // TODO: Replace with random string
@@ -105,7 +100,7 @@ func GenerateRandomString(limit int) string {
 	const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	result := make([]byte, limit)
 	for i := range result {
-		result[i] = chars[rand.Intn(len(chars))]
+		result[i] = chars[rand.IntN(len(chars))]
 	}
 
 	return string(result)
