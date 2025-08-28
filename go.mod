@@ -6,44 +6,44 @@ toolchain go1.24.0
 
 require (
 	github.com/go-playground/validator v9.31.0+incompatible
-	github.com/gofiber/fiber/v2 v2.52.8
-	github.com/gofiber/storage/s3/v2 v2.3.0
+	github.com/gofiber/fiber/v2 v2.52.9
+	github.com/gofiber/storage/s3/v2 v2.4.1
 	github.com/google/uuid v1.6.0
 	github.com/mailgun/mailgun-go/v4 v4.23.0
 	github.com/spf13/viper v1.20.1
-	golang.org/x/crypto v0.40.0
+	golang.org/x/crypto v0.41.0
 	gorm.io/driver/postgres v1.6.0
-	gorm.io/gorm v1.30.0
+	gorm.io/gorm v1.30.2
 )
 
 require github.com/mattn/go-isatty v0.0.20 // indirect
 
 require (
 	github.com/andybalholm/brotli v1.2.0 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.36.5 // indirect
-	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.11 // indirect
-	github.com/aws/aws-sdk-go-v2/config v1.29.17 // indirect
-	github.com/aws/aws-sdk-go-v2/credentials v1.17.70 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.32 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.17.83 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.36 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.36 // indirect
+	github.com/aws/aws-sdk-go-v2 v1.38.2 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.1 // indirect
+	github.com/aws/aws-sdk-go-v2/config v1.31.5 // indirect
+	github.com/aws/aws-sdk-go-v2/credentials v1.18.9 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.5 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.19.3 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.5 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.5 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.3 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.36 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.12.4 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.7.4 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.12.17 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.18.17 // indirect
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.83.0 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.25.5 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.30.3 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.34.0 // indirect
-	github.com/aws/smithy-go v1.22.4 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.5 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.8.5 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.5 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.5 // indirect
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.87.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.29.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.34.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sts v1.38.1 // indirect
+	github.com/aws/smithy-go v1.23.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
-	github.com/go-chi/chi/v5 v5.2.2 // indirect
+	github.com/go-chi/chi/v5 v5.2.3 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
+	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/pgx/v5 v5.7.5 // indirect
@@ -63,19 +63,18 @@ require (
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
-	github.com/sagikazarmark/locafero v0.9.0 // indirect
-	github.com/sourcegraph/conc v0.3.0 // indirect
+	github.com/sagikazarmark/locafero v0.10.0 // indirect
+	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
 	github.com/spf13/afero v1.14.0 // indirect
 	github.com/spf13/cast v1.9.2 // indirect
-	github.com/spf13/pflag v1.0.6 // indirect
+	github.com/spf13/pflag v1.0.7 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
-	github.com/tinylib/msgp v1.3.0 // indirect
+	github.com/tinylib/msgp v1.4.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.63.0 // indirect
-	go.uber.org/multierr v1.11.0 // indirect
+	github.com/valyala/fasthttp v1.65.0 // indirect
 	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/sys v0.34.0 // indirect
-	golang.org/x/text v0.27.0
+	golang.org/x/sys v0.35.0 // indirect
+	golang.org/x/text v0.28.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
