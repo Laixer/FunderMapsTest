@@ -96,12 +96,12 @@ func main() {
 	oauth2.Post("/token", handlers.TokenRequest)
 	oauth2.Get("/userinfo", middleware.AuthMiddleware, handlers.GetUserInfo)
 
-	// User API (disabled)
-	// user := api.Group("/user", middleware.AuthMiddleware)
-	// user.Get("/me", handlers.GetCurrentUser)
-	// user.Put("/me", handlers.UpdateCurrentUser)
-	// user.Get("/metadata", handlers.GetCurrentUserMetadata)
-	// user.Put("/metadata", handlers.UpdateCurrentUserMetadata)
+	// User API
+	user := api.Group("/user", middleware.AuthMiddleware)
+	user.Get("/me", handlers.GetCurrentUser)
+	user.Put("/me", handlers.UpdateCurrentUser)
+	user.Get("/metadata", handlers.GetCurrentUserMetadata)
+	user.Put("/metadata", handlers.UpdateCurrentUserMetadata)
 
 	// Mapset API (disabled)
 	// mapset := api.Group("/mapset", middleware.AuthMiddleware)
