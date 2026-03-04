@@ -87,9 +87,6 @@ func UpdateOrganization(c *fiber.Ctx) error {
 
 	type OrganizationUpdateInput struct {
 		Name *string `json:"name"`
-		// FenceMunicipality *database.StringArray `json:"fence_municipality"`
-		// FenceDistrict     *database.StringArray `json:"fence_district"`
-		// FenceNeighborhood *database.StringArray `json:"fence_neighborhood"`
 	}
 
 	var input OrganizationUpdateInput
@@ -108,19 +105,6 @@ func UpdateOrganization(c *fiber.Ctx) error {
 			org.Name = *input.Name
 		}
 	}
-
-	// Update fence fields if provided
-	// if input.FenceMunicipality != nil {
-	// 	org.FenceMunicipality = *input.FenceMunicipality
-	// }
-
-	// if input.FenceDistrict != nil {
-	// 	org.FenceDistrict = *input.FenceDistrict
-	// }
-
-	// if input.FenceNeighborhood != nil {
-	// 	org.FenceNeighborhood = *input.FenceNeighborhood
-	// }
 
 	result = db.Save(&org)
 	if result.Error != nil {

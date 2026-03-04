@@ -69,22 +69,6 @@ func GetAllUsers(c *fiber.Ctx) error {
 	return c.JSON(users)
 }
 
-func GetUserByEmail(c *fiber.Ctx) error {
-	db := c.Locals("db").(*gorm.DB)
-
-	userService := user.NewService(db)
-
-	user, err := userService.GetUserByEmail(c.Params("email"))
-	if err != nil {
-		if err.Error() == "user not found" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User not found"})
-		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
-	}
-
-	return c.JSON(user)
-}
-
 func GetUser(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 

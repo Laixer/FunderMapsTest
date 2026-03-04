@@ -118,22 +118,6 @@ func LoginWithForm(c *fiber.Ctx) error {
 		return err
 	}
 
-	// if sess.Get("authenticated") != nil {
-	// 	if redirectURI != "" && responseType == "code" {
-	// 		userID, err := uuid.Parse(sess.Get("user_id").(string))
-	// 		if err != nil {
-	// 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to parse user ID")
-	// 		}
-
-	// 		authCode, err := generateAuthCode(db, clientID, userID)
-	// 		if err != nil {
-	// 			return c.Status(fiber.StatusInternalServerError).SendString("Failed to generate authorization code")
-	// 		}
-	// 		return c.Redirect(fmt.Sprintf("%s?code=%s&state=%s", redirectURI, authCode, state))
-	// 	}
-	// 	return c.Redirect("/")
-	// }
-
 	userService := puser.NewService(db)
 
 	email := c.FormValue("email")
@@ -327,10 +311,6 @@ func RefreshToken(c *fiber.Ctx) error {
 	if err := ctx.revokeRefreshToken(refreshToken); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
-
-	// if err := revokeAPIKey(db, user); err != nil {
-	// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
-	// }
 
 	return c.JSON(authToken)
 }
