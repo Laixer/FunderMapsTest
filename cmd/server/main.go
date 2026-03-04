@@ -113,11 +113,6 @@ func main() {
 	mapset := api.Group("/mapset", middleware.AuthMiddleware)
 	mapset.Get("/:mapset_id?", handlers.GetMapset)
 
-	// Incident API
-	incident := api.Group("/incident", limiter.New(limiter.Config{Max: 50}))
-	incident.Post("/", handlers.CreateIncident)
-	incident.Post("/upload", handlers.UploadFiles)
-
 	// Geocoder API
 	geocoder := api.Group("/geocoder/:geocoder_id", limiter.New(limiter.Config{Max: 50}))
 	geocoder.Get("/", handlers.GetGeocoder)
