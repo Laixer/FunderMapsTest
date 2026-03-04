@@ -28,20 +28,17 @@ func TestNewService(t *testing.T) {
 	}
 }
 
-func TestNewServiceWithRandomKey(t *testing.T) {
-	config := Config{} // Empty config should generate random key
+func TestNewServiceWithEmptyKey(t *testing.T) {
+	config := Config{} // Empty config should fail
 
-	service, err := NewService(config)
-	if err != nil {
-		t.Fatalf("NewService with random key failed: %v", err)
+	_, err := NewService(config)
+	if err == nil {
+		t.Fatal("Expected error for empty key")
 	}
 
-	if service == nil {
-		t.Fatal("Service should not be nil")
-	}
-
-	if len(service.key) != 32 {
-		t.Errorf("Expected key length 32, got %d", len(service.key))
+	var cryptoErr *CryptoError
+	if !errors.As(err, &cryptoErr) {
+		t.Errorf("Expected CryptoError, got %T", err)
 	}
 }
 
