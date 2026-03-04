@@ -99,9 +99,8 @@ func (u *User) TableName() string {
 }
 
 type Organization struct {
-	ID    uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-	Name  string    `json:"name"`
-	Email string    `json:"-"` // TODO: Remove from db
+	ID   uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+	Name string    `json:"name"`
 }
 
 func (o *Organization) TableName() string {

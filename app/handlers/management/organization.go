@@ -1,14 +1,11 @@
 package mngmt
 
 import (
-	"fmt"
-
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
 	"fundermaps/app/config"
 	"fundermaps/app/database"
-	"fundermaps/pkg/utils"
 )
 
 func GetAllOrganizations(c *fiber.Ctx) error {
@@ -48,8 +45,7 @@ func CreateOrganization(c *fiber.Ctx) error {
 	}
 
 	org := database.Organization{
-		Name:  input.Name,
-		Email: fmt.Sprintf("info@%s.com", utils.GenerateRandomString(10)), // TODO: Will be removed in the future
+		Name: input.Name,
 	}
 
 	result := db.Create(&org)
