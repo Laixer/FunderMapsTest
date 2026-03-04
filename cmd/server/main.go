@@ -79,16 +79,16 @@ func main() {
 
 	// General API
 	api := app.Group("/api")
-	api.Get("/app/:application_id?", handlers.GetApplication)
-	api.Get("/data/contractor", middleware.AuthMiddleware, handlers.GetAllContractors) // TODO: Why not add the contractors to the application data?
+	// api.Get("/app/:application_id?", handlers.GetApplication)
+	// api.Get("/data/contractor", middleware.AuthMiddleware, handlers.GetAllContractors)
 
 	// Auth API
 	auth := api.Group("/auth", limiter.New(limiter.Config{Max: 50}))
 	auth.Post("/signin", handlers.SigninWithPassword)
 	auth.Post("/token-refresh", middleware.AuthMiddleware, handlers.RefreshToken)
-	auth.Post("/change-password", middleware.AuthMiddleware, handlers.ChangePassword)
-	auth.Post("/forgot-password", handlers.ForgotPassword)
-	auth.Post("/reset-password", handlers.ResetPassword)
+	// auth.Post("/change-password", middleware.AuthMiddleware, handlers.ChangePassword)
+	// auth.Post("/forgot-password", handlers.ForgotPassword)
+	// auth.Post("/reset-password", handlers.ResetPassword)
 
 	// OAuth2 API
 	oauth2 := api.Group("/v1/oauth2", limiter.New(limiter.Config{Max: 50}))
@@ -96,46 +96,46 @@ func main() {
 	oauth2.Post("/token", handlers.TokenRequest)
 	oauth2.Get("/userinfo", middleware.AuthMiddleware, handlers.GetUserInfo)
 
-	// User API
-	user := api.Group("/user", middleware.AuthMiddleware)
-	user.Get("/me", handlers.GetCurrentUser)
-	user.Put("/me", handlers.UpdateCurrentUser)
-	user.Get("/metadata", handlers.GetCurrentUserMetadata)
-	user.Put("/metadata", handlers.UpdateCurrentUserMetadata)
+	// User API (disabled)
+	// user := api.Group("/user", middleware.AuthMiddleware)
+	// user.Get("/me", handlers.GetCurrentUser)
+	// user.Put("/me", handlers.UpdateCurrentUser)
+	// user.Get("/metadata", handlers.GetCurrentUserMetadata)
+	// user.Put("/metadata", handlers.UpdateCurrentUserMetadata)
 
-	// Mapset API
-	mapset := api.Group("/mapset", middleware.AuthMiddleware)
-	mapset.Get("/:mapset_id?", handlers.GetMapset)
+	// Mapset API (disabled)
+	// mapset := api.Group("/mapset", middleware.AuthMiddleware)
+	// mapset.Get("/:mapset_id?", handlers.GetMapset)
 
-	// Geocoder API
-	geocoder := api.Group("/geocoder/:geocoder_id", limiter.New(limiter.Config{Max: 50}))
-	geocoder.Get("/", handlers.GetGeocoder)
-	geocoder.Get("/address", handlers.GetAllAddresses)
+	// Geocoder API (disabled)
+	// geocoder := api.Group("/geocoder/:geocoder_id", limiter.New(limiter.Config{Max: 50}))
+	// geocoder.Get("/", handlers.GetGeocoder)
+	// geocoder.Get("/address", handlers.GetAllAddresses)
 
-	// Product API
-	product := api.Group("/product/:building_id", middleware.AuthMiddleware) // TODO: requestid.New() use when serving the public API
-	product.Get("/analysis", middleware.TrackerMiddleware, handlers.GetAnalysis)
-	product.Get("/statistics", handlers.GetStatistics)
-	product.Get("/subsidence", handlers.GetDataSubsidence) // TODO: There may be no need for this endpoint
-	product.Get("/subsidence/historic", handlers.GetDataSubsidenceHistoric)
+	// Product API (disabled)
+	// product := api.Group("/product/:building_id", middleware.AuthMiddleware)
+	// product.Get("/analysis", middleware.TrackerMiddleware, handlers.GetAnalysis)
+	// product.Get("/statistics", handlers.GetStatistics)
+	// product.Get("/subsidence", handlers.GetDataSubsidence)
+	// product.Get("/subsidence/historic", handlers.GetDataSubsidenceHistoric)
 
-	// Report API
-	report := api.Group("/report/:building_id", middleware.AuthMiddleware)
-	report.Get("/", handlers.GetReport)
+	// Report API (disabled)
+	// report := api.Group("/report/:building_id", middleware.AuthMiddleware)
+	// report.Get("/", handlers.GetReport)
 
-	// Inquiry API
-	inquiry := api.Group("/inquiry", middleware.AuthMiddleware)
-	inquiry.Post("/", handlers.CreateInquiry)
-	inquiry.Post("/:inquiry_id", handlers.CreateInquirySample)
+	// Inquiry API (disabled)
+	// inquiry := api.Group("/inquiry", middleware.AuthMiddleware)
+	// inquiry.Post("/", handlers.CreateInquiry)
+	// inquiry.Post("/:inquiry_id", handlers.CreateInquirySample)
 
-	// Recovery API
-	recovery := api.Group("/recovery", middleware.AuthMiddleware)
-	recovery.Post("/", handlers.CreateRecovery)
-	recovery.Post("/:recovery_id", handlers.CreateRecoverySample)
+	// Recovery API (disabled)
+	// recovery := api.Group("/recovery", middleware.AuthMiddleware)
+	// recovery.Post("/", handlers.CreateRecovery)
+	// recovery.Post("/:recovery_id", handlers.CreateRecoverySample)
 
-	// PDF API
-	pdf := api.Group("/pdf", middleware.AuthMiddleware)
-	pdf.Get("/:id", handlers.GetPDF)
+	// PDF API (disabled)
+	// pdf := api.Group("/pdf", middleware.AuthMiddleware)
+	// pdf.Get("/:id", handlers.GetPDF)
 
 	// TODO: Drop the 'v1' from the URL
 	// Management API
@@ -195,10 +195,10 @@ func main() {
 	management_org_neighborhood.Post("/", mngmt.AddNeighborhoodToOrganization)
 	management_org_neighborhood.Delete("/", mngmt.RemoveNeighborhoodFromOrganization)
 
-	// Diagnostic API
-	diag := api.Group("/diag")
-	diag.Get("/ip", handlers.GetIP)
-	diag.Get("/req", handlers.GetHeaders)
+	// Diagnostic API (disabled)
+	// diag := api.Group("/diag")
+	// diag.Get("/ip", handlers.GetIP)
+	// diag.Get("/req", handlers.GetHeaders)
 
 	app.Use(limiter.New(limiter.Config{}), func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Not found"})
