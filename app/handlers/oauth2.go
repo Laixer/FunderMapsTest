@@ -110,7 +110,7 @@ func getRefreshToken(db *gorm.DB, clientID string, refreshToken string) (databas
 
 // TODO: Move to platform
 func revokeAPIKey(db *gorm.DB, user database.User) error {
-	return db.Where("user_id = ?", user.ID).Delete(&database.ResetKey{}).Error
+	return db.Where("user_id = ?", user.ID).Delete(&database.AuthKey{}).Error
 }
 
 type UserInfo struct {

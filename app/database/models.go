@@ -7,64 +7,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type Contractor struct {
-	ID   int    `json:"id" gorm:"primaryKey"`
-	Name string `json:"name"`
-}
-
-func (u *Contractor) TableName() string {
-	return "application.contractor"
-}
-
-type Address struct {
-	ID             string `json:"-" gorm:"primaryKey"`
-	ExternalID     string `json:"id"`
-	BuildingID     string `json:"-"`
-	BuildingNumber string `json:"building_number"`
-	PostalCode     string `json:"postal_code"`
-	Street         string `json:"street"`
-	City           string `json:"city"`
-}
-
-func (a *Address) TableName() string {
-	return "geocoder.address"
-}
-
-// TODO: Add custom types for the database data types
-type Analysis struct {
-	BuildingID                  string   `json:"building_id" gorm:"->"`
-	NeighborhoodID              string   `json:"neighborhood_id" gorm:"->"`
-	ConstructionYear            *int     `json:"construction_year" gorm:"->"`
-	ConstructionYearReliability string   `json:"construction_year_reliability" gorm:"->"`
-	RecoveryType                *string  `json:"recovery_type" gorm:"->"`
-	RestorationCosts            *float64 `json:"restoration_costs" gorm:"->"`
-	Height                      *float64 `json:"height" gorm:"->"`
-	Velocity                    *float64 `json:"velocity" gorm:"->"`
-	GroundWaterLevel            *float64 `json:"ground_water_level" gorm:"->"`
-	GroundLevel                 *float64 `json:"ground_level" gorm:"->"`
-	Soil                        *string  `json:"soil" gorm:"->"`
-	SurfaceArea                 *float64 `json:"surface_area" gorm:"->"`
-	DamageCause                 *string  `json:"damage_cause" gorm:"->"`
-	EnforcementTerm             *string  `json:"enforcement_term" gorm:"->"`
-	OverallQuality              *string  `json:"overall_quality" gorm:"->"`
-	InquiryType                 *string  `json:"inquiry_type" gorm:"->"`
-	FoundationType              *string  `json:"foundation_type" gorm:"->"`
-	FoundationTypeReliability   string   `json:"foundation_type_reliability" gorm:"->"`
-	Drystand                    *float64 `json:"drystand" gorm:"->"`
-	DrystandReliability         string   `json:"drystand_reliability" gorm:"->"`
-	DrystandRisk                *string  `json:"drystand_risk" gorm:"->"`
-	DewateringDepth             *float64 `json:"dewatering_depth" gorm:"->"`
-	DewateringDepthReliability  string   `json:"dewatering_depth_reliability" gorm:"->"`
-	DewateringDepthRisk         *string  `json:"dewatering_depth_risk" gorm:"->"`
-	BioInfectionReliability     string   `json:"bioInfection_reliability" gorm:"->"`
-	BioInfectionRisk            *string  `json:"bioInfection_risk" gorm:"->"`
-	UnclassifiedRisk            *string  `json:"unclassified_risk" gorm:"->"`
-}
-
-func (a *Analysis) TableName() string {
-	return "data.model_risk_static"
-}
-
 // TODO: Rename to APIKey
 type AuthKey struct {
 	Key    string    `json:"key" gorm:"default:concat('fmsk.', application.random_string(32));primaryKey"` // TODO: Wrap this into a database function
@@ -150,16 +92,6 @@ func (ac *AuthCode) TableName() string {
 	return "application.auth_code"
 }
 
-type ResetKey struct {
-	Key        uuid.UUID `json:"key" gorm:"primaryKey"`
-	UserID     uuid.UUID `json:"user_id" gorm:"type:uuid"`
-	CreateDate time.Time `json:"create_date" gorm:"default:now()"`
-}
-
-func (rk *ResetKey) TableName() string {
-	return "application.reset_key"
-}
-
 type AuthAccessToken struct {
 	AccessToken   string      `json:"access_token" gorm:"primaryKey"`
 	IPAddress     string      `json:"ip_address"`
@@ -204,21 +136,6 @@ func (al *AuthLog) TableName() string {
 	return "application.auth_logs"
 }
 
-// Attribution represents an attribution record in the system,
-// linking users, organizations, and contractors to specific items or actions.
-type Attribution struct {
-	ID         int       `json:"id" gorm:"primaryKey"`
-	Reviewer   uuid.UUID `json:"reviewer" gorm:"column:reviewer;not null"`
-	Creator    uuid.UUID `json:"creator" gorm:"column:creator;not null"`
-	Owner      uuid.UUID `json:"owner" gorm:"column:owner;not null"`
-	Contractor int       `json:"contractor" gorm:"column:contractor;not null"`
-}
-
-// TableName specifies the database table name for the Attribution model.
-func (a *Attribution) TableName() string {
-	return "application.attribution"
-}
-
 type Mapset struct {
 	ID       string      `json:"id" gorm:"primaryKey"`
 	Name     string      `json:"name"`
@@ -236,53 +153,6 @@ type Mapset struct {
 
 func (u *Mapset) TableName() string {
 	return "application.mapset_collection"
-}
-
-type FileResource struct {
-	ID               uuid.UUID  `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
-	Key              string     `json:"key" gorm:"unique;not null" validate:"required"`
-	OriginalFilename string     `json:"original_filename" gorm:"not null" validate:"required"`
-	Status           string     `json:"status" gorm:"default:'uploaded'"`
-	SizeBytes        int64      `json:"size_bytes"`
-	MimeType         string     `json:"mime_type"`
-	Metadata         JSONObject `json:"metadata" gorm:"type:jsonb"`
-	CreatedAt        time.Time  `json:"created_at" gorm:"default:now()"`
-	UpdatedAt        time.Time  `json:"updated_at" gorm:"default:now()"`
-}
-
-// TableName specifies the database table name for the FileResource model
-func (fr *FileResource) TableName() string {
-	return "application.file_resources"
-}
-
-type ProductTracker struct {
-	Name       string `json:"product"`
-	BuildingID string `json:"building_id"`
-	Identifier string `json:"identifier"`
-}
-
-func (pt *ProductTracker) TableName() string {
-	return "application.product_tracker"
-}
-
-type Recovery struct {
-	ID           int        `json:"id" gorm:"primaryKey;autoIncrement"`
-	CreateDate   time.Time  `json:"create_date" gorm:"default:CURRENT_TIMESTAMP"`
-	UpdateDate   *time.Time `json:"update_date"`
-	DeleteDate   *time.Time `json:"delete_date"`
-	Note         *string    `json:"note"`
-	Attribution  int        `json:"attribution" validate:"required"`
-	AccessPolicy string     `json:"access_policy" gorm:"default:'private'"`
-	Type         string     `json:"type" gorm:"default:'unknown'"` // TODO: Define valid types
-	DocumentDate time.Time  `json:"document_date" gorm:"type:date" validate:"required"`
-	DocumentFile string     `json:"document_file" validate:"required"`
-	AuditStatus  string     `json:"audit_status" gorm:"default:'todo'"`
-	DocumentName string     `json:"document_name" validate:"required"`
-}
-
-// TableName specifies the database table name for the Recovery model
-func (r *Recovery) TableName() string {
-	return "report.recovery"
 }
 
 // Incident represents a foundation-related incident report
@@ -316,131 +186,6 @@ func (i *Incident) BeforeCreate(tx *gorm.DB) (err error) {
 // TableName specifies the database table name for the Incident model
 func (i *Incident) TableName() string {
 	return "report.incident"
-}
-
-// Inquiry represents a foundation inquiry report
-type Inquiry struct {
-	ID               int        `json:"id" gorm:"primaryKey;autoIncrement"`
-	DocumentName     string     `json:"document_name" validate:"required"`
-	Inspection       bool       `json:"inspection" gorm:"default:false"`
-	JointMeasurement bool       `json:"joint_measurement" gorm:"default:false"`
-	FloorMeasurement bool       `json:"floor_measurement" gorm:"default:false"`
-	CreateDate       time.Time  `json:"create_date" gorm:"default:CURRENT_TIMESTAMP"`
-	UpdateDate       *time.Time `json:"update_date"`
-	DeleteDate       *time.Time `json:"delete_date"`
-	Note             *string    `json:"note"`
-	DocumentDate     time.Time  `json:"document_date" gorm:"type:date" validate:"required"`
-	DocumentFile     string     `json:"document_file" validate:"required"`
-	Attribution      int        `json:"attribution" validate:"required"` // Foreign key to application.attribution
-	AccessPolicy     string     `json:"access_policy" gorm:"default:'private'"`
-	Type             string     `json:"type" validate:"required"` // report.inquiry_type
-	StandardF3O      bool       `json:"standard_f3o" gorm:"default:false;column:standard_f3o"`
-	AuditStatus      string     `json:"audit_status" gorm:"default:'todo'"` // report.audit_status
-}
-
-// TableName specifies the database table name for the Inquiry model
-func (i *Inquiry) TableName() string {
-	return "report.inquiry"
-}
-
-type InquirySample struct {
-	ID                              int         `json:"id" gorm:"primaryKey"`
-	Inquiry                         int         `json:"inquiry" gorm:"index"`
-	CreateDate                      time.Time   `json:"create_date" gorm:"default:now()"`
-	UpdateDate                      time.Time   `json:"update_date"`
-	DeleteDate                      *time.Time  `json:"delete_date"`
-	Note                            *string     `json:"note"`
-	BuiltYear                       *time.Time  `json:"built_year"`
-	Substructure                    *string     `json:"substructure"`
-	OverallQuality                  *string     `json:"overall_quality"`
-	WoodQuality                     *string     `json:"wood_quality"`
-	ConstructionQuality             *string     `json:"construction_quality"`
-	WoodCapacityHorizontalQuality   *string     `json:"wood_capacity_horizontal_quality"`
-	PileWoodCapacityVerticalQuality *string     `json:"pile_wood_capacity_vertical_quality"`
-	CarryingCapacityQuality         *string     `json:"carrying_capacity_quality"`
-	MasonQuality                    *string     `json:"mason_quality"`
-	WoodQualityNecessity            *bool       `json:"wood_quality_necessity"`
-	ConstructionLevel               *float64    `json:"construction_level"`
-	WoodLevel                       *float64    `json:"wood_level"`
-	PileDiameterTop                 *float64    `json:"pile_diameter_top"`
-	PileDiameterBottom              *float64    `json:"pile_diameter_bottom"`
-	PileHeadLevel                   *float64    `json:"pile_head_level"`
-	PileTipLevel                    *float64    `json:"pile_tip_level"`
-	FoundationDepth                 *float64    `json:"foundation_depth"`
-	MasonLevel                      *float64    `json:"mason_level"`
-	ConcreteChargerLength           *float64    `json:"concrete_charger_length"`
-	PileDistanceLength              *float64    `json:"pile_distance_length"`
-	WoodPenetrationDepth            *float64    `json:"wood_penetration_depth"`
-	CPT                             *string     `json:"cpt"`
-	MonitoringWell                  *string     `json:"monitoring_well"`
-	GroundwaterLevelTemp            *float64    `json:"groundwater_level_temp"`
-	GroundLevel                     *float64    `json:"ground_level" gorm:"column:groundlevel"` // TODO: Fix coulumn name in database
-	GroundwaterLevelNet             *float64    `json:"groundwater_level_net"`
-	FoundationType                  *string     `json:"foundation_type"`
-	EnforcementTerm                 *string     `json:"enforcement_term"`
-	RecoveryAdvised                 *bool       `json:"recovery_advised"`
-	DamageCause                     *string     `json:"damage_cause"`
-	DamageCharacteristics           StringArray `json:"damage_characteristics" gorm:"type:text[]"`
-	ConstructionPile                *string     `json:"construction_pile"`
-	WoodType                        *string     `json:"wood_type"`
-	WoodEncroachment                *string     `json:"wood_encroachment" gorm:"column:wood_encroachement"` // TODO: Fix typo in database
-	CrackIndoorRestored             *bool       `json:"crack_indoor_restored"`
-	CrackIndoorType                 *string     `json:"crack_indoor_type"`
-	CrackIndoorSize                 *string     `json:"crack_indoor_size"`
-	CrackFacadeFrontRestored        *bool       `json:"crack_facade_front_restored"`
-	CrackFacadeFrontType            *string     `json:"crack_facade_front_type"`
-	CrackFacadeFrontSize            *string     `json:"crack_facade_front_size"`
-	CrackFacadeBackRestored         *bool       `json:"crack_facade_back_restored"`
-	CrackFacadeBackType             *string     `json:"crack_facade_back_type"`
-	CrackFacadeBackSize             *string     `json:"crack_facade_back_size"`
-	CrackFacadeLeftRestored         *bool       `json:"crack_facade_left_restored"`
-	CrackFacadeLeftType             *string     `json:"crack_facade_left_type"`
-	CrackFacadeLeftSize             *string     `json:"crack_facade_left_size"`
-	CrackFacadeRightRestored        *bool       `json:"crack_facade_right_restored"`
-	CrackFacadeRightType            *string     `json:"crack_facade_right_type"`
-	CrackFacadeRightSize            *string     `json:"crack_facade_right_size"`
-	DeformedFacade                  *bool       `json:"deformed_facade"`
-	ThresholdUpdownSkewed           *bool       `json:"threshold_updown_skewed"`
-	ThresholdFrontLevel             *float64    `json:"threshold_front_level"`
-	ThresholdBackLevel              *float64    `json:"threshold_back_level"`
-	SkewedParallel                  *float64    `json:"skewed_parallel"`
-	SkewedPerpendicular             *float64    `json:"skewed_perpendicular"`
-	SkewedParallelFacade            *string     `json:"skewed_parallel_facade"`
-	SettlementSpeed                 *float64    `json:"settlement_speed"`
-	SkewedWindowFrame               *bool       `json:"skewed_window_frame"`
-	SkewedPerpendicularFacade       *string     `json:"skewed_perpendicular_facade"`
-	Building                        string      `json:"building" gorm:"index"`
-	FacadeScanRisk                  *string     `json:"facade_scan_risk"`
-	Metadata                        JSONObject  `json:"metadata" gorm:"type:jsonb"`
-}
-
-// TableName specifies the database table name for the Incident model
-func (is *InquirySample) TableName() string {
-	return "report.inquiry_sample"
-}
-
-type RecoverySample struct {
-	ID           int         `json:"id" gorm:"primaryKey"`
-	Recovery     int         `json:"recovery" gorm:"index"`
-	CreateDate   time.Time   `json:"create_date" gorm:"default:CURRENT_TIMESTAMP"`
-	UpdateDate   *time.Time  `json:"update_date"`
-	DeleteDate   *time.Time  `json:"delete_date"`
-	Note         *string     `json:"note"`
-	Status       *string     `json:"status"`
-	Type         string      `json:"type" gorm:"default:'unknown'"`
-	PileType     *string     `json:"pile_type"`
-	Facade       StringArray `json:"facade" gorm:"type:text[]"`
-	Permit       *string     `json:"permit"`
-	PermitDate   *time.Time  `json:"permit_date"`
-	RecoveryDate *time.Time  `json:"recovery_date"`
-	Contractor   *int        `json:"contractor"`
-	BuildingID   string      `json:"building_id" gorm:"index"`
-	Metadata     JSONObject  `json:"metadata" gorm:"type:jsonb"`
-}
-
-// TableName specifies the database table name for the RecoverySample model
-func (rs *RecoverySample) TableName() string {
-	return "report.recovery_sample"
 }
 
 // OrganizationGeolockDistrict represents the junction table linking organizations to geographical districts

@@ -26,3 +26,4 @@ go.work.sum
 
 # Settings file
 settings.*.yaml
+server

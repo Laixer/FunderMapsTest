@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"github.com/go-playground/validator"
-	"github.com/gofiber/storage/s3/v2"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/spf13/viper"
 	"golang.org/x/text/language"
@@ -22,16 +21,6 @@ type Config struct {
 	AuthExpiration int      `mapstructure:"AUTH_EXPIRATION" validate:"required,min=1"`
 	AuthDomain     string   `mapstructure:"AUTH_DOMAIN" validate:"required"`
 	AuthSecure     bool     `mapstructure:"AUTH_SECURE"`
-	MailgunAPIKey  string   `mapstructure:"MAILGUN_API_KEY" validate:"required_with=MailgunDomain"`
-	MailgunDomain  string   `mapstructure:"MAILGUN_DOMAIN" validate:"required_with=MailgunAPIKey"`
-	MailgunAPIBase string   `mapstructure:"MAILGUN_API_BASE"`
-	EmailReceivers []string `mapstructure:"EMAIL_RECEIVERS" validate:"required_with=MailgunDomain"`
-	S3Endpoint     string   `mapstructure:"S3_ENDPOINT" validate:"required_with=S3Bucket"`
-	S3Region       string   `mapstructure:"S3_REGION" validate:"required_with=S3Bucket"`
-	S3Bucket       string   `mapstructure:"S3_BUCKET"`
-	S3AccessKey    string   `mapstructure:"S3_ACCESS_KEY" validate:"required_with=S3Bucket"`
-	S3SecretKey    string   `mapstructure:"S3_SECRET_KEY" validate:"required_with=S3Bucket,min=8"`
-	PdfCoAPIKey    string   `mapstructure:"PDFCO_API_KEY"`
 	ProxyEnabled   bool     `mapstructure:"PROXY_ENABLED"`
 	ProxyNetworks  []string `mapstructure:"PROXY_NETWORKS"` // validate:"dive,cidr,required_if=ProxyEnabled true"`
 	ProxyHeader    string   `mapstructure:"PROXY_HEADER"`   // validate:"required_if=ProxyEnabled true"`
@@ -63,26 +52,10 @@ func Load() (*Config, error) {
 	viper.BindEnv("AUTH_DOMAIN", "FM_AUTH_DOMAIN", "AUTH_DOMAIN")
 	viper.BindEnv("AUTH_SECURE", "FM_AUTH_SECURE", "AUTH_SECURE")
 
-	// Bind Mailgun environment variables
-	viper.BindEnv("MAILGUN_API_KEY", "FM_MAILGUN_API_KEY", "MAILGUN_API_KEY")
-	viper.BindEnv("MAILGUN_DOMAIN", "FM_MAILGUN_DOMAIN", "MAILGUN_DOMAIN")
-	viper.BindEnv("MAILGUN_API_BASE", "FM_MAILGUN_API_BASE", "MAILGUN_API_BASE")
-	viper.BindEnv("EMAIL_RECEIVERS", "FM_EMAIL_RECEIVERS", "EMAIL_RECEIVERS")
-
-	// Bind S3 storage environment variables
-	viper.BindEnv("S3_ENDPOINT", "FM_S3_ENDPOINT", "S3_ENDPOINT")
-	viper.BindEnv("S3_REGION", "FM_S3_REGION", "S3_REGION")
-	viper.BindEnv("S3_BUCKET", "FM_S3_BUCKET", "S3_BUCKET")
-	viper.BindEnv("S3_ACCESS_KEY", "FM_S3_ACCESS_KEY", "S3_ACCESS_KEY")
-	viper.BindEnv("S3_SECRET_KEY", "FM_S3_SECRET_KEY", "S3_SECRET_KEY")
-
 	// Bind proxy config environment variables
 	viper.BindEnv("PROXY_ENABLED", "FM_PROXY_ENABLED", "PROXY_ENABLED")
 	viper.BindEnv("PROXY_NETWORKS", "FM_PROXY_NETWORKS", "PROXY_NETWORKS")
 	viper.BindEnv("PROXY_HEADER", "FM_PROXY_HEADER", "PROXY_HEADER")
-
-	// Bind PDF.co environment variables
-	viper.BindEnv("PDFCO_API_KEY", "FM_PDFCO_API_KEY", "PDFCO_API_KEY")
 
 	viper.SetConfigName("settings")
 	viper.SetConfigType("yaml")
@@ -117,11 +90,6 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
-	// Default email receiver if none specified
-	if len(cfg.EmailReceivers) == 0 && cfg.MailgunDomain != "" {
-		cfg.EmailReceivers = []string{fmt.Sprintf("Fundermaps <info@%s>", cfg.MailgunDomain)}
-	}
-
 	// Initialize validator
 	Validate = validator.New()
 
@@ -131,19 +99,6 @@ func Load() (*Config, error) {
 	}
 
 	return &cfg, nil
-}
-
-func (cfg *Config) Storage() *s3.Storage {
-	return s3.New(s3.Config{
-		Bucket:   cfg.S3Bucket,
-		Endpoint: cfg.S3Endpoint,
-		Region:   cfg.S3Region,
-		Reset:    false,
-		Credentials: s3.Credentials{
-			AccessKey:       cfg.S3AccessKey,
-			SecretAccessKey: cfg.S3SecretKey,
-		},
-	})
 }
 
 var Bundle *i18n.Bundle
