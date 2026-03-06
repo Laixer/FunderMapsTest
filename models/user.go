@@ -15,5 +15,4 @@ type User struct {
 	AccessFailedCount int       `json:"access_failed_count"`
 	Role              string    `json:"role"`
 	LastLogin         time.Time `json:"last_login"`
-	LoginCount        int       `json:"login_count"`
 }

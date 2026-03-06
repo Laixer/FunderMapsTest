@@ -31,7 +31,6 @@ type User struct {
 	AccessFailedCount int            `json:"-" gorm:"default:0"`
 	Role              string         `json:"role" gorm:"default:'user'"`
 	LastLogin         time.Time      `json:"-" gorm:"default:now()"`
-	LoginCount        int            `json:"-" gorm:"default:0"`
 	Organizations     []Organization `json:"organizations" gorm:"many2many:application.organization_user;foreignKey:ID;joinForeignKey:user_id;References:ID;joinReferences:organization_id;jointable_columns:role"`
 }
 

@@ -150,7 +150,7 @@ func LoginWithForm(c *fiber.Ctx) error {
 		}
 	}
 
-	db.Exec("UPDATE application.user SET access_failed_count = 0, login_count = login_count + 1, last_login = CURRENT_TIMESTAMP WHERE id = ?", user.ID)
+	db.Exec("UPDATE application.user SET access_failed_count = 0, last_login = CURRENT_TIMESTAMP WHERE id = ?", user.ID)
 
 	// End platform service
 
@@ -247,7 +247,7 @@ func SigninWithPassword(c *fiber.Ctx) error {
 		}
 	}
 
-	db.Exec("UPDATE application.user SET access_failed_count = 0, login_count = login_count + 1, last_login = CURRENT_TIMESTAMP WHERE id = ?", user.ID)
+	db.Exec("UPDATE application.user SET access_failed_count = 0, last_login = CURRENT_TIMESTAMP WHERE id = ?", user.ID)
 
 	// End platform service
 
