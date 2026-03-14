@@ -9,8 +9,10 @@ import (
 
 // TODO: Rename to APIKey
 type AuthKey struct {
-	Key    string    `json:"key" gorm:"default:concat('fmsk.', application.random_string(32));primaryKey"` // TODO: Wrap this into a database function
-	UserID uuid.UUID `json:"user_id" gorm:"type:uuid"`
+	Key      string     `json:"key" gorm:"default:concat('fmsk.', application.random_string(32));primaryKey"` // TODO: Wrap this into a database function
+	UserID   uuid.UUID  `json:"user_id" gorm:"type:uuid"`
+	Name     *string    `json:"name"`
+	LastUsed *time.Time `json:"last_used"`
 }
 
 func (ak *AuthKey) TableName() string {

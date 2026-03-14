@@ -1,7 +1,10 @@
 package mngmt
 
 import (
+	"errors"
+
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 
 	"fundermaps/app/config"
@@ -243,16 +246,17 @@ func AddMapsetToOrganization(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
 	}
 
-	// TODO: Just do an insert into the database, the foreign key constraints will handle the rest
-	var org database.Organization
-	result := db.First(&org, "id = ?", c.Params("org_id"))
+	result := db.Exec("INSERT INTO application.organization_mapset (mapset_id, organization_id) VALUES (?, ?)", input.MapsetID, c.Params("org_id"))
 	if result.Error != nil {
-		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
-	}
-
-	result = db.Exec("INSERT INTO application.organization_mapset (mapset_id, organization_id) VALUES (?, ?)", input.MapsetID, org.ID)
-	// TODO: This SQL statement can cause a unique constraint violation, handle this error
-	if result.Error != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(result.Error, &pgErr) {
+			switch pgErr.Code {
+			case "23505": // unique_violation
+				return c.Status(fiber.StatusConflict).JSON(fiber.Map{"message": "Mapset already assigned to organization"})
+			case "23503": // foreign_key_violation
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Organization or mapset not found"})
+			}
+		}
 		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
 	}
 
