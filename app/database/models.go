@@ -32,7 +32,7 @@ type User struct {
 	PhoneNumber       *string        `json:"phone_number"`
 	AccessFailedCount int            `json:"-" gorm:"default:0"`
 	Role              string         `json:"role" gorm:"default:'user'"`
-	LastLogin         time.Time      `json:"-" gorm:"default:now()"`
+	LastLogin         time.Time      `json:"last_login" gorm:"default:now()"`
 	Organizations     []Organization `json:"organizations" gorm:"many2many:application.organization_user;foreignKey:ID;joinForeignKey:user_id;References:ID;joinReferences:organization_id;jointable_columns:role"`
 }
 
