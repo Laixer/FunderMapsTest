@@ -200,6 +200,23 @@ func ResetUserPassword(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+func GetApiKeys(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	uid, err := uuid.Parse(c.Params("user_id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid user ID"})
+	}
+
+	var keys []database.AuthKey
+	result := db.Where("user_id = ?", uid).Find(&keys)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	return c.JSON(keys)
+}
+
 func CreateApiKey(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 

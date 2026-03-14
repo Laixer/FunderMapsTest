@@ -116,7 +116,8 @@ func main() {
 	management_user.Get("/", mngmt.GetUser)
 	management_user.Put("/", mngmt.UpdateUser)
 	management_user.Delete("/", mngmt.DeleteUser)
-	management_user.Get("/api-key", mngmt.CreateApiKey)
+	management_user.Get("/api-key", mngmt.GetApiKeys)
+	management_user.Post("/api-key", mngmt.CreateApiKey)
 	management_user.Post("/reset-password", mngmt.ResetUserPassword)
 
 	// Job management routes
@@ -134,6 +135,7 @@ func main() {
 	management_org.Put("/", mngmt.UpdateOrganization)
 	management_org.Delete("/", mngmt.DeleteOrganization)
 	management_org_mapset := management_org.Group("/mapset")
+	management_org_mapset.Get("/", mngmt.GetAllOrganizationMapsets)
 	management_org_mapset.Post("/", mngmt.AddMapsetToOrganization)
 	management_org_mapset.Delete("/", mngmt.RemoveMapsetFromOrganization)
 	management_org_user := management_org.Group("/user")

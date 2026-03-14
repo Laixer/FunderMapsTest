@@ -269,6 +269,28 @@ func RemoveUserFromOrganization(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+func GetAllOrganizationMapsets(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	organizationID := c.Params("org_id")
+
+	var org database.Organization
+	result := db.First(&org, "id = ?", organizationID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Organization not found"})
+	}
+
+	var mapsets []database.Mapset
+	result = db.Joins("JOIN application.organization_mapset ON application.organization_mapset.mapset_id = application.mapset_collection.id").
+		Where("application.organization_mapset.organization_id = ?", org.ID).
+		Find(&mapsets)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	return c.JSON(mapsets)
+}
+
 func AddMapsetToOrganization(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
