@@ -153,6 +153,11 @@ func DeleteOrganization(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+type OrganizationUserResponse struct {
+	database.User
+	OrganizationRole string `json:"organization_role"`
+}
+
 func GetAllOrganizationUsers(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
@@ -164,10 +169,12 @@ func GetAllOrganizationUsers(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
 	}
 
-	var users []database.User
-	result = db.Joins("JOIN application.organization_user ON application.organization_user.user_id = application.user.id").
+	var users []OrganizationUserResponse
+	result = db.Table("application.user").
+		Select("application.user.*, application.organization_user.role as organization_role").
+		Joins("JOIN application.organization_user ON application.organization_user.user_id = application.user.id").
 		Where("application.organization_user.organization_id = ?", org.ID).
-		Find(&users)
+		Scan(&users)
 	if result.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
 	}
