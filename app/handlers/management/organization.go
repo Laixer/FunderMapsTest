@@ -250,7 +250,7 @@ func AddMapsetToOrganization(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
 	}
 
-	result = db.Exec("INSERT INTO maplayer.map_organization (map_id, organization_id) VALUES (?, ?)", input.MapsetID, org.ID)
+	result = db.Exec("INSERT INTO application.organization_mapset (mapset_id, organization_id) VALUES (?, ?)", input.MapsetID, org.ID)
 	// TODO: This SQL statement can cause a unique constraint violation, handle this error
 	if result.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
@@ -285,7 +285,7 @@ func RemoveMapsetFromOrganization(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
 	}
 
-	result = db.Exec("DELETE FROM maplayer.map_organization WHERE map_id = ? AND organization_id = ?", input.MapsetID, org.ID)
+	result = db.Exec("DELETE FROM application.organization_mapset WHERE mapset_id = ? AND organization_id = ?", input.MapsetID, org.ID)
 	if result.Error != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
 	}
