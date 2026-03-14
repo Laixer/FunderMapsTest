@@ -244,6 +244,30 @@ func CreateApiKey(c *fiber.Ctx) error {
 	return c.JSON(apiKey)
 }
 
+func DeleteApiKey(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	type DeleteApiKeyInput struct {
+		Key string `json:"key" validate:"required"`
+	}
+
+	var input DeleteApiKeyInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid input"})
+	}
+
+	result := db.Where("key = ? AND user_id = ?", input.Key, c.Params("user_id")).Delete(&database.AuthKey{})
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	if result.RowsAffected == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "API key not found"})
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
 func DeleteUser(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 

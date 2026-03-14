@@ -118,6 +118,7 @@ func main() {
 	management_user.Delete("/", mngmt.DeleteUser)
 	management_user.Get("/api-key", mngmt.GetApiKeys)
 	management_user.Post("/api-key", mngmt.CreateApiKey)
+	management_user.Delete("/api-key", mngmt.DeleteApiKey)
 	management_user.Post("/reset-password", mngmt.ResetUserPassword)
 
 	// Job management routes
