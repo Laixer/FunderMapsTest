@@ -89,8 +89,6 @@ func GetUser(c *fiber.Ctx) error {
 	return c.JSON(user)
 }
 
-// TODO: There are likely better ways to update a user
-// TODO: Related to /me endpoint
 func UpdateUser(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 
@@ -103,6 +101,7 @@ func UpdateUser(c *fiber.Ctx) error {
 		Avatar      *string `json:"picture"`
 		JobTitle    *string `json:"job_title"`
 		PhoneNumber *string `json:"phone_number"`
+		Role        *string `json:"role" validate:"omitempty,oneof=user administrator service"`
 	}
 
 	var input UpdateUserInput
@@ -149,6 +148,9 @@ func UpdateUser(c *fiber.Ctx) error {
 	}
 	if input.PhoneNumber != nil && *input.PhoneNumber != "" {
 		user.PhoneNumber = input.PhoneNumber
+	}
+	if input.Role != nil && *input.Role != "" {
+		user.Role = *input.Role
 	}
 
 	err = userService.Update(user)
@@ -223,4 +225,43 @@ func CreateApiKey(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(apiKey)
+}
+
+func DeleteUser(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	userService := user.NewService(db)
+
+	uid, err := uuid.Parse(c.Params("user_id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid user ID"})
+	}
+
+	user, err := userService.GetUserByID(uid)
+	if err != nil {
+		if err.Error() == "user not found" {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "User not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	// Remove user from all organizations first
+	result := db.Exec("DELETE FROM application.organization_user WHERE user_id = ?", user.ID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	// Remove API keys
+	result = db.Where("user_id = ?", user.ID).Delete(&database.AuthKey{})
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	// Delete the user
+	result = db.Delete(user)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
 }

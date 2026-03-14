@@ -113,6 +113,46 @@ func UpdateOrganization(c *fiber.Ctx) error {
 	return c.JSON(org)
 }
 
+func DeleteOrganization(c *fiber.Ctx) error {
+	db := c.Locals("db").(*gorm.DB)
+
+	organizationID := c.Params("org_id")
+
+	var org database.Organization
+	result := db.First(&org, "id = ?", organizationID)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Organization not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	// Remove all user associations
+	result = db.Exec("DELETE FROM application.organization_user WHERE organization_id = ?", org.ID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	// Remove all mapset associations
+	result = db.Exec("DELETE FROM application.organization_mapset WHERE organization_id = ?", org.ID)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	// Remove all geolock associations
+	db.Where("organization_id = ?", org.ID).Delete(&database.OrganizationGeolockDistrict{})
+	db.Where("organization_id = ?", org.ID).Delete(&database.OrganizationGeolockMunicipality{})
+	db.Where("organization_id = ?", org.ID).Delete(&database.OrganizationGeolockNeighborhood{})
+
+	// Delete the organization
+	result = db.Delete(&org)
+	if result.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
 func GetAllOrganizationUsers(c *fiber.Ctx) error {
 	db := c.Locals("db").(*gorm.DB)
 

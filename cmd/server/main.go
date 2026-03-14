@@ -115,6 +115,7 @@ func main() {
 	management_user := management.Group("/user/:user_id")
 	management_user.Get("/", mngmt.GetUser)
 	management_user.Put("/", mngmt.UpdateUser)
+	management_user.Delete("/", mngmt.DeleteUser)
 	management_user.Get("/api-key", mngmt.CreateApiKey)
 	management_user.Post("/reset-password", mngmt.ResetUserPassword)
 
@@ -131,6 +132,7 @@ func main() {
 	management_org := management.Group("/org/:org_id")
 	management_org.Get("/", mngmt.GetOrganization)
 	management_org.Put("/", mngmt.UpdateOrganization)
+	management_org.Delete("/", mngmt.DeleteOrganization)
 	management_org_mapset := management_org.Group("/mapset")
 	management_org_mapset.Post("/", mngmt.AddMapsetToOrganization)
 	management_org_mapset.Delete("/", mngmt.RemoveMapsetFromOrganization)
