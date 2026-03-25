@@ -256,9 +256,6 @@ func SigninWithPassword(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
-	if err := revokeAPIKey(db, user); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
-	}
 
 	return c.JSON(authToken)
 }
