@@ -81,7 +81,7 @@ func GetUser(c *fiber.Ctx) error {
 	user, err := userService.GetUserByID(uid)
 	if err != nil {
 		if err.Error() == "user not found" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User not found"})
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "User not found"})
 		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
@@ -121,7 +121,7 @@ func UpdateUser(c *fiber.Ctx) error {
 	user, err := userService.GetUserByID(uid)
 	if err != nil {
 		if err.Error() == "user not found" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User not found"})
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "User not found"})
 		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
@@ -187,7 +187,7 @@ func ResetUserPassword(c *fiber.Ctx) error {
 	user, err := userService.GetUserByID(uid)
 	if err != nil {
 		if err.Error() == "user not found" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User not found"})
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "User not found"})
 		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
@@ -223,7 +223,7 @@ func CreateApiKey(c *fiber.Ctx) error {
 	var user database.User
 	result := db.First(&user, "id = ?", c.Params("user_id"))
 	if result.Error != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User not found"})
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "User not found"})
 	}
 
 	user.Role = "service"

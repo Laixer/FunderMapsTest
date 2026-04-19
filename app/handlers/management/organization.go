@@ -67,7 +67,7 @@ func GetOrganization(c *fiber.Ctx) error {
 	var org database.Organization
 	result := db.First(&org, "id = ?", organizationID)
 	if result.Error != nil {
-		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Organization not found"})
 	}
 
 	return c.JSON(org)
@@ -166,7 +166,7 @@ func GetAllOrganizationUsers(c *fiber.Ctx) error {
 	var org database.Organization
 	result := db.First(&org, "id = ?", organizationID)
 	if result.Error != nil {
-		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Organization not found"})
 	}
 
 	var users []OrganizationUserResponse
@@ -176,7 +176,7 @@ func GetAllOrganizationUsers(c *fiber.Ctx) error {
 		Where("application.organization_user.organization_id = ?", org.ID).
 		Scan(&users)
 	if result.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	return c.JSON(users)
@@ -205,19 +205,19 @@ func AddUserToOrganization(c *fiber.Ctx) error {
 	var user database.User
 	result := db.First(&user, "id = ?", input.UserID)
 	if result.Error != nil {
-		return c.Status(fiber.StatusBadRequest).SendString("User not found")
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "User not found"})
 	}
 
 	var org database.Organization
 	result = db.First(&org, "id = ?", organizationID)
 	if result.Error != nil {
-		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Organization not found"})
 	}
 
 	var count int64
 	result = db.Table("application.organization_user").Where("user_id = ? AND organization_id = ?", user.ID, org.ID).Count(&count)
 	if result.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 	if count > 0 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "User is already a member of this organization"})
@@ -231,7 +231,7 @@ func AddUserToOrganization(c *fiber.Ctx) error {
 	// TODO: Return the organization user combination
 	result = db.Exec("INSERT INTO application.organization_user (user_id, organization_id, role) VALUES (?, ?, ?)", user.ID, org.ID, input.Role)
 	if result.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	return c.SendStatus(fiber.StatusCreated) // TODO: Only send status with no content
@@ -259,18 +259,18 @@ func RemoveUserFromOrganization(c *fiber.Ctx) error {
 	var user database.User
 	result := db.First(&user, "id = ?", input.UserID)
 	if result.Error != nil {
-		return c.Status(fiber.StatusBadRequest).SendString("User not found")
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "User not found"})
 	}
 
 	var org database.Organization
 	result = db.First(&org, "id = ?", organizationID)
 	if result.Error != nil {
-		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Organization not found"})
 	}
 
 	result = db.Exec("DELETE FROM application.organization_user WHERE user_id = ? AND organization_id = ?", user.ID, org.ID)
 	if result.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	return c.SendStatus(fiber.StatusNoContent)
@@ -326,7 +326,7 @@ func AddMapsetToOrganization(c *fiber.Ctx) error {
 				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Organization or mapset not found"})
 			}
 		}
-		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	return c.SendStatus(fiber.StatusCreated)
@@ -355,12 +355,12 @@ func RemoveMapsetFromOrganization(c *fiber.Ctx) error {
 	var org database.Organization
 	result := db.First(&org, "id = ?", organizationID)
 	if result.Error != nil {
-		return c.Status(fiber.StatusBadRequest).SendString("Organization not found")
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "Organization not found"})
 	}
 
 	result = db.Exec("DELETE FROM application.organization_mapset WHERE mapset_id = ? AND organization_id = ?", input.MapsetID, org.ID)
 	if result.Error != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
 	}
 
 	return c.SendStatus(fiber.StatusNoContent)
