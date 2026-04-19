@@ -104,8 +104,10 @@ func main() {
 	management_app.Get("/", mngmt.GetApplication)
 	management_app.Put("/", mngmt.UpdateApplication)
 	management.Get("/mapset", mngmt.GetAllMapsets)
+	management.Get("/layer", mngmt.GetAllMapsetLayers)
 	management_mapset := management.Group("/mapset/:mapset_id")
 	management_mapset.Get("/", mngmt.GetMapsetByID)
+	management_mapset.Put("/layers", mngmt.UpdateMapsetLayers)
 	management_incident := management.Group("/incident/:incident_id")
 	management_incident.Delete("/", mngmt.DeleteIncident)
 

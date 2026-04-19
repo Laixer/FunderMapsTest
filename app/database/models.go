@@ -156,6 +156,17 @@ func (u *Mapset) TableName() string {
 	return "application.mapset_collection"
 }
 
+type MapsetLayer struct {
+	ID     string     `json:"id" gorm:"primaryKey"`
+	Name   string     `json:"name"`
+	Fields JSONObject `json:"fields" gorm:"type:jsonb"`
+	Order  int        `json:"order"`
+}
+
+func (l *MapsetLayer) TableName() string {
+	return "application.mapset_layer"
+}
+
 // Incident represents a foundation-related incident report
 type Incident struct {
 	ID                               string      `json:"id" gorm:"primaryKey;<-:create"`
